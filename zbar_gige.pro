@@ -14,11 +14,14 @@ TEMPLATE = app
 SOURCES += main.cpp \
     ScanCode.cpp \
     qrcodezbar.cpp \
-    gigegrab.cpp
+    gigegrab.cpp \
+    qrgenerator.cpp
 
 HEADERS += \
     ScanCode.h \
-    qrcodezbar.h
+    qrcodezbar.h \
+    gigegrab.h \
+    qrgenerator.h
 
 
 
@@ -29,7 +32,8 @@ INCLUDEPATH += /usr/local/opencv320/include \
 /usr/local/opencv320/include/opencv2 \
 /opt/pylon5/include \
 /opt/pylon5/include/pylon \
-/usr/local/include
+/usr/local/include \
+/usr/local/libqrencode/include
 
 LIBS += /usr/local/opencv320/lib/libopencv_calib3d.so \
 /usr/local/opencv320/lib/libopencv_core.so \
@@ -70,5 +74,7 @@ LIBS += /usr/local/opencv320/lib/libopencv_calib3d.so \
 /usr/local/lib/libzbargtk.so \
 /usr/local/lib/libzbarqt.so \
 /usr/local/lib/libzbar.so \
+/usr/local/libqrencode/lib/libqrencode.so \
+
 
 FORMS += qzbar.ui

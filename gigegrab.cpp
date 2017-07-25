@@ -1,35 +1,34 @@
-#include <pylon/PylonIncludes.h>
-#ifdef PYLON_WIN_BUILD
-#include <pylon/PylonGUI.h>
-#endif
-
-//opencv
-#include "opencv2/highgui/highgui.hpp"
-#include "opencv2/imgproc/imgproc.hpp"
-#include "opencv2/core/core.hpp"
-
-//zbar
-#include "ScanCode.h"
-#include "qrcodezbar.h"
-#include <QApplication>
+#include "gigegrab.h"
 
 #define OPENCV_WIN
-
 
 using namespace cv;
 
 // Namespace for using pylon objects.
 using namespace Pylon;
 
-// Namespace for using cout.
 using namespace std;
 
 // Number of images to be grabbed.
 static const uint32_t c_countOfImagesToGrab = 100;
 
-int grab()
+//////////////////////////////////////////////////////////////////////
+// Construction/Destruction
+//////////////////////////////////////////////////////////////////////
+gigegrab::gigegrab()
 {
-#if 1
+
+}
+
+gigegrab::~gigegrab()
+{
+
+}
+
+
+int gigegrab::grab()
+{
+#if 0
     // The exit code of the sample application.
     int exitCode = 0;
 
@@ -67,7 +66,7 @@ int grab()
             if (ptrGrabResult->GrabSucceeded()){
                      fc.Convert(image, ptrGrabResult);
 #ifdef OPENCV_WIN
-                    cv_img = cv::Mat(ptrGrabResult->GetHeight(),     ptrGrabResult->GetWidth(), CV_8UC3,(uint8_t*)image.GetBuffer());  //image.GetBuffer() ptr
+                    cv_img = cv::Mat(ptrGrabResult->GetHeight(),     ptrGrabResult->GetWidth(), CV_8UC3,(uint8_t*)image.GetBuffer());
                     imshow("CV_Image",cv_img);
                     waitKey(1);
 #endif
@@ -77,7 +76,9 @@ int grab()
 
                     //added by flq
                     char result[1024] = {0};
-                    m_scancode->scanimage((void*)image.GetBuffer(), result);
+                    Mat imageGray;
+                    cvtColor(cv_img,imageGray,CV_RGB2GRAY);
+                    m_scancode->scanimage((void*)imageGray.data, result);
                     //added end
             }
         }
@@ -97,5 +98,37 @@ int grab()
     while( cin.get() != '\n');
 
     return exitCode;
+#elif 1
+    ScanCode *m_scancode = new ScanCode(); //added by flq
+    namedWindow("CV_Image",WINDOW_AUTOSIZE);
+
+    VideoCapture capture(1);
+    //设置图片的大小
+    capture.set(CV_CAP_PROP_FRAME_WIDTH, 1280);//1280
+    capture.set(CV_CAP_PROP_FRAME_HEIGHT, 960);//960
+    while (1)
+    {
+
+        Mat frame;
+        capture >> frame;
+        //imshow("摄像头", frame);
+
+        char c = cvWaitKey(33);
+        if (c == 't')
+        {
+            break;
+        }
+
+        //Mat imageGray;
+        //cvtColor(frame,imageGray,CV_RGB2GRAY);
+        //imshow("CV_Image",imageGray);
+        //waitKey(1);
+
+        //added by flq
+        char result[1024] = {0};
+        //////////m_scancode->scanimage((void*)frame.data, result);   //if single process, delete
+        //added end
+
+    }
 #endif
 }

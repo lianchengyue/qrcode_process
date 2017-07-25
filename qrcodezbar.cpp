@@ -31,7 +31,7 @@ void QRCodeZbar::on_pushButton_clicked()
     char result[1024] = {0};
 
     ScanCode *m_scancode = new ScanCode();
-        m_scancode->scanimage(ui->lineEdit->text().toStdString().data(), result);
+    m_scancode->scanimage(ui->lineEdit->text().toStdString().data(), result);
         //m_scancode->abc();
         printf("aa=%d\n",aa);
     ui->textEdit->setText(result);

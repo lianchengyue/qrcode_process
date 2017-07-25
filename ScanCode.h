@@ -6,6 +6,8 @@
 #include <png.h>
 #include <zbar.h>
 
+#include <pylon/PylonIncludes.h>
+
 using namespace zbar;
 
 class ScanCode

@@ -36,15 +36,15 @@ void ScanCode::scanimage(const void *raw, char *result)
     zbar_image_scanner_set_config(scanner, ZBAR_QRCODE, ZBAR_CFG_ENABLE, 1); //0
 
     /* obtain image data */
-    int width = 1280, height = 960;
+    //int width = 1280, height = 960;
 #if 0//CvMat
     CvMat *img1 = cvLoadImageM("/home/montafan/QRCode/zbar-0.10/barcode.png", CV_LOAD_IMAGE_GRAYSCALE);//QRcode3.png
     int width = img1->width;
     int height = img1->height;
     raw = (char*)img1->data.ptr;;
-#elif 0
+#elif 1
     //cv::Mat
-    Mat img1 = imread("/home/montafan/QRCode/zbar-0.10/barcode.png", CV_LOAD_IMAGE_GRAYSCALE);  //IMREAD_GRAYSCALE   IMREAD_COLOR
+    Mat img1 = imread("/home/montafan/QRCode/zbar-0.10/long2.png", CV_LOAD_IMAGE_GRAYSCALE);  //IMREAD_GRAYSCALE   IMREAD_COLOR
     //Mat imageGray;
     //cvtColor(img1,imageGray,CV_RGB2GRAY);
     int width = img1.cols;
