@@ -12,7 +12,6 @@ QRCodeZbar::QRCodeZbar(QWidget *parent)
     ui->setupUi(this);
 
     //sm_scancode = new ScanCode();
-    aa=1;
 };
 
 
@@ -32,7 +31,6 @@ void QRCodeZbar::on_pushButton_clicked()
 
     ScanCode *m_scancode = new ScanCode();
     m_scancode->scanimage(ui->lineEdit->text().toStdString().data(), result);
-        //m_scancode->abc();
-        printf("aa=%d\n",aa);
+
     ui->textEdit->setText(result);
 }

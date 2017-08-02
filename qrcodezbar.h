@@ -30,7 +30,6 @@ private:
     Ui::QZbar *ui;
     zbar::QZBar *qz;
     ////ScanCode *m_scancode; //added by flq
-    int aa;
 };
 
 #endif // QRCODEZBAR_H

@@ -1,23 +1,17 @@
+#include <sys/time.h>
 #include "gigegrab.h"
 
 #define OPENCV_WIN
+#define FPS_LOG_FREQ 3
 
 using namespace cv;
-
-// Namespace for using pylon objects.
 using namespace Pylon;
-
 using namespace std;
 
-// Number of images to be grabbed.
-static const uint32_t c_countOfImagesToGrab = 100;
-
-//////////////////////////////////////////////////////////////////////
-// Construction/Destruction
-//////////////////////////////////////////////////////////////////////
 gigegrab::gigegrab()
 {
-
+    mPreviewFrames = 0;
+    mFPSCount = 0;
 }
 
 gigegrab::~gigegrab()
@@ -28,20 +22,19 @@ gigegrab::~gigegrab()
 
 int gigegrab::grab()
 {
-#if 0
-    // The exit code of the sample application.
+#if 1
     int exitCode = 0;
 
     // Automagically call PylonInitialize and PylonTerminate to ensure
     // the pylon runtime system is initialized during the lifetime of this object.
     Pylon::PylonAutoInitTerm autoInitTerm;
 
-    ScanCode *m_scancode = new ScanCode(); //added by flq
+    ScanCode *m_scancode = new ScanCode();
 
 
     CGrabResultPtr ptrGrabResult;
 #ifdef OPENCV_WIN
-    namedWindow("CV_Image",WINDOW_AUTOSIZE);
+    namedWindow("gige camera",WINDOW_AUTOSIZE);
 #endif
     try
     {
@@ -52,7 +45,7 @@ int gigegrab::grab()
 
         GenApi::CIntegerPtr width(camera.GetNodeMap().GetNode("Width"));
          GenApi::CIntegerPtr height(camera.GetNodeMap().GetNode("Height"));
-         Mat cv_img(width->GetValue(), height->GetValue(), CV_8UC3);
+         Mat frame(width->GetValue(), height->GetValue(), CV_8UC3);
 
         camera.StartGrabbing();
         CPylonImage image;
@@ -65,19 +58,36 @@ int gigegrab::grab()
 
             if (ptrGrabResult->GrabSucceeded()){
                      fc.Convert(image, ptrGrabResult);
+
+                     //帧数及帧率
+                     if(0 == mPreviewFrames)
+                     {
+                         printf("first gige frame arrives!\n");
+                     }
+                     mPreviewFrames++;
+
+                     if(0 == mFPSCount)
+                     {
+                         gettimeofday(&mPreviewStartTime, NULL);
+                     }
+
+                     printfps(frame);
+
 #ifdef OPENCV_WIN
-                    cv_img = cv::Mat(ptrGrabResult->GetHeight(),     ptrGrabResult->GetWidth(), CV_8UC3,(uint8_t*)image.GetBuffer());
-                    imshow("CV_Image",cv_img);
+                    frame = cv::Mat(ptrGrabResult->GetHeight(),     ptrGrabResult->GetWidth(), CV_8UC3,(uint8_t*)image.GetBuffer());
+                    imshow("gige camera",frame);
                     waitKey(1);
 #endif
-                    if(waitKey(30)==27){
+                    //if(waitKey(30)==27)
+                    if(waitKey(100)==27)
+                    {
                           camera.StopGrabbing();
                     }
 
                     //added by flq
                     char result[1024] = {0};
                     Mat imageGray;
-                    cvtColor(cv_img,imageGray,CV_RGB2GRAY);
+                    cvtColor(frame,imageGray,CV_RGB2GRAY);
                     m_scancode->scanimage((void*)imageGray.data, result);
                     //added end
             }
@@ -98,22 +108,38 @@ int gigegrab::grab()
     while( cin.get() != '\n');
 
     return exitCode;
-#elif 1
+#elif 0
     ScanCode *m_scancode = new ScanCode(); //added by flq
-    namedWindow("CV_Image",WINDOW_AUTOSIZE);
+    namedWindow("usb camera",WINDOW_AUTOSIZE);
 
-    VideoCapture capture(1);
+    VideoCapture capture(0);
     //设置图片的大小
     capture.set(CV_CAP_PROP_FRAME_WIDTH, 1280);//1280
     capture.set(CV_CAP_PROP_FRAME_HEIGHT, 960);//960
     while (1)
-    {
-
+    {   
         Mat frame;
         capture >> frame;
         //imshow("摄像头", frame);
 
-        char c = cvWaitKey(33);
+        //帧数及帧率
+        if(0 == mPreviewFrames)
+        {
+            printf("first usb frame arrives!\n");
+        }
+        mPreviewFrames++;
+
+        if(0 == mFPSCount)
+        {
+            gettimeofday(&mPreviewStartTime, NULL);
+        }
+
+        printfps(frame);
+
+        imshow("usb camera", frame);
+
+        char c = cvWaitKey(100);
+        //char c = cvWaitKey(1000);
         if (c == 't')
         {
             break;
@@ -126,9 +152,54 @@ int gigegrab::grab()
 
         //added by flq
         char result[1024] = {0};
-        //////////m_scancode->scanimage((void*)frame.data, result);   //if single process, delete
-        //added end
-
+        m_scancode->scanimage((void*)frame.data, result);   //if single process, delete
     }
 #endif
 }
+
+//print fps
+void gigegrab::printfps(cv::Mat frame)
+{
+#if 0
+    //显示帧率
+    int elapse;
+    int fps;
+    char string[10];  //存放帧率的字符串
+
+    mFPSCount++;
+    gettimeofday(&mPreviewStopTime, NULL);
+    elapse = ((mPreviewStopTime.tv_sec - mPreviewStartTime.tv_sec)*1000) + ((mPreviewStopTime.tv_usec - mPreviewStartTime.tv_usec)/1000);
+    if(elapse/(1000*FPS_LOG_FREQ) > 0)
+    {
+        fps = mFPSCount / FPS_LOG_FREQ;
+        printf("preview frames: %d, fps: %d\n", mPreviewFrames, fps);
+        mFPSCount = 0;
+    }
+
+    sprintf(string, "%d", fps);
+    std::string fpsString("FPS:");
+    fpsString += string;
+    // 将帧率信息写在输出帧上
+    putText(frame, // 图像矩阵
+            fpsString,                  // string型文字内容
+            cv::Point(5, 20),           // 文字坐标，以左下角为原点
+            cv::FONT_HERSHEY_SIMPLEX,   // 字体类型
+            0.5, // 字体大小
+            cv::Scalar(255, 255, 0));       // 字体颜色
+#else
+    //不显示帧率
+    int elapse;
+    int fps;
+
+    mFPSCount++;
+    gettimeofday(&mPreviewStopTime, NULL);
+    elapse = ((mPreviewStopTime.tv_sec - mPreviewStartTime.tv_sec)*1000) + ((mPreviewStopTime.tv_usec - mPreviewStartTime.tv_usec)/1000);
+    if(elapse/(1000*FPS_LOG_FREQ) > 0)
+    {
+        fps = mFPSCount / FPS_LOG_FREQ;
+        printf("preview frames: %d, fps: %d\n", mPreviewFrames, fps);
+        mFPSCount = 0;
+    }
+#endif
+}
+

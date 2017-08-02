@@ -21,8 +21,13 @@ public:
 
     int grab();
 
-//private:
-//    bool flag;
+private:
+    int mPreviewFrames;
+    int mFPSCount;
+    struct timeval mPreviewStartTime;
+    struct timeval mPreviewStopTime;
+
+    void printfps(cv::Mat frame);
 
 };
 #endif // GIGEGRAB_H
