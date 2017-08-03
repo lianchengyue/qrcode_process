@@ -5,10 +5,21 @@
 #include <QApplication>
 
 //#include <stdlib.h> //for system()
+#include "LZO/lzopack.h"
 
 
 int main(int argc, char* argv[])
 {
+    //abcd();
+    processLZO(argc, argv, LZO_COMPRESS);
+    system("md5sum /home/montafan/Qt5.6.2/project/zbar_gige/CFile/1.lzo");
+    system("cd /home/montafan/Qt5.6.2/project/zbar_gige/CFile && split -b 20k /home/montafan/Qt5.6.2/project/zbar_gige/CFile/1.lzo -d X");
+
+    system("md5sum /home/montafan/Qt5.6.2/project/zbar_gige/CFile/1.lzo");
+    system("cat /home/montafan/Qt5.6.2/project/zbar_gige/CFile/X* >>/home/montafan/Qt5.6.2/project/zbar_gige/CFile/2.lzo");
+    processLZO(argc, argv, LZO_DECOMPRESS);
+
+
 #ifdef DISPLAY_QRCODE
     QApplication a(argc, argv);
     QRGenerator w;
@@ -22,7 +33,8 @@ int main(int argc, char* argv[])
 
     ///w.setString("1234567890");
     return a.exec();
-#else
+#elif 0
+    //grab frame
     QApplication a(argc, argv);
     QRCodeZbar w;
     w.show();

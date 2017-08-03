@@ -1,2 +1,2 @@
 # qrcode_process
-pylon+opencv+zbar+qt5
+pylon+opencv3.2+zbar+qt5+lzo2

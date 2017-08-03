@@ -15,13 +15,18 @@ SOURCES += main.cpp \
     ScanCode.cpp \
     qrcodezbar.cpp \
     gigegrab.cpp \
-    qrgenerator.cpp
+    qrgenerator.cpp \
+    LZO/lzopack.cpp
 
 HEADERS += \
     ScanCode.h \
     qrcodezbar.h \
     gigegrab.h \
-    qrgenerator.h
+    qrgenerator.h \
+    LZO/portab.h \
+    LZO/portab_a.h \
+    LZO/lzo_supp.h \
+    LZO/lzopack.h
 
 
 
@@ -33,7 +38,8 @@ INCLUDEPATH += /usr/local/opencv320/include \
 /opt/pylon5/include \
 /opt/pylon5/include/pylon \
 /usr/local/include \
-/usr/local/libqrencode/include
+/usr/local/libqrencode/include \
+/home/montafan/3rdparty/lzo210/include \
 
 LIBS += /usr/local/opencv320/lib/libopencv_calib3d.so \
 /usr/local/opencv320/lib/libopencv_core.so \
@@ -71,10 +77,13 @@ LIBS += /usr/local/opencv320/lib/libopencv_calib3d.so \
 /opt/pylon5/lib64/libuxapi.so \
 /opt/pylon5/lib64/libXmlParser_gcc_v3_0_Basler_pylon_v5_0.so \
 /opt/pylon5/lib64/pylon-libusb-1.0.so \
-/usr/local/lib/libzbargtk.so \
-/usr/local/lib/libzbarqt.so \
-/usr/local/lib/libzbar.so \
+#/usr/local/lib/libzbargtk.so \
+#/usr/local/lib/libzbarqt.so \
+#/usr/local/lib/libzbar.so \
 /usr/local/libqrencode/lib/libqrencode.so \
+/home/montafan/3rdparty/lzo210/lib/liblzo2.so \
+
+LIBS += -L/usr/local/lib -lzbar
 
 
 FORMS += qzbar.ui
