@@ -16,7 +16,10 @@ SOURCES += main.cpp \
     qrcodezbar.cpp \
     gigegrab.cpp \
     qrgenerator.cpp \
-    LZO/lzopack.cpp
+    LZO/lzopack.cpp \
+    Instuctions/stats.cpp \
+    Instuctions/inirw.cpp \
+    Instuctions/md5sum.cpp
 
 HEADERS += \
     ScanCode.h \
@@ -26,7 +29,10 @@ HEADERS += \
     LZO/portab.h \
     LZO/portab_a.h \
     LZO/lzo_supp.h \
-    LZO/lzopack.h
+    LZO/lzopack.h \
+    Instuctions/stats.h \
+    Instuctions/inirw.h \
+    Instuctions/md5sum.h
 
 
 
