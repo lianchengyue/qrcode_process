@@ -1,10 +1,13 @@
 //获取文件属性，并遍历文件
 //author fanlinqing
+//实现非常多业务的文件
 
+#include<time.h>
 #include "stats.h"
 #include "inirw.h"
 //http://bbs.csdn.net/topics/391842320
 #include "md5sum.h"
+#include "qrgenerator.h"
 
 const char *HEAD = "/home/montafan/Qt5.6.2/project/zbar_gige/Instuctions/inirw/config.ini";
 
@@ -28,7 +31,7 @@ void printdir(char *dir, int depth)
         return;
     }
 
-    total_dir = new char[512];  //dont forget free!!!flq
+    total_dir = new char[512];
     memset(total_dir, 0, 512);
     memset(md5sum_str, 0, 64);
     memset(md5sum_str_hex, 0, 64);
@@ -68,7 +71,7 @@ void printdir(char *dir, int depth)
         }
         else
         {
-            //get absolute path
+            //added by flq, get absolute path
             strcpy(total_dir,dir);
             strcat(total_dir,enty->d_name);
             printf("%s\n", total_dir);
@@ -82,21 +85,29 @@ void printdir(char *dir, int depth)
             iniSetString(enty->d_name, "path", total_dir);//path
             iniSetInt(enty->d_name, "size", statbuf.st_size, 0);//size
             iniSetString(enty->d_name, "md5sum", (char*)generate_md5sum(total_dir));//md5sum   or (char*)md5sum_str_hex
-
-
-            //memset(total_dir, 0, 512);
+            //getTimestamp();
             //added end
         }
     }
+
+    ///***********************************通知到显示模块**********************************//
+    ////QRGenerator w;
+    ////w.StartTimer();
+
     //切换到上一及目录
     chdir("..");
     //关闭文件指针
     closedir(Dp);
+
+    //free
+    free(total_dir);
 }
 int file_traversal()
 {
-    //char *topdir = "/home/montafan/Qt5.6.2/project/zbar_gige/CFile/111/";
-    char *topdir = "/home/montafan/Qt5.6.2/project/zbar_gige/";
+                                                                                //char *topdir = "/home/montafan/Qt5.6.2/project/zbar_gige/CFile/111/";
+    ///char *topdir = "/home/montafan/Qt5.6.2/project/zbar_gige/";
+    char *topdir = "/home/montafan/Qt5.6.2/project/zbar_gige/testFile/";
+
     printf("Directory scan of %s\n",topdir);
 
 #if 0
@@ -220,4 +231,30 @@ static void HexToStr(unsigned char *pbDest, unsigned char *pbSrc, int nLen) //un
         }
 
     pbDest[nLen*2] = '\0';
+}
+
+//在参数中赋值,获取时间
+//http://blog.csdn.net/openswc/article/details/53082715
+static void getTimestamp()
+//static void getTimestamp(char *des_time)
+{
+    struct tm *t;
+    time_t tt;
+    //time_t ts;
+
+    struct tm tr = {0};
+
+    time(&tt);
+    t = localtime(&tt);
+    printf("localtime %4d%02d%02d %02d:%02d:%02d\n", t->tm_year + 1900, t->tm_mon + 1, t->tm_mday, t->tm_hour, t->tm_min, t->tm_sec);
+
+    //time
+    //localtime_r(&tt, &tr);
+    //printf("localtime_r %4d%02d%02d %02d:%02d:%02d\n", tr.tm_year + 1900, tr.tm_mon + 1, tr.tm_mday, tr.tm_hour, tr.tm_min, tr.tm_sec);
+
+    //change ints to char[]
+    char ctime[40];
+    memset(ctime, 0, 40);
+    sprintf(ctime, "%02:%02d:%02d\n", t->tm_hour, t->tm_min, t->tm_sec);
+    printf("ctime:%s", ctime);
 }

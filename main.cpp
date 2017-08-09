@@ -52,44 +52,69 @@ int main(int argc, char* argv[])
 
 
 #if 1
-//#define DISPLAY_QRCODE
+#define DISPLAY_QRCODE
+///#define FILE_PROCESS
 
 #include "gigegrab.h"
 #include "qrgenerator.h"
 #include <QApplication>
 
-//#include <stdlib.h> //for system()
 #include "LZO/lzopack.h"
 #include "Instuctions/stats.h"
 
 
 int main(int argc, char* argv[])
 {
+#ifdef FILE_PROCESS
     //abcd();
-    file_traversal();//
+    //文件遍历
+    ///file_traversal();//stats.cpp
+    //文件压缩
     //processLZO(argc, argv, LZO_COMPRESS);
     //system("md5sum /home/montafan/Qt5.6.2/project/zbar_gige/CFile/1.lzo");
-    //system("cd /home/montafan/Qt5.6.2/project/zbar_gige/CFile && split -b 2k /home/montafan/Qt5.6.2/project/zbar_gige/CFile/1.lzo -d X");
+    //裁剪
+    //system("cd /home/montafan/Qt5.6.2/project/zbar_gige/CFile && split -b 20k /home/montafan/Qt5.6.2/project/zbar_gige/CFile/1.lzo -d X");
 
-    //system("md5sum /home/montafan/Qt5.6.2/project/zbar_gige/CFile/1.lzo");
+    //合并
     //system("cat /home/montafan/Qt5.6.2/project/zbar_gige/CFile/X* >>/home/montafan/Qt5.6.2/project/zbar_gige/CFile/2.lzo");
+    //检查md5sum并匹配，改在stats文件中
+    //system("md5sum /home/montafan/Qt5.6.2/project/zbar_gige/CFile/2.lzo");
+    //解压
     //processLZO(argc, argv, LZO_DECOMPRESS);
-
+#endif
 
 #ifdef DISPLAY_QRCODE
+    //文件遍历
+    file_traversal();//stats.cpp
+    //文件压缩
+    processLZO(argc, argv, LZO_COMPRESS);
+    system("md5sum /home/montafan/Qt5.6.2/project/zbar_gige/testFile/nocolor.PNG");
+    //裁剪
+    system("cd /home/montafan/Qt5.6.2/project/zbar_gige/testFile && split -b 2k /home/montafan/Qt5.6.2/project/zbar_gige/testFile/1.lzo -d X");
+    //system("cd /home/montafan/Qt5.6.2/project/zbar_gige/testFile && split -b 2k /home/montafan/Qt5.6.2/project/zbar_gige/testFile/1.lzo -d X /home/montafan/Qt5.6.2/project/zbar_gige/testFile/111");
+
+    //合并
+    //system("cat /home/montafan/Qt5.6.2/project/zbar_gige/testFile/X* >>/home/montafan/Qt5.6.2/project/zbar_gige/testFile/2.lzo");
+    //检查md5sum并匹配，改在stats文件中
+    //system("md5sum /home/montafan/Qt5.6.2/project/zbar_gige/testFile/2.lzo");
+    //解压
+    //processLZO(argc, argv, LZO_DECOMPRESS);
+
+    //二维码显示
     QApplication a(argc, argv);
     QRGenerator w;
+    w.StartTimer();
     //w.showFullScreen();
     //w.show();
 
-    //w.setWindowFlags(w.windowFlags()& ~Qt::WindowMaximizeButtonHint& ~Qt::WindowMinimizeButtonHint);
     //w.showMaximized();
     w.resize(800,800);
     w.show();
 
-    ///w.setString("1234567890");
+    //w.setString("1234567890");
     return a.exec();
-#elif 0
+
+#elif 0 //DISPLAY_QRCODE
     //grab frame
     QApplication a(argc, argv);
     QRCodeZbar w;

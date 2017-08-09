@@ -1,46 +1,30 @@
-#if 0
 #ifndef QRGENERATOR_H
 #define QRGENERATOR_H
 
 #include <QWidget>
 #include <QMainWindow>  //for main window
+#include <QTimer>
+#include <QtGui>
+#include <QtCore>
+///#include <QLabel.h>
+
 #include "qrencode.h"
 
-class QRGenerator : public QMainWindow
+class Thread : public QThread
 {
-    Q_OBJECT //if use signal/slot
-public:
-    explicit QRGenerator(QWidget *parent = 0);
-    ~QRGenerator();
-    void setString(QString str);
-    int getQRWidth() const;
-    bool saveImage(QString name, int size);
+    Q_OBJECT
 private:
-    void draw(QPainter &painter, int width, int height);
-    QString string;
-    QRcode *qr;
-//added
-/*
+    int number;
 protected:
-    QAction *openAction;  //定义一个动作
-    QMenu *fileMenu;  //定义一个菜单
-*/
+    void run();
+public:
+    Thread(QObject *parent=0);
+    ~Thread();
 signals:
-
-protected:
-    void paintEvent(QPaintEvent *);
-    QSize sizeHint() const;
-    QSize minimumSizeHint() const;
-public slots:
+    void UpdateSignal(int num);
+    public slots:
+        void ResetSlot();
 };
-#endif // QRGENERATOR_H
-#else
-#ifndef QRGENERATOR_H
-#define QRGENERATOR_H
-
-#include <QWidget>
-#include <QMainWindow>  //for main window
-#include "qrencode.h"
 
 class QRGenerator : public QWidget
 {
@@ -51,17 +35,35 @@ public:
     void setString(QString str);
     int getQRWidth() const;
     bool saveImage(QString name, int size);
+    void StartTimer();
 private:
     void draw(QPainter &painter, int width, int height);
+    /////////////////////////////////////////////////void readFragment(char* filepath);
     QString string;
     QRcode *qr;
+    QTimer *timer;
+    Thread *myThread;
+//    QLabel *label;
+//    QPushButton *startButton;
+//    QPushButton *stopButton;
+//    QPushButton *resetButton;
+
 signals:
+    void ResetSignal(); //thread
 
 protected:
     void paintEvent(QPaintEvent *);
     QSize sizeHint() const;
     QSize minimumSizeHint() const;
+
+private slots:
+    //void buttonClicked();
+    void updateUI(); //QTimer
+
 public slots:
+    void StartSlot();
+    void StopSlot();
+    void UpdateSlot(int num);
+    void ClearSlot();
 };
 #endif // QRGENERATOR_H
-#endif

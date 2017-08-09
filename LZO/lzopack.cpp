@@ -622,8 +622,10 @@ int processLZO(int argc, char *argv[], enum lzo_compress_mode mode) //__lzo_cdec
     {
         //in_name = argv[i++];
         //out_name = argv[i++];
-        in_name = "/home/montafan/Qt5.6.2/project/zbar_gige/CFile/1.pdf";
-        out_name = "/home/montafan/Qt5.6.2/project/zbar_gige/CFile/1.lzo";
+        ////in_name = "/home/montafan/Qt5.6.2/project/zbar_gige/CFile/1.pdf";
+        ////out_name = "/home/montafan/Qt5.6.2/project/zbar_gige/CFile/1.lzo";
+        in_name = "/home/montafan/Qt5.6.2/project/zbar_gige/testFile/nocolor.PNG";
+        out_name = "/home/montafan/Qt5.6.2/project/zbar_gige/testFile/1.lzo";
         fi = xopen_fi(in_name);
         fo = xopen_fo(out_name);
         r = do_compress(fi, fo, opt_compression_level, opt_block_size);
