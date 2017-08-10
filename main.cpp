@@ -61,7 +61,7 @@ int main(int argc, char* argv[])
 
 #include "LZO/lzopack.h"
 #include "Instuctions/stats.h"
-
+#include "Instuctions/base64.h"  //temp
 
 int main(int argc, char* argv[])
 {
@@ -84,6 +84,34 @@ int main(int argc, char* argv[])
 #endif
 
 #ifdef DISPLAY_QRCODE
+
+    //使用二次封装接口
+    #if 0
+    //encode
+    char *des_str = "/home/montafan/Qt5.6.2/project/zbar_gige/testFile/111/X00png.txt";
+    char *src_str = "/home/montafan/Qt5.6.2/project/zbar_gige/testFile/111/X00.png";
+
+    FILE *infile = fopen(src_str, "rb");
+    FILE *outfile = fopen(des_str, "w");
+    encode(infile, outfile);
+
+    fclose(infile); // 关闭文件
+    fclose(outfile); // 关闭文件
+    #else
+    //decode
+    char *des_str = "/home/montafan/Qt5.6.2/project/zbar_gige/testFile/111/X11.png";
+    char *src_str = "/home/montafan/Qt5.6.2/project/zbar_gige/testFile/111/X00png.txt";
+
+    FILE *infile = fopen(src_str, "r");
+    FILE *outfile = fopen(des_str, "wb");
+    decode(infile, outfile);
+
+    fclose(infile); // 关闭文件
+    fclose(outfile); // 关闭文件
+    #endif
+
+
+    #if 1
     //文件遍历
     file_traversal();//stats.cpp
     //文件压缩
@@ -113,8 +141,10 @@ int main(int argc, char* argv[])
 
     //w.setString("1234567890");
     return a.exec();
+    #endif
 
-#elif 0 //DISPLAY_QRCODE
+#elif 0 //#ifdef DISPLAY_QRCODE
+//抓取二维码
     //grab frame
     QApplication a(argc, argv);
     QRCodeZbar w;

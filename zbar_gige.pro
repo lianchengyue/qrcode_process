@@ -19,7 +19,8 @@ SOURCES += main.cpp \
     LZO/lzopack.cpp \
     Instuctions/stats.cpp \
     Instuctions/inirw.cpp \
-    Instuctions/md5sum.cpp
+    Instuctions/md5sum.cpp \
+    Instuctions/base64.cpp
 
 HEADERS += \
     ScanCode.h \
@@ -32,7 +33,8 @@ HEADERS += \
     LZO/lzopack.h \
     Instuctions/stats.h \
     Instuctions/inirw.h \
-    Instuctions/md5sum.h
+    Instuctions/md5sum.h \
+    Instuctions/base64.h
 
 
 
