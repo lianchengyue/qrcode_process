@@ -132,7 +132,7 @@ int main(int argc, char* argv[])
     //w.setString("1234567890");
     return a.exec();
 
-#elif 0 //#ifdef DISPLAY_QRCODE
+#elif 1 //#ifdef DISPLAY_QRCODE
 //抓取二维码
     //grab frame
     QApplication a(argc, argv);

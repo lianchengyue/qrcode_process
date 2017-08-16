@@ -28,7 +28,7 @@ typedef struct{
 */
 
 
-class Thread : public QThread
+class generatorThread : public QThread
 {
     Q_OBJECT
 private:
@@ -36,8 +36,8 @@ private:
 protected:
     void run();
 public:
-    Thread(QObject *parent=0);
-    ~Thread();
+    generatorThread(QObject *parent=0);
+    ~generatorThread();
 signals:
     void UpdateSignal(int num);
     public slots:
@@ -60,7 +60,7 @@ private:
     QString string;
     QRcode *qr;
     QTimer *timer;
-    Thread *myThread;
+    generatorThread *myThread;
 //    QLabel *label;
 //    QPushButton *startButton;
 //    QPushButton *stopButton;

@@ -21,7 +21,8 @@ class fragmentProcess
 public:
     fragmentProcess();
     virtual ~fragmentProcess();
-    int process_QRdata_to_fragment(char* QRdata);
+    int process_QRdata_to_fragment(char* QRdata); //for test
+    int process_QRdata_to_fragment(char *QRdata, char *des_str);
     bool is_md5sum_match(char* QRdata);
 
 private:

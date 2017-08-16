@@ -10,6 +10,8 @@
 #include <unistd.h>
 
 #include "DirPath.h"//dir
+//接收端文件生成
+#include "fileParameters.h"
 
 #include <string>
 using namespace std;
@@ -22,46 +24,106 @@ vector<string> vecString;
 
 //QThread
 //Thread用来控制文件的开始与结束
-Thread::Thread(QObject *parent)
+generatorThread::generatorThread(QObject *parent)
 {
     number = 0;
 }
 
-Thread::~Thread()
+generatorThread::~generatorThread()
 {
 
 }
 
-void Thread::run()
+void generatorThread::run()
 {
+    sleep(1);
+    emit UpdateSignal(number);
+
+
+    #if 0
     while(1)
     {
         emit UpdateSignal(number);
         number++;
         sleep(1);
     }
+    #endif
+#if 0
+    for (size_t i =0; i < vecString.size(); i ++) {
+
+        std::string s = vecString[i];
+        FILE *pFile=fopen(s.c_str(),"rb"); //获取二进制文件的指针,rb二进制, rt文本文件
+        ///char *pdesBuf;  //定义文件指针
+        fseek(pFile,0,SEEK_END); //把指针移动到文件的结尾 ，获取文件长度
+        int len=ftell(pFile); //获取文件长度
+        pdesBuf=new char[len+1];
+        rewind(pFile); //把指针移动到文件开头
+        fread(pdesBuf,1,len,pFile); //读文件
+        pdesBuf[len]=0;
+
+        fclose(pFile); // 关闭文件
+        //added end
+
+        //显示二维码
+        setString(pdesBuf);
+        free(pdesBuf);
+    }
+#endif
 }
 
-void Thread::ResetSlot()
+void generatorThread::ResetSlot()
 {
     number = 0;
     emit UpdateSignal(number);
 }
 
-void readFragment(char* pdesBuf/*,char* filepath*/)
+void readFragment(char* pdesBuf)
 {
-    FILE *pFile=fopen("/home/montafan/Qt5.6.2/project/zbar_gige/testFile/111/X000.txt","r"); //获取文件的指针
-    ///char *pdesBuf;  //定义文件指针
-    fseek(pFile,0,SEEK_END); //把指针移动到文件的结尾 ，获取文件长度
-    int len=ftell(pFile); //获取文件长度
-    pdesBuf=new char[len+1];
-    rewind(pFile); //把指针移动到文件开头
-    fread(pdesBuf,1,len,pFile); //读文件
-    pdesBuf[len]=0;
+#if 0
+    for(vector<std::string>::iterator it = vecString.begin(); it != vecString.end(); ++it) {  //const_iterator
+        //process file
+        //added by flq
+        std::string s = *it;
+        //FILE *pFile=fopen("/home/montafan/Qt5.6.2/project/zbar_gige/testFile/111/X00png.txt","rb"); //获取二进制文件的指针,rb二进制, rt文本文件
+        FILE *pFile=fopen(s.c_str(),"rb"); //获取二进制文件的指针,rb二进制, rt文本文件
+        ///char *pdesBuf;  //定义文件指针
+        fseek(pFile,0,SEEK_END); //把指针移动到文件的结尾 ，获取文件长度
+        int len=ftell(pFile); //获取文件长度
+        pdesBuf=new char[len+1];
+        rewind(pFile); //把指针移动到文件开头
+        fread(pdesBuf,1,len,pFile); //读文件
+        pdesBuf[len]=0;
 
-    fclose(pFile); // 关闭文件
+        fclose(pFile); // 关闭文件
+        //added end
 
-    //return pBuf;
+        //显示二维码
+        setString(pdesBuf);
+        free(pdesBuf);
+    }
+#else
+    //提高效率，选择该种遍历方式
+    for (size_t i =0; i < vecString.size(); i ++) {
+
+        std::string s = vecString[i];
+        FILE *pFile=fopen(s.c_str(),"rb"); //获取二进制文件的指针,rb二进制, rt文本文件
+        ///char *pdesBuf;  //定义文件指针
+        fseek(pFile,0,SEEK_END); //把指针移动到文件的结尾 ，获取文件长度
+        int len=ftell(pFile); //获取文件长度
+        pdesBuf=new char[len+1];
+        rewind(pFile); //把指针移动到文件开头
+        fread(pdesBuf,1,len,pFile); //读文件
+        pdesBuf[len]=0;
+
+        fclose(pFile); // 关闭文件
+        //added end
+
+        //显示二维码
+        //setString(pdesBuf);
+        //free(pdesBuf);
+
+    }
+#endif
 }
 
 void get_file_to_generate_qrcode(string dir, int depth)
@@ -100,8 +162,8 @@ void get_file_to_generate_qrcode(string dir, int depth)
             }
 
             total_dir = dir + enty->d_name + "/";
-            //输出当前目录名
-            //printf("%*s%s/\n",depth," ",enty->d_name);
+            //输出当前文件名
+            printf("%*s%s/\n",depth," ",enty->d_name);
 
             //继续递归调用
             get_file_to_generate_qrcode(total_dir,depth+4);//绝对路径递归调用错误 modify by flq
@@ -111,6 +173,8 @@ void get_file_to_generate_qrcode(string dir, int depth)
             //added by flq, get absolute path
             total_dir = dir + enty->d_name;
 
+            //输出当前目录名
+            printf("%*s%s/\n",depth," ",enty->d_name);
             //get文件名
             vecString.push_back(total_dir);//NULL
             ///std::vector<std::array<char,255>>* vecString = reinterpret_cast<std::vector<std::array<char,255>>*>(total_dir);
@@ -156,14 +220,16 @@ QRGenerator::QRGenerator(QWidget *parent)
 
     //定时器
     //Timer用来做连续显示
+    #if 0
     timer = new QTimer(this);
     timer->setInterval(1000);//float,  ms
     connect(timer,SIGNAL(timeout()),this,SLOT(updateUI()));
     ///===============================start timer=====================================/
     timer->start();
+    #endif
 
     //thread
-    myThread = new Thread;
+    myThread = new generatorThread;
 
     //connect(stopButton, SIGNAL(clicked()), this, SLOT(StopSlot()));
     //connect(startButton, SIGNAL(clicked()), this, SLOT(StartSlot()));
@@ -174,7 +240,8 @@ QRGenerator::QRGenerator(QWidget *parent)
     //启动线程
     //setWindowTitle("Thread Test");
     //resize(200, 200);
-    ////myThread->start();
+    ///==============================start Thread=====================================/
+    myThread->start();
 }
 
 QRGenerator::~QRGenerator()
@@ -211,15 +278,18 @@ void QRGenerator::setString(QString str)
         QR_ECLEVEL_L,
         QR_MODE_8,
         1);
+    #if 1
     //update();
+    usleep(100000);
+    repaint();
+    #else
     //repaint();
     setUpdatesEnabled(false);
     //bigVisualChanges();
 
     setUpdatesEnabled(true);
     repaint();
-
-    sleep(1);
+    #endif
 }
 QSize QRGenerator::sizeHint()  const
 {
@@ -382,6 +452,29 @@ void QRGenerator::UpdateSlot(int num)
 {
     //label->setText(QString::number(num));
     printf("UpdateSlot,Thread\n");
+
+#if 1
+    for (size_t i =0; i < vecString.size(); i ++) {
+
+        std::string s = vecString[i];
+        FILE *pFile=fopen(s.c_str(),"rb"); //获取二进制文件的指针,rb二进制, rt文本文件
+        ///char *pdesBuf;  //定义文件指针
+        fseek(pFile,0,SEEK_END); //把指针移动到文件的结尾 ，获取文件长度
+        int len=ftell(pFile); //获取文件长度
+        pdesBuf=new char[len+1];
+        rewind(pFile); //把指针移动到文件开头
+        fread(pdesBuf,1,len,pFile); //读文件
+        pdesBuf[len]=0;
+
+        fclose(pFile); // 关闭文件
+        //added end
+
+        //显示二维码
+        setString(pdesBuf);
+        ///usleep(100);
+        free(pdesBuf);
+    }
+#endif
 }
 
 void QRGenerator::ClearSlot()

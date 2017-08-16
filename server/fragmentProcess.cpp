@@ -123,7 +123,7 @@ int fragmentProcess::readFragmentINI(){
 }
 
 
-int fragmentProcess::process_QRdata_to_fragment(char* QRdata)
+int fragmentProcess::process_QRdata_to_fragment(char *QRdata)//for test
 {
     //char *des_str = "/home/montafan/Qt5.6.2/project/zbar_gige/testFile/111/out1.txt";
     char *des_str = "/home/montafan/out1.txt";
@@ -137,11 +137,22 @@ int fragmentProcess::process_QRdata_to_fragment(char* QRdata)
     return 0;
 }
 
-bool fragmentProcess::is_md5sum_match(char* QRdata)
+int fragmentProcess::process_QRdata_to_fragment(char *QRdata, char *des_str)
 {
-    unsigned char* client_md5sum;///[MD5SUM_MAX_S];
+    FILE *Destination = fopen(des_str, "wb"); //ab+
+    int size = fwrite(QRdata, 1, strlen(QRdata), Destination);   //strlen(QRdata) =51
+    printf("size=%d\n",size);
 
-    char* input_str = new char[512];
+    fclose(Destination); // 关闭文件
+
+    return 0;
+}
+
+bool fragmentProcess::is_md5sum_match(char *QRdata)
+{
+    unsigned char *client_md5sum;///[MD5SUM_MAX_S];
+
+    char *input_str = new char[512];
 
     memset(input_str, 0, 512);
     input_str = "111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111222222222";
