@@ -147,14 +147,14 @@ int gigegrab::grab()
             break;
         }
 
-        //Mat imageGray;
-        //cvtColor(frame,imageGray,CV_RGB2GRAY);
+        Mat imageGray;
+        cvtColor(frame,imageGray,CV_RGB2GRAY);
         //imshow("CV_Image",imageGray);
-        //waitKey(1);
+        waitKey(1);
 
         //added by flq
         char result[1024] = {0};
-        m_scancode->scanimage((void*)frame.data, result);   //if single process, delete
+        m_scancode->scanimage((void*)imageGray.data, result);   //if single process, delete
     }
 #endif
 }
