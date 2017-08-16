@@ -209,6 +209,34 @@ int base64_encode(char *out, const unsigned char *in, int inlen, int maxlen) {
 //二次封装
 //write by flq
 #if 1
+int get_length_after_base64(FILE * fp_in)
+{
+    unsigned char *bindata;  //input
+    char *base64;  //output
+    int len;
+    int out_len;
+
+    fseek(fp_in,0,SEEK_END); //把指针移动到文件的结尾 ，获取文件长度
+    len = ftell(fp_in); //获取文件长度
+    bindata = new unsigned char[len+1];
+    base64 = new char[2*len];//len*8/6  2*len  2849
+    memset(bindata, 0, len+1);
+    memset(base64, 0, 2*len);
+
+    rewind(fp_in); //把指针移动到文件开头
+    fread(bindata,1,len,fp_in); //读文件
+    bindata[len]=0;
+
+    out_len = base64_encode(base64, bindata, len, 0);
+
+    free(bindata);
+    free(base64);
+    bindata=NULL;
+    base64=NULL;
+
+    return out_len;
+}
+
 //input:bindata, len
 //output:base64, out_len
 void encode(FILE * fp_in, FILE * fp_out)
@@ -239,6 +267,37 @@ void encode(FILE * fp_in, FILE * fp_out)
     base64=NULL;
 }
 
+void encode(FILE * fp_in, char *str_out)
+{
+    unsigned char *bindata;  //input
+    char *base64;  //output
+    int len;
+    int out_len;
+
+    fseek(fp_in,0,SEEK_END); //把指针移动到文件的结尾 ，获取文件长度
+    len = ftell(fp_in); //获取文件长度
+    bindata = new unsigned char[len+1];
+    base64 = new char[2*len];//len*8/6  2*len  2849
+    memset(bindata, 0, len+1);
+    memset(base64, 0, 2*len);
+
+    rewind(fp_in); //把指针移动到文件开头
+    fread(bindata,1,len,fp_in); //读文件
+    bindata[len]=0;
+
+    out_len = base64_encode(base64, bindata, len, 0);
+
+    ///int size = fwrite(base64, sizeof(char), out_len, fp_out);
+    strncpy(str_out, base64, out_len);
+
+    free(bindata);
+    ///free(base64);
+    bindata=NULL;
+    ///base64=NULL;
+}
+
+
+
 //input:base64, len
 //output:bindata, out_len
 void decode(FILE * fp_in, FILE * fp_out)
@@ -262,7 +321,7 @@ void decode(FILE * fp_in, FILE * fp_out)
 
 
     out_len = base64_decode(bindata, base64, len+1,0);
-    int size = fwrite( bindata, sizeof(char), out_len, fp_out);
+    int size = fwrite(bindata, sizeof(char), out_len, fp_out);
 
     ///fclose(fp_in); // 关闭文件
     free(bindata);

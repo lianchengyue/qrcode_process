@@ -14,18 +14,19 @@ TEMPLATE = app
 SOURCES += main.cpp \
     ScanCode.cpp \
     qrcodezbar.cpp \
-    gigegrab.cpp \
     qrgenerator.cpp \
     LZO/lzopack.cpp \
     Instuctions/stats.cpp \
     Instuctions/inirw.cpp \
     Instuctions/md5sum.cpp \
-    Instuctions/base64.cpp
+    Instuctions/base64.cpp \
+    server/fragmentProcess.cpp \
+    gigeGrab.cpp \
+    fileParameters.cpp
 
 HEADERS += \
     ScanCode.h \
     qrcodezbar.h \
-    gigegrab.h \
     qrgenerator.h \
     LZO/portab.h \
     LZO/portab_a.h \
@@ -34,7 +35,11 @@ HEADERS += \
     Instuctions/stats.h \
     Instuctions/inirw.h \
     Instuctions/md5sum.h \
-    Instuctions/base64.h
+    Instuctions/base64.h \
+    server/fragmentProcess.h \
+    gigeGrab.h \
+    fileParameters.h \
+    DirPath.h
 
 
 

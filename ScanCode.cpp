@@ -9,9 +9,6 @@ using namespace std;
 using namespace zbar;
 using namespace cv;
 
-//////////////////////////////////////////////////////////////////////
-// Construction/Destruction
-//////////////////////////////////////////////////////////////////////
 ScanCode::ScanCode()
 {
     scanner = NULL;
@@ -35,12 +32,6 @@ int ScanCode::initZbar(){
 
 void ScanCode::scanimage(const void *raw, char *result)
 {
-    /* create a reader */
-    //scanner = zbar_image_scanner_create();
-
-    /* configure the reader */
-    //zbar_image_scanner_set_config(scanner, ZBAR_QRCODE, ZBAR_CFG_ENABLE, 1); //0
-
     /* obtain image data */
 #if 0//CvMat
     CvMat *img1 = cvLoadImageM("/home/montafan/QRCode/zbar-0.10/barcode.png", CV_LOAD_IMAGE_GRAYSCALE);//QRcode3.png
@@ -55,13 +46,12 @@ void ScanCode::scanimage(const void *raw, char *result)
     raw = img1.data;
     //uchar* raw = img1.ptr<uchar>(0);
 #else
-    int width = 1280, height = 960;
+    int width = 640, height = 480;
 #endif
 
 //added by flq
     /////////QImage *img=new QImage("/home/montafan/QRCode/zbar-0.10/QRcode1.jpg");
     //ui->label->setPixmap(QPixmap::fromImage(*img));
-
 //added end
 
 

@@ -7,14 +7,21 @@
 #include "inirw.h"
 //http://bbs.csdn.net/topics/391842320
 #include "md5sum.h"
-#include "qrgenerator.h"
+//#include "qrgenerator.h"
+#include "fileParameters.h"
+#include "Instuctions/base64.h"
+#include "DirPath.h"
 
-const char *HEAD = "/home/montafan/Qt5.6.2/project/zbar_gige/Instuctions/inirw/config.ini";
+///const char *HEAD = "/home/montafan/Qt5.6.2/project/zbar_gige/Instuctions/inirw/config.ini";
+const char *HEAD = "/home/montafan/QRcodeGrab/source/WholeINI/config.ini";
+const char *fragment_HEAD = "/home/montafan/QRcodeGrab/source/temp_location/nocolor.png/ini/config.ini";
 
-unsigned char md5sum_str[64];
-unsigned char md5sum_str_hex[64];
+unsigned char md5sum_str[MD5SUM_MAX];
+unsigned char md5sum_str_hex[MD5SUM_MAX];
 
-void printdir(char *dir, int depth)
+bool is_base64 = true;
+
+void print_INI_Info(char *dir, int depth)
 {
     DIR *Dp;
     //文件目录结构体
@@ -31,14 +38,14 @@ void printdir(char *dir, int depth)
         return;
     }
 
-    total_dir = new char[512];
-    memset(total_dir, 0, 512);
-    memset(md5sum_str, 0, 64);
-    memset(md5sum_str_hex, 0, 64);
+    total_dir = new char[PATH_MAX];
+    memset(total_dir, 0, PATH_MAX);
+    memset(md5sum_str, 0, MD5SUM_MAX);
+    memset(md5sum_str_hex, 0, MD5SUM_MAX);
 
     //切换到这个目录
     chdir(dir);
-
+    //printf("NAME_MAX=%d\n\n\n\n\n\n", NAME_MAX);
     //遍历这个目录下的所有文件
     while(NULL != (enty = readdir(Dp) ))
     {
@@ -66,8 +73,8 @@ void printdir(char *dir, int depth)
           //added end
 
             //继续递归调用
-            /////////printdir(enty->d_name,depth+4);
-            printdir(total_dir,depth+4);//绝对路径递归调用错误 modify by flq
+            /////////print_INI_Info(enty->d_name,depth+4);
+            print_INI_Info(total_dir,depth+4);//绝对路径递归调用错误 modify by flq
         }
         else
         {
@@ -87,6 +94,33 @@ void printdir(char *dir, int depth)
             iniSetString(enty->d_name, "md5sum", (char*)generate_md5sum(total_dir));//md5sum   or (char*)md5sum_str_hex
             //getTimestamp();
             //added end
+            /////////////////////////BASE64 ENCODE////////////////////////////
+            if(is_base64){
+                char *des_str = new char[PATH_MAX];///home/montafan/QRcodeGrab/source/4_base64_encode_location/   //remeber free, flq
+                char *diplay_content;
+                memset(des_str, 0, PATH_MAX);
+                strcat(des_str, SRC_BASE64_ENCODE_LOCATION);
+                strcat(des_str, "nocolor.png/");
+                strcat(des_str, enty->d_name);
+
+                //dont forget mkdir fold
+                FILE *infile = fopen(total_dir, "rb");
+                FILE *outfile = fopen(des_str, "w");
+
+                #if 1
+                encode(infile, outfile);//OK
+                #else
+                //first length. then new, then
+                int length = get_length_after_base64(infile);
+                diplay_content = new char[length];
+                encode(infile, diplay_content);
+                #endif
+                ///===============后续在此生成二维码===============//
+                ///here qrgenrator
+
+                fclose(infile);
+                fclose(outfile);
+            }
         }
     }
 
@@ -104,27 +138,42 @@ void printdir(char *dir, int depth)
 }
 int file_traversal()
 {
-                                                                                //char *topdir = "/home/montafan/Qt5.6.2/project/zbar_gige/CFile/111/";
-    ///char *topdir = "/home/montafan/Qt5.6.2/project/zbar_gige/";
-    char *topdir = "/home/montafan/Qt5.6.2/project/zbar_gige/testFile/";
+    ///char *topdir = "/home/montafan/Qt5.6.2/project/zbar_gige/testFile/";
+    char *topDir = SRC_LOCATION;//"/home/montafan/QRcodeGrab/source/location/";
 
-    printf("Directory scan of %s\n",topdir);
+    printf("Directory scan of %s\n",topDir);
 
+    is_base64 = false;
 #if 0
     //生成配置文件
-    char *HEAD = new char[512];
-    strcpy(HEAD,topdir);
+    char *HEAD = new char[PATH_MAX];
+    strcpy(HEAD,topDir);
     strcat(HEAD,"HEAD.ini");
     freopen(HEAD, "a+", stdout);
 #else
     iniFileLoad(HEAD);
 #endif
 
-    printdir(topdir, 0);
+    print_INI_Info(topDir, 0);
     //printf("Done\n");
     return 0;
 }
 
+
+int fragment_traversal()
+{
+    ///char *topdir = "/home/montafan/Qt5.6.2/project/zbar_gige/testFile/";
+    char *fragmentDir = SRC_SPLIT_LOCATION;//"/home/montafan/QRcodeGrab/source/3_split_location/nocolor.png/";//文件夹
+
+    printf("Directory fragement scan of %s\n",fragmentDir);
+
+    is_base64 = true;
+    iniFileLoad(fragment_HEAD);
+
+    print_INI_Info(fragmentDir, 0);
+    //printf("Done\n");
+    return 0;
+}
 unsigned char* generate_md5sum(char *filename)
 {
   FILE *fp;
@@ -163,6 +212,30 @@ unsigned char* generate_md5sum(char *filename)
     //printf ("%02x", ctx.buf[i]);
   }
 */
+  HexToStr(md5sum_str_hex, ctx.buf, 16);
+  for (i=0; i < 32; i++)
+  {
+    printf ("%c", md5sum_str_hex[i]);
+  }
+  printf ("\n");
+
+  return md5sum_str_hex;
+}
+
+//识别二维码后进行md5sum check，时减少一次读文件的操作，提高效率 , not sure
+unsigned char* generate_md5sum_from_charstr(char *QRdata)
+{
+  size_t n;
+  MD5_CONTEXT ctx;
+  int i;
+  int j=0;
+
+  md5_init (&ctx);
+  while (EOF != QRdata[j++])
+    md5_write (&ctx, (unsigned char*)QRdata, n);
+
+  md5_final (&ctx);
+
   HexToStr(md5sum_str_hex, ctx.buf, 16);
   for (i=0; i < 32; i++)
   {

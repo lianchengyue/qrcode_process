@@ -1,5 +1,7 @@
 #include <sys/time.h>
-#include "gigegrab.h"
+#include "gigeGrab.h"
+
+//#define GIGE_GRAB_FUNC
 
 #define OPENCV_WIN
 #define FPS_LOG_FREQ 3
@@ -22,7 +24,7 @@ gigegrab::~gigegrab()
 
 int gigegrab::grab()
 {
-#if 1
+#ifdef GIGE_GRAB_FUNC
     int exitCode = 0;
 
     // Automagically call PylonInitialize and PylonTerminate to ensure
@@ -108,14 +110,14 @@ int gigegrab::grab()
     while( cin.get() != '\n');
 
     return exitCode;
-#elif 0
+#else //USB相机
     ScanCode *m_scancode = new ScanCode(); //added by flq
     namedWindow("usb camera",WINDOW_AUTOSIZE);
 
     VideoCapture capture(0);
     //设置图片的大小
-    capture.set(CV_CAP_PROP_FRAME_WIDTH, 1280);//1280
-    capture.set(CV_CAP_PROP_FRAME_HEIGHT, 960);//960
+    capture.set(CV_CAP_PROP_FRAME_WIDTH, 640);//1280
+    capture.set(CV_CAP_PROP_FRAME_HEIGHT, 480);//960
     while (1)
     {   
         Mat frame;
@@ -138,7 +140,7 @@ int gigegrab::grab()
 
         imshow("usb camera", frame);
 
-        char c = cvWaitKey(100);
+        char c = cv::waitKey(500); //100
         //char c = cvWaitKey(1000);
         if (c == 't')
         {

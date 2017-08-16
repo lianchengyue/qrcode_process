@@ -4,7 +4,21 @@
 #include <QPainter>
 #include <QImage>
 
+//遍历文件
+#include <dirent.h>
+#include<sys/stat.h>
+#include <unistd.h>
+
+#include "DirPath.h"//dir
+
+#include <string>
+using namespace std;
+
+
+//#define MAX_LENGTH 512
+
 char *pdesBuf;  //定义文件指针
+vector<string> vecString;
 
 //QThread
 //Thread用来控制文件的开始与结束
@@ -37,7 +51,6 @@ void Thread::ResetSlot()
 void readFragment(char* pdesBuf/*,char* filepath*/)
 {
     FILE *pFile=fopen("/home/montafan/Qt5.6.2/project/zbar_gige/testFile/111/X000.txt","r"); //获取文件的指针
-    //FILE *pFile=fopen(filepath,"r"); //获取文件的指针
     ///char *pdesBuf;  //定义文件指针
     fseek(pFile,0,SEEK_END); //把指针移动到文件的结尾 ，获取文件长度
     int len=ftell(pFile); //获取文件长度
@@ -51,6 +64,69 @@ void readFragment(char* pdesBuf/*,char* filepath*/)
     //return pBuf;
 }
 
+void get_file_to_generate_qrcode(string dir, int depth)
+{
+    DIR *Dp;
+    //文件目录结构体
+    struct dirent *enty;
+    //详细文件信息结构体
+    struct stat statbuf;
+    //文件相对或绝对路径
+    string total_dir;
+
+    //打开指定的目录，获得目录指针
+    if(NULL == (Dp = opendir(dir.c_str())))
+    {
+        fprintf(stderr,"can not open dir:%s\n",dir.c_str());
+        return;
+    }
+
+    //切换到这个目录
+    chdir(dir.c_str());
+
+    //遍历这个目录下的所有文件
+    while(NULL != (enty = readdir(Dp) ))
+    {
+        //通过文件名，得到详细文件信息
+        lstat(enty->d_name,&statbuf);
+        //判断是不是目录
+        if(S_ISDIR(statbuf.st_mode))
+        {
+            //当前目录和上一目录过滤掉
+            if(0 == strcmp(".",enty->d_name) ||
+                          0 == strcmp("..",enty->d_name))
+            {
+                continue;
+            }
+
+            total_dir = dir + enty->d_name + "/";
+            //输出当前目录名
+            //printf("%*s%s/\n",depth," ",enty->d_name);
+
+            //继续递归调用
+            get_file_to_generate_qrcode(total_dir,depth+4);//绝对路径递归调用错误 modify by flq
+        }
+        else
+        {
+            //added by flq, get absolute path
+            total_dir = dir + enty->d_name;
+
+            //get文件名
+            vecString.push_back(total_dir);//NULL
+            ///std::vector<std::array<char,255>>* vecString = reinterpret_cast<std::vector<std::array<char,255>>*>(total_dir);
+
+        }
+    }
+
+    //切换到上一及目录
+    chdir("..");
+    //关闭文件指针
+    closedir(Dp);
+
+}
+
+
+
 #if 1
 QRGenerator::QRGenerator(QWidget *parent) : QWidget(parent)
 #else
@@ -62,18 +138,29 @@ QRGenerator::QRGenerator(QWidget *parent)
     ///ui->setupUi(this);
     qr = NULL;
 
+    //setString("The comet’s tail spread across the dawn, a red slash that bled above the crags of Dragonstone like a wound in the pink and purple sky.The maester stood on the windswept balcony outside his chambers. It was here the ravens came, after long flight. Their droppings speckled the gargoyles that rose twelve feet tall on either side of him, a hellhound and a wyvern, two of the thousand that brooded over the walls of the ancient fortress. When first he came to Dragonstone, the army of stone grotesques had made him uneasy, but as the years passed he had grown used to them. Now he thought of them as old friends. The three of them watched the sky together with foreboding. The maester did not believe in omens. And yet... old as he was, Cressen had never seen a comet half so bright, nor yet that color, that terrible color, the color of blood and flame and sunsets. He wondered if his gargoyles had ever seen its like. They had been here so much longer than he had, and would still be here long after he was gone. If stone tongues could speak...Such folly. He leaned against the battlement, the sea crashing beneath him, the black stone rough beneath his fingers. Talking gargoyles and prophecies in the sky. I am an old done man, grown giddy as a child again. Had a lifetime’s hard-won wisdom fled him along with his health and strength? He was a maester, trained and chained in the great Citadel of Oldtown. What had he come to, when superstition filled his head as if he were an ignorant fieldhand? And yet...and yet...the comet burned even by day now, while pale grey steam rose from the hot");
+    //empty
+    setString("0000000000");
+
+
     //startButton = new QPushButton("start");
     //stopButton = new QPushButton("stop");
     //resetButton = new QPushButton("reset");
     //label = new QLabel("empty");
 
+    //首先遍历文件,路径保存到vector
+    //char *topdir = "/home/montafan/Qt5.6.2/project/zbar_gige/testFile/222/";
+    char *topdir = SRC_BASE64_ENCODE_LOCATION2;
+    std::string topdir_str =  topdir;
+    get_file_to_generate_qrcode(topdir_str, 0);
 
     //定时器
     //Timer用来做连续显示
     timer = new QTimer(this);
-    timer->setInterval(500);//float,  ms
+    timer->setInterval(1000);//float,  ms
     connect(timer,SIGNAL(timeout()),this,SLOT(updateUI()));
-    ////timer->start();
+    ///===============================start timer=====================================/
+    timer->start();
 
     //thread
     myThread = new Thread;
@@ -84,14 +171,10 @@ QRGenerator::QRGenerator(QWidget *parent)
     connect(myThread, SIGNAL(UpdateSignal(int)), this, SLOT(UpdateSlot(int)));
     connect(this, SIGNAL(ResetSignal()), myThread, SLOT(ResetSlot()));
 
-    //setString("Hello QR code");
-    // long setString("The comet’s tail spread across the dawn, a red slash that bled above the crags of Dragonstone like a wound in the pink and purple sky.The maester stood on the windswept balcony outside his chambers. It was here the ravens came, after long flight. Their droppings speckled the gargoyles that rose twelve feet tall on either side of him, a hellhound and a wyvern, two of the thousand that brooded over the walls of the ancient fortress. When first he came to Dragonstone, the army of stone grotesques had made him uneasy, but as the years passed he had grown used to them. Now he thought of them as old friends. The three of them watched the sky together with foreboding. The maester did not believe in omens. And yet... old as he was, Cressen had never seen a comet half so bright, nor yet that color, that terrible color, the color of blood and flame and sunsets. He wondered if his gargoyles had ever seen its like. They had been here so much longer than he had, and would still be here long after he was gone. If stone tongues could speak...Such folly. He leaned against the battlement, the sea crashing beneath him, the black stone rough beneath his fingers. Talking gargoyles and prophecies in the sky. I am an old done man, grown giddy as a child again. Had a lifetime’s hard-won wisdom fled him along with his health and strength? He was a maester, trained and chained in the great Citadel of Oldtown. What had he come to, when superstition filled his head as if he were an ignorant fieldhand? And yet... and yet... the comet burned even by day now, while pale grey steam rose from the hot events of Dragonmont behind the castle, and yestermorn a white raven had brought word from the Citadel itself, word long-expected but no less fearful for all that, word of summer’s end. Omens, all. Too many to deny. What does it all mean? he wanted to cry.");
-    setString("The comet’s tail spread across the dawn, a red slash that bled above the crags of Dragonstone like a wound in the pink and purple sky.The maester stood on the windswept balcony outside his chambers. It was here the ravens came, after long flight. Their droppings speckled the gargoyles that rose twelve feet tall on either side of him, a hellhound and a wyvern, two of the thousand that brooded over the walls of the ancient fortress. When first he came to Dragonstone, the army of stone grotesques had made him uneasy, but as the years passed he had grown used to them. Now he thought of them as old friends. The three of them watched the sky together with foreboding. The maester did not believe in omens. And yet... old as he was, Cressen had never seen a comet half so bright, nor yet that color, that terrible color, the color of blood and flame and sunsets. He wondered if his gargoyles had ever seen its like. They had been here so much longer than he had, and would still be here long after he was gone. If stone tongues could speak...Such folly. He leaned against the battlement, the sea crashing beneath him, the black stone rough beneath his fingers. Talking gargoyles and prophecies in the sky. I am an old done man, grown giddy as a child again. Had a lifetime’s hard-won wisdom fled him along with his health and strength? He was a maester, trained and chained in the great Citadel of Oldtown. What had he come to, when superstition filled his head as if he were an ignorant fieldhand? And yet...and yet...the comet burned even by day now, while pale grey steam rose from the hot");
-
     //启动线程
     //setWindowTitle("Thread Test");
     //resize(200, 200);
-    myThread->start();
+    ////myThread->start();
 }
 
 QRGenerator::~QRGenerator()
@@ -128,7 +211,15 @@ void QRGenerator::setString(QString str)
         QR_ECLEVEL_L,
         QR_MODE_8,
         1);
-    update();
+    //update();
+    //repaint();
+    setUpdatesEnabled(false);
+    //bigVisualChanges();
+
+    setUpdatesEnabled(true);
+    repaint();
+
+    sleep(1);
 }
 QSize QRGenerator::sizeHint()  const
 {
@@ -224,40 +315,56 @@ void QRGenerator::updateUI() // timer
 {
     static int i=0;
     QString str = QString::number(i++);
-    printf("%d\n", i);
+    printf("updateUI():%d\n", i);
     //ui->textEdit->append("update!" + str);
 
-    //读取每个小碎片,并做显示,裁剪完后通知启动定时器
-    //readFragment
-    /////////////////////////////////////////char *pdesBuf;  //定义文件指针
-    //readFragment(pdesBuf);
-    //printf("pdesBuf=%s",pdesBuf);
+    //ADDED BY FLQ, 遍历目标文件夹的内容,  //循环readFragment(pdesBuf);
+#if 0
+    for(vector<std::string>::iterator it = vecString.begin(); it != vecString.end(); ++it) {  //const_iterator
+        //process file
+        //added by flq
+        std::string s = *it;
+        //FILE *pFile=fopen("/home/montafan/Qt5.6.2/project/zbar_gige/testFile/111/X00png.txt","rb"); //获取二进制文件的指针,rb二进制, rt文本文件
+        FILE *pFile=fopen(s.c_str(),"rb"); //获取二进制文件的指针,rb二进制, rt文本文件
+        ///char *pdesBuf;  //定义文件指针
+        fseek(pFile,0,SEEK_END); //把指针移动到文件的结尾 ，获取文件长度
+        int len=ftell(pFile); //获取文件长度
+        pdesBuf=new char[len+1];
+        rewind(pFile); //把指针移动到文件开头
+        fread(pdesBuf,1,len,pFile); //读文件
+        pdesBuf[len]=0;
 
+        fclose(pFile); // 关闭文件
+        //added end
 
+        //显示二维码
+        setString(pdesBuf);
+        free(pdesBuf);
+    }
+#else
+    //提高效率，选择该种遍历方式
+    for (size_t i =0; i < vecString.size(); i ++) {
 
+        std::string s = vecString[i];
+        FILE *pFile=fopen(s.c_str(),"rb"); //获取二进制文件的指针,rb二进制, rt文本文件
+        ///char *pdesBuf;  //定义文件指针
+        fseek(pFile,0,SEEK_END); //把指针移动到文件的结尾 ，获取文件长度
+        int len=ftell(pFile); //获取文件长度
+        pdesBuf=new char[len+1];
+        rewind(pFile); //把指针移动到文件开头
+        fread(pdesBuf,1,len,pFile); //读文件
+        pdesBuf[len]=0;
 
-    //added by flq
-    FILE *pFile=fopen("/home/montafan/Qt5.6.2/project/zbar_gige/testFile/111/X24","rb"); //获取二进制文件的指针,rb二进制, rt文本文件
-    //FILE *pFile=fopen(filepath,"r"); //获取文件的指针
-    ///char *pdesBuf;  //定义文件指针
-    fseek(pFile,0,SEEK_END); //把指针移动到文件的结尾 ，获取文件长度
-    int len=ftell(pFile); //获取文件长度
-    pdesBuf=new char[len+1];
-    rewind(pFile); //把指针移动到文件开头
-    fread(pdesBuf,1,len,pFile); //读文件
-    pdesBuf[len]=0;
+        fclose(pFile); // 关闭文件
+        //added end
 
-    fclose(pFile); // 关闭文件
-    //added end
+        //显示二维码
+        setString(pdesBuf);
+        free(pdesBuf);
 
+    }
+#endif
 
-    //base64
-
-
-
-    setString(pdesBuf);
-    //setString("读取每个小碎片,并做显示,裁剪完后通知启动定时器");
-    free(pdesBuf);
 }
 
 //thread
@@ -274,7 +381,7 @@ void QRGenerator::StopSlot()
 void QRGenerator::UpdateSlot(int num)
 {
     //label->setText(QString::number(num));
-    printf("a\n");
+    printf("UpdateSlot,Thread\n");
 }
 
 void QRGenerator::ClearSlot()

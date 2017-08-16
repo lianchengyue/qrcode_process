@@ -28,7 +28,9 @@ Others:
 int base64_encode(char *out, const unsigned char *in, int inlen, int maxlen);
 
 
+int get_length_after_base64(FILE * fp_in);
 void encode(FILE * fp_in, FILE * fp_out);
+void encode(FILE * fp_in, char *str_out);
 void decode(FILE * fp_in, FILE * fp_out);
 
 #endif // BASE64_H

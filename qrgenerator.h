@@ -8,7 +8,25 @@
 #include <QtCore>
 ///#include <QLabel.h>
 
+#include <vector>
+
 #include "qrencode.h"
+
+using namespace std;
+
+/*
+#define MD5SUM_MAX_C 64
+#define NAME_MAX_C 255
+#define PATH_MAX_C 255
+
+typedef struct{
+    unsigned char* md5sum;  //64
+    int size;
+    char* path; //512  /should be 255
+    char name [NAME_MAX+1];
+} fragment_client_metadata;  //Or in stats.h
+*/
+
 
 class Thread : public QThread
 {
@@ -47,6 +65,8 @@ private:
 //    QPushButton *startButton;
 //    QPushButton *stopButton;
 //    QPushButton *resetButton;
+    ///vector<char*> vecString;
+    ///vector<std::array<char,255>>* vecString;
 
 signals:
     void ResetSignal(); //thread

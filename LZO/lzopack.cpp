@@ -492,14 +492,15 @@ void xclose(FILE *fp)
 /*************************************************************************
 //
 **************************************************************************/
-int processLZO(int argc, char *argv[], enum lzo_compress_mode mode) //__lzo_cdecl_main
+//int processLZO(int argc, char *argv[], enum lzo_compress_mode mode) //__lzo_cdecl_main
+int processLZO(int argc, char *argv[], const char *in_name, const char *out_name, enum lzo_compress_mode mode)
 {
     int i = 1;
     int r = 0;
     FILE *fi = NULL;
     FILE *fo = NULL;
-    const char *in_name = NULL;
-    const char *out_name = NULL;
+    //const char *in_name = NULL;
+    //const char *out_name = NULL;
     unsigned opt_decompress = 0;
     unsigned opt_test = 0;
     int opt_compression_level = 1;
@@ -607,10 +608,8 @@ int processLZO(int argc, char *argv[], enum lzo_compress_mode mode) //__lzo_cdec
     }
     else if (opt_decompress)
     {
-        //in_name = argv[i++];
-        //out_name = argv[i++];
-        in_name = "/home/montafan/Qt5.6.2/project/zbar_gige/CFile/2.lzo";
-        out_name = "/home/montafan/Qt5.6.2/project/zbar_gige/CFile/2.pdf";
+        //in_name = "/home/montafan/Qt5.6.2/project/zbar_gige/CFile/2.lzo";
+        //out_name = "/home/montafan/Qt5.6.2/project/zbar_gige/CFile/2.pdf";
         fi = xopen_fi(in_name);
         fo = xopen_fo(out_name);
         r = do_decompress(fi, fo);
@@ -620,12 +619,10 @@ int processLZO(int argc, char *argv[], enum lzo_compress_mode mode) //__lzo_cdec
     }
     else /* compress */
     {
-        //in_name = argv[i++];
-        //out_name = argv[i++];
         ////in_name = "/home/montafan/Qt5.6.2/project/zbar_gige/CFile/1.pdf";
         ////out_name = "/home/montafan/Qt5.6.2/project/zbar_gige/CFile/1.lzo";
-        in_name = "/home/montafan/Qt5.6.2/project/zbar_gige/testFile/nocolor.PNG";
-        out_name = "/home/montafan/Qt5.6.2/project/zbar_gige/testFile/1.lzo";
+        //in_name = "/home/montafan/Qt5.6.2/project/zbar_gige/testFile/nocolor.PNG";
+        //out_name = "/home/montafan/Qt5.6.2/project/zbar_gige/testFile/1.lzo";
         fi = xopen_fi(in_name);
         fo = xopen_fo(out_name);
         r = do_compress(fi, fo, opt_compression_level, opt_block_size);

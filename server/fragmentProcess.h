@@ -1,0 +1,35 @@
+#ifndef FRAGMENTPROCESS_H
+#define FRAGMENTPROCESS_H
+
+#include "fileParameters.h"
+
+/*
+#define MD5SUM_MAX_S 64
+#define NAME_MAX_S 255
+#define PATH_MAX_S 255
+
+typedef struct{
+    unsigned char* md5sum;  //64
+    int size;
+    char* path; //512  /should be 255
+    char name [NAME_MAX_S+1];
+} fragment_metadata;//Or in stats.h
+*/
+
+class fragmentProcess
+{
+public:
+    fragmentProcess();
+    virtual ~fragmentProcess();
+    int process_QRdata_to_fragment(char* QRdata);
+    bool is_md5sum_match(char* QRdata);
+
+private:
+    int init();
+    int readFragmentINI();
+
+    char *iniWholePath;//发送端完整文件的遍历结果
+    char *iniPath;//接收到的每个大文件的ini识别并拼接后
+};
+
+#endif // FRAGMENTPROCESS_H
