@@ -74,7 +74,8 @@ void ScanCode::scanimage(const void *raw, char *result)
         zbar_symbol_type_t typ = zbar_symbol_get_type(symbol);
         const char *data = zbar_symbol_get_data(symbol);
         printf("decoded: %s symbol:%s\n", zbar_get_symbol_name(typ), data);
-        //strcpy(result, data);
+        ///传值
+        strcpy(result, data);
 
         delete(data);//added for flq
     }

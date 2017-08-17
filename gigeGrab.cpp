@@ -1,6 +1,8 @@
 #include <sys/time.h>
 #include "gigeGrab.h"
 
+#include "DirPath.h"
+
 //#define GIGE_GRAB_FUNC
 
 #define OPENCV_WIN
@@ -14,6 +16,8 @@ gigegrab::gigegrab()
 {
     mPreviewFrames = 0;
     mFPSCount = 0;
+
+    mfragmentProcess = new fragmentProcess();
 }
 
 gigegrab::~gigegrab()
@@ -153,8 +157,20 @@ int gigegrab::grab()
         waitKey(1);
 
         //added by flq
-        char result[1024] = {0};
+        char *result = new char[3072];
+        memset(result, 0 , 3072);
         m_scancode->scanimage((void*)imageGray.data, result);   //if single process, delete
+        //printf("out result=%s,length=%d\n", result, strlen(result));
+        ///===========================fragmentWrite=============================//
+        //生成文件
+        char *dir = DES_RECEIVE_LOCATION2;
+        mfragmentProcess->process_QRdata_to_fragment(result, dir);
+        if(1)//发送完毕
+        {
+
+        }
+
+        free(result);
     }
 #endif
 }

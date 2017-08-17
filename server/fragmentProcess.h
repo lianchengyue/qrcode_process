@@ -21,6 +21,7 @@ class fragmentProcess
 public:
     fragmentProcess();
     virtual ~fragmentProcess();
+    void decode_base64_fragment(string dir, int depth);
     int process_QRdata_to_fragment(char* QRdata); //for test
     int process_QRdata_to_fragment(char *QRdata, char *des_str);
     bool is_md5sum_match(char* QRdata);
@@ -28,6 +29,7 @@ public:
 private:
     int init();
     int readFragmentINI();
+    int create_folder_tree_from_ini();
 
     char *iniWholePath;//发送端完整文件的遍历结果
     char *iniPath;//接收到的每个大文件的ini识别并拼接后

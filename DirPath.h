@@ -5,3 +5,13 @@ static char SRC_BASE64_ENCODE_LOCATION[] = "/home/montafan/QRcodeGrab/source/4_b
 static const char SRC_WHOLE_INI_LOCATION[] = "/home/montafan/QRcodeGrab/source/WholeINI/";
 
 static char SRC_BASE64_ENCODE_LOCATION2[] = "/home/montafan/QRcodeGrab/source/4_base64_encode_location/nocolor.png/";
+
+
+
+
+static char DES_LOCATION[] = "/home/montafan/QRcodeGrab/destination/4_location";
+static char DES_RECEIVE_LOCATION[] = "/home/montafan/QRcodeGrab/destination/1_receive_location";
+static char DES_BASE64_DECODE_LOCATION[] = "/home/montafan/QRcodeGrab/destination/2_base64_decode_location/";
+
+
+static char DES_RECEIVE_LOCATION2[] = "/home/montafan/QRcodeGrab/destination/1_receive_location/nocolor.png/000";

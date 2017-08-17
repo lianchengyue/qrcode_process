@@ -17,8 +17,6 @@
 using namespace std;
 
 
-//#define MAX_LENGTH 512
-
 char *pdesBuf;  //定义文件指针
 vector<string> vecString;
 
@@ -36,7 +34,7 @@ generatorThread::~generatorThread()
 
 void generatorThread::run()
 {
-    sleep(1);
+    sleep(1);//temp add, a.execute后再启动线程
     emit UpdateSignal(number);
 
 
@@ -48,27 +46,6 @@ void generatorThread::run()
         sleep(1);
     }
     #endif
-#if 0
-    for (size_t i =0; i < vecString.size(); i ++) {
-
-        std::string s = vecString[i];
-        FILE *pFile=fopen(s.c_str(),"rb"); //获取二进制文件的指针,rb二进制, rt文本文件
-        ///char *pdesBuf;  //定义文件指针
-        fseek(pFile,0,SEEK_END); //把指针移动到文件的结尾 ，获取文件长度
-        int len=ftell(pFile); //获取文件长度
-        pdesBuf=new char[len+1];
-        rewind(pFile); //把指针移动到文件开头
-        fread(pdesBuf,1,len,pFile); //读文件
-        pdesBuf[len]=0;
-
-        fclose(pFile); // 关闭文件
-        //added end
-
-        //显示二维码
-        setString(pdesBuf);
-        free(pdesBuf);
-    }
-#endif
 }
 
 void generatorThread::ResetSlot()
@@ -204,7 +181,7 @@ QRGenerator::QRGenerator(QWidget *parent)
 
     //setString("The comet’s tail spread across the dawn, a red slash that bled above the crags of Dragonstone like a wound in the pink and purple sky.The maester stood on the windswept balcony outside his chambers. It was here the ravens came, after long flight. Their droppings speckled the gargoyles that rose twelve feet tall on either side of him, a hellhound and a wyvern, two of the thousand that brooded over the walls of the ancient fortress. When first he came to Dragonstone, the army of stone grotesques had made him uneasy, but as the years passed he had grown used to them. Now he thought of them as old friends. The three of them watched the sky together with foreboding. The maester did not believe in omens. And yet... old as he was, Cressen had never seen a comet half so bright, nor yet that color, that terrible color, the color of blood and flame and sunsets. He wondered if his gargoyles had ever seen its like. They had been here so much longer than he had, and would still be here long after he was gone. If stone tongues could speak...Such folly. He leaned against the battlement, the sea crashing beneath him, the black stone rough beneath his fingers. Talking gargoyles and prophecies in the sky. I am an old done man, grown giddy as a child again. Had a lifetime’s hard-won wisdom fled him along with his health and strength? He was a maester, trained and chained in the great Citadel of Oldtown. What had he come to, when superstition filled his head as if he were an ignorant fieldhand? And yet...and yet...the comet burned even by day now, while pale grey steam rose from the hot");
     //empty
-    setString("0000000000");
+    setString(TRANSMIT_IDLE);
 
 
     //startButton = new QPushButton("start");
@@ -212,11 +189,13 @@ QRGenerator::QRGenerator(QWidget *parent)
     //resetButton = new QPushButton("reset");
     //label = new QLabel("empty");
 
+    ///后续改为在收到传输完成消息后调用 added by flq
     //首先遍历文件,路径保存到vector
     //char *topdir = "/home/montafan/Qt5.6.2/project/zbar_gige/testFile/222/";
     char *topdir = SRC_BASE64_ENCODE_LOCATION2;
     std::string topdir_str =  topdir;
     get_file_to_generate_qrcode(topdir_str, 0);
+    ///added end
 
     //定时器
     //Timer用来做连续显示
@@ -241,7 +220,7 @@ QRGenerator::QRGenerator(QWidget *parent)
     //setWindowTitle("Thread Test");
     //resize(200, 200);
     ///==============================start Thread=====================================/
-    myThread->start();
+    myThread->start();    ///后续改为在收到传输完成消息后调用 added by flq
 }
 
 QRGenerator::~QRGenerator()
@@ -450,23 +429,30 @@ void QRGenerator::StopSlot()
 
 void QRGenerator::UpdateSlot(int num)
 {
+    int is;
+    int ie;
     //label->setText(QString::number(num));
     printf("UpdateSlot,Thread\n");
 
+    ///播放开始二维码
+    for (is = 0; is < 10; is++)
+    {
+        setString(TRANSMIT_START);
+    }
 #if 1
-    for (size_t i =0; i < vecString.size(); i ++) {
+    for (size_t i = 0; i < vecString.size(); i++) {
 
         std::string s = vecString[i];
-        FILE *pFile=fopen(s.c_str(),"rb"); //获取二进制文件的指针,rb二进制, rt文本文件
-        ///char *pdesBuf;  //定义文件指针
+        FILE *pFile=fopen(s.c_str(),"rb"); //rb二进制, rt文本文件
+
         fseek(pFile,0,SEEK_END); //把指针移动到文件的结尾 ，获取文件长度
         int len=ftell(pFile); //获取文件长度
         pdesBuf=new char[len+1];
         rewind(pFile); //把指针移动到文件开头
-        fread(pdesBuf,1,len,pFile); //读文件
+        fread(pdesBuf,1,len,pFile);
         pdesBuf[len]=0;
 
-        fclose(pFile); // 关闭文件
+        fclose(pFile);
         //added end
 
         //显示二维码
@@ -475,6 +461,11 @@ void QRGenerator::UpdateSlot(int num)
         free(pdesBuf);
     }
 #endif
+
+    ///播放结束二维码
+    for (ie = 0; ie < 10; ie++) {
+        setString(TRANSMIT_END);
+    }
 }
 
 void QRGenerator::ClearSlot()

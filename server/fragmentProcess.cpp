@@ -2,70 +2,11 @@
 #include "../Instuctions/stats.h"
 #include "../Instuctions/inirw.h"
 
+#include <mutex>
+
+#include <string>
 using namespace std;
 
-#if 0
-void get_file_to_generate_qrcode(string dir, int depth)
-{
-    DIR *Dp;
-    //文件目录结构体
-    struct dirent *enty;
-    //详细文件信息结构体
-    struct stat statbuf;
-    //文件相对或绝对路径
-    string total_dir;
-
-    //打开指定的目录，获得目录指针
-    if(NULL == (Dp = opendir(dir.c_str())))
-    {
-        fprintf(stderr,"can not open dir:%s\n",dir.c_str());
-        return;
-    }
-
-    //切换到这个目录
-    chdir(dir.c_str());
-
-    //遍历这个目录下的所有文件
-    while(NULL != (enty = readdir(Dp) ))
-    {
-        //通过文件名，得到详细文件信息
-        lstat(enty->d_name,&statbuf);
-        //判断是不是目录
-        if(S_ISDIR(statbuf.st_mode))
-        {
-            //当前目录和上一目录过滤掉
-            if(0 == strcmp(".",enty->d_name) ||
-                          0 == strcmp("..",enty->d_name))
-            {
-                continue;
-            }
-
-            total_dir = dir + enty->d_name + "/";
-            //输出当前目录名
-            //printf("%*s%s/\n",depth," ",enty->d_name);
-
-            //继续递归调用
-            get_file_to_generate_qrcode(total_dir,depth+4);//绝对路径递归调用错误 modify by flq
-        }
-        else
-        {
-            //added by flq, get absolute path
-            total_dir = dir + enty->d_name;
-
-            //get文件名
-            vecString.push_back(total_dir);//NULL
-            ///std::vector<std::array<char,255>>* vecString = reinterpret_cast<std::vector<std::array<char,255>>*>(total_dir);
-
-        }
-    }
-
-    //切换到上一及目录
-    chdir("..");
-    //关闭文件指针
-    closedir(Dp);
-
-}
-#endif
 
 fragmentProcess::fragmentProcess()
 {
@@ -122,10 +63,78 @@ int fragmentProcess::readFragmentINI(){
 
 }
 
+//解析最先收到的INI文件
+int fragmentProcess::create_folder_tree_from_ini()
+{
+    return 0;
+}
 
+//process_QRdata_to_fragment完后执行
+void fragmentProcess::decode_base64_fragment(string dir, int depth)
+{
+    DIR *Dp;
+    //文件目录结构体
+    struct dirent *enty;
+    //详细文件信息结构体
+    struct stat statbuf;
+    //文件相对或绝对路径
+    string total_dir;
+
+    //打开指定的目录，获得目录指针
+    if(NULL == (Dp = opendir(dir.c_str())))
+    {
+        fprintf(stderr,"can not open dir:%s\n",dir.c_str());
+        return;
+    }
+
+    //切换到这个目录
+    chdir(dir.c_str());
+
+    //遍历这个目录下的所有文件
+    while(NULL != (enty = readdir(Dp) ))
+    {
+        //通过文件名，得到详细文件信息
+        lstat(enty->d_name,&statbuf);
+        //判断是不是目录
+        if(S_ISDIR(statbuf.st_mode))
+        {
+            //当前目录和上一目录过滤掉
+            if(0 == strcmp(".",enty->d_name) ||
+                          0 == strcmp("..",enty->d_name))
+            {
+                continue;
+            }
+
+            total_dir = dir + enty->d_name + "/";
+            //输出当前文件名
+            printf("%*s%s/\n",depth," ",enty->d_name);
+
+            //继续递归调用
+            decode_base64_fragment(total_dir,depth+4);//绝对路径递归调用错误 modify by flq
+        }
+        else
+        {
+            //added by flq, get absolute path
+            total_dir = dir + enty->d_name;
+
+            //输出当前目录名
+            printf("%*s%s/\n",depth," ",enty->d_name);
+            //get文件名
+            /////vecString.push_back(total_dir);//NULL
+            ///std::vector<std::array<char,255>>* vecString = reinterpret_cast<std::vector<std::array<char,255>>*>(total_dir);
+
+        }
+    }
+
+    //切换到上一及目录
+    chdir("..");
+    //关闭文件指针
+    closedir(Dp);
+}
+
+//for test in main
 int fragmentProcess::process_QRdata_to_fragment(char *QRdata)//for test
 {
-    //char *des_str = "/home/montafan/Qt5.6.2/project/zbar_gige/testFile/111/out1.txt";
     char *des_str = "/home/montafan/out1.txt";
 
     FILE *Destination = fopen(des_str, "wb"); //ab+
@@ -139,9 +148,20 @@ int fragmentProcess::process_QRdata_to_fragment(char *QRdata)//for test
 
 int fragmentProcess::process_QRdata_to_fragment(char *QRdata, char *des_str)
 {
-    FILE *Destination = fopen(des_str, "wb"); //ab+
-    int size = fwrite(QRdata, 1, strlen(QRdata), Destination);   //strlen(QRdata) =51
-    printf("size=%d\n",size);
+    FILE *Destination;
+
+    if(0 == strlen(QRdata))
+    {
+        return -1;
+    }
+
+    ///if Idle mode
+    ///if Start mode
+    ///if End mode
+
+    Destination = fopen(des_str, "wb"); //ab+;
+    ///int size = fwrite(QRdata, 1, strlen(QRdata), Destination);   //Temp delete
+    //printf("size=%d\n",size);
 
     fclose(Destination); // 关闭文件
 

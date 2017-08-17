@@ -13,6 +13,8 @@
 #include "qrcodezbar.h"
 #include <QApplication>
 
+#include "server/fragmentProcess.h"  //fragment fwrite
+
 class gigegrab
 {
 public:
@@ -26,6 +28,8 @@ private:
     int mFPSCount;
     struct timeval mPreviewStartTime;
     struct timeval mPreviewStopTime;
+
+    fragmentProcess *mfragmentProcess;
 
     void printfps(cv::Mat frame);
 
