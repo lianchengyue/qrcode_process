@@ -12,22 +12,21 @@ CONFIG -= app_bundle
 TEMPLATE = app
 
 SOURCES += main.cpp \
-    ScanCode.cpp \
-    qrcodezbar.cpp \
-    qrgenerator.cpp \
+    server/ScanCode.cpp \
+    server/qrcodezbar.cpp \
     LZO/lzopack.cpp \
     Instuctions/stats.cpp \
     Instuctions/inirw.cpp \
     Instuctions/md5sum.cpp \
     Instuctions/base64.cpp \
     server/fragmentProcess.cpp \
-    gigeGrab.cpp \
-    fileParameters.cpp
+    fileParameters.cpp \
+    client/qrgenerator.cpp \
+    server/gigeGrab.cpp
 
 HEADERS += \
-    ScanCode.h \
-    qrcodezbar.h \
-    qrgenerator.h \
+    server/ScanCode.h \
+    server/qrcodezbar.h \
     LZO/portab.h \
     LZO/portab_a.h \
     LZO/lzo_supp.h \
@@ -37,9 +36,11 @@ HEADERS += \
     Instuctions/md5sum.h \
     Instuctions/base64.h \
     server/fragmentProcess.h \
-    gigeGrab.h \
-    fileParameters.h \
-    DirPath.h
+    server/gigeGrab.h \
+    client/qrgenerator.h \
+    server/gigeGrab.h \
+    include/DirPath.h \
+    include/fileParameters.h
 
 
 
@@ -99,4 +100,4 @@ LIBS += /usr/local/opencv320/lib/libopencv_calib3d.so \
 LIBS += -L/usr/local/lib -lzbar
 
 
-FORMS += qzbar.ui
+FORMS += ui/qzbar.ui

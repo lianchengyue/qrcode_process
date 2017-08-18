@@ -1,7 +1,7 @@
 #ifndef FRAGMENTPROCESS_H
 #define FRAGMENTPROCESS_H
 
-#include "fileParameters.h"
+#include "include/fileParameters.h"
 
 /*
 #define MD5SUM_MAX_S 64

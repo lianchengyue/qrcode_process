@@ -56,8 +56,8 @@ int main(int argc, char* argv[])
 //#define DISPLAY_QRCODE  //grab pic
 //#define FILE_PROCESS
 
-#include "gigeGrab.h"
-#include "qrgenerator.h"
+#include "server/gigeGrab.h"
+#include "client/qrgenerator.h"
 #include <QApplication>
 
 #include "LZO/lzopack.h"
@@ -141,9 +141,12 @@ int main(int argc, char* argv[])
     w.show();
 
     //temp
-    //const char* in_name = "/home/montafan/QRcodeGrab/destination/3_cat_location/nocolor.png.lzo";
-    //const char* out_name = "/home/montafan/QRcodeGrab/destination/4_location/nocolor.png";
-    //processLZO(argc, argv, in_name, out_name, LZO_DECOMPRESS);
+    #if 0
+    system("cat /home/montafan/QRcodeGrab/destination/2_base64_decode_location/nocolor.png/X* >>/home/montafan/QRcodeGrab/destination/3_cat_location/nocolor.png.lzo");
+    const char* in_name = "/home/montafan/QRcodeGrab/destination/3_cat_location/nocolor.png.lzo";
+    const char* out_name = "/home/montafan/QRcodeGrab/destination/4_location/nocolor.png";
+    processLZO(argc, argv, in_name, out_name, LZO_DECOMPRESS);
+    #endif
     //temp end
 
     gigegrab *m_gigegrab = new gigegrab();

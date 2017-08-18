@@ -9,9 +9,9 @@
 #include<sys/stat.h>
 #include <unistd.h>
 
-#include "DirPath.h"//dir
+#include "include/DirPath.h"//dir
 //接收端文件生成
-#include "fileParameters.h"
+#include "include/fileParameters.h"
 
 #include <string>
 using namespace std;

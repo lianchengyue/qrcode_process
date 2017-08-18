@@ -2,7 +2,7 @@
 #include "../Instuctions/stats.h"
 #include "../Instuctions/inirw.h"
 
-#include "DirPath.h"
+#include "include/DirPath.h"
 #include "../Instuctions/base64.h"
 
 #include <mutex>

@@ -8,9 +8,9 @@
 //http://bbs.csdn.net/topics/391842320
 #include "md5sum.h"
 //#include "qrgenerator.h"
-#include "fileParameters.h"
+#include "include/fileParameters.h"
 #include "Instuctions/base64.h"
-#include "DirPath.h"
+#include "include/DirPath.h"
 
 ///const char *HEAD = "/home/montafan/Qt5.6.2/project/zbar_gige/Instuctions/inirw/config.ini";
 const char *HEAD = "/home/montafan/QRcodeGrab/source/WholeINI/config.ini";

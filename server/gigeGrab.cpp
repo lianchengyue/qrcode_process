@@ -1,7 +1,7 @@
 #include <sys/time.h>
 #include "gigeGrab.h"
 
-#include "DirPath.h"
+#include "include/DirPath.h"
 
 //#define GIGE_GRAB_FUNC
 
