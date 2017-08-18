@@ -14,4 +14,6 @@ static char DES_RECEIVE_LOCATION[] = "/home/montafan/QRcodeGrab/destination/1_re
 static char DES_BASE64_DECODE_LOCATION[] = "/home/montafan/QRcodeGrab/destination/2_base64_decode_location/";
 
 
-static char DES_RECEIVE_LOCATION2[] = "/home/montafan/QRcodeGrab/destination/1_receive_location/nocolor.png/000";
+static char DES_RECEIVE_LOCATION2[] = "/home/montafan/QRcodeGrab/destination/1_receive_location/nocolor.png/";
+static char DES_BASE64_DECODE_LOCATION2[] = "/home/montafan/QRcodeGrab/destination/2_base64_decode_location/nocolor.png/000";
+static char DES_BASE64_DECODE_LOCATION3[] = "/home/montafan/QRcodeGrab/destination/2_base64_decode_location/nocolor.png/";

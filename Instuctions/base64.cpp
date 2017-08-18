@@ -208,7 +208,6 @@ int base64_encode(char *out, const unsigned char *in, int inlen, int maxlen) {
 
 //二次封装
 //write by flq
-#if 1
 int get_length_after_base64(FILE * fp_in)
 {
     unsigned char *bindata;  //input
@@ -329,41 +328,4 @@ void decode(FILE * fp_in, FILE * fp_out)
     bindata=NULL;
     base64=NULL;
 }
-
-#else
 //http://www.cnblogs.com/yejianfei/archive/2013/04/06/3002838.html
-void encode(FILE * fp_in, FILE * fp_out)
-{
-    unsigned char bindata[2050];
-    char base64[4096];
-    size_t bytes;
-    while ( !feof( fp_in ) )
-    {
-        bytes = fread(bindata, 1, 2049, fp_in);
-        base64_encode(base64, bindata, bytes, 0);
-        fprintf( fp_out, "%s", base64 );
-    }
-}
-
-void decode(FILE * fp_in, FILE * fp_out)
-{
-    int i;
-    unsigned char bindata[2050];
-    char base64[4096];
-    size_t bytes;
-    while ( !feof( fp_in ) )
-    {
-        for ( i = 0 ; i < 2048 ; i ++ )
-        {
-            base64[i] = fgetc(fp_in);
-            if ( base64[i] == EOF )
-                break;
-            else if ( base64[i] == '\n' || base64[i] == '\r' )
-                i --;
-        }
-        ///bytes = base64_decode(base64, bindata, 2050,0);
-        bytes = base64_decode((unsigned char*)base64, bindata, 2050,0);
-        fwrite( bindata, bytes, 1, fp_out );
-    }
-}
-#endif

@@ -21,14 +21,16 @@ class fragmentProcess
 public:
     fragmentProcess();
     virtual ~fragmentProcess();
-    void decode_base64_fragment(string dir, int depth);
+
     int process_QRdata_to_fragment(char* QRdata); //for test
     int process_QRdata_to_fragment(char *QRdata, char *des_str);
     bool is_md5sum_match(char* QRdata);
+    int process_fragment_base64_decode(char *QRdata, char *des_str);
 
 private:
     int init();
     int readFragmentINI();
+    void des_fragment_traversal(string dir, int depth);
     int create_folder_tree_from_ini();
 
     char *iniWholePath;//发送端完整文件的遍历结果

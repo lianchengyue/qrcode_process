@@ -103,7 +103,7 @@ void readFragment(char* pdesBuf)
 #endif
 }
 
-void get_file_to_generate_qrcode(string dir, int depth)
+void src_fragment_traversal(string dir, int depth) //get_file_to_generate_qrcode
 {
     DIR *Dp;
     //文件目录结构体
@@ -143,7 +143,7 @@ void get_file_to_generate_qrcode(string dir, int depth)
             printf("%*s%s/\n",depth," ",enty->d_name);
 
             //继续递归调用
-            get_file_to_generate_qrcode(total_dir,depth+4);//绝对路径递归调用错误 modify by flq
+            src_fragment_traversal(total_dir,depth+4);//绝对路径递归调用错误 modify by flq
         }
         else
         {
@@ -194,7 +194,7 @@ QRGenerator::QRGenerator(QWidget *parent)
     //char *topdir = "/home/montafan/Qt5.6.2/project/zbar_gige/testFile/222/";
     char *topdir = SRC_BASE64_ENCODE_LOCATION2;
     std::string topdir_str =  topdir;
-    get_file_to_generate_qrcode(topdir_str, 0);
+    src_fragment_traversal(topdir_str, 0);
     ///added end
 
     //定时器
@@ -466,6 +466,7 @@ void QRGenerator::UpdateSlot(int num)
     for (ie = 0; ie < 10; ie++) {
         setString(TRANSMIT_END);
     }
+    setString(TRANSMIT_IDLE);
 }
 
 void QRGenerator::ClearSlot()

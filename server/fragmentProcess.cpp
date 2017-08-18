@@ -2,6 +2,9 @@
 #include "../Instuctions/stats.h"
 #include "../Instuctions/inirw.h"
 
+#include "DirPath.h"
+#include "../Instuctions/base64.h"
+
 #include <mutex>
 
 #include <string>
@@ -70,7 +73,7 @@ int fragmentProcess::create_folder_tree_from_ini()
 }
 
 //process_QRdata_to_fragment完后执行
-void fragmentProcess::decode_base64_fragment(string dir, int depth)
+void fragmentProcess::des_fragment_traversal(string dir, int depth) //decode_base64_fragment
 {
     DIR *Dp;
     //文件目录结构体
@@ -110,7 +113,7 @@ void fragmentProcess::decode_base64_fragment(string dir, int depth)
             printf("%*s%s/\n",depth," ",enty->d_name);
 
             //继续递归调用
-            decode_base64_fragment(total_dir,depth+4);//绝对路径递归调用错误 modify by flq
+            des_fragment_traversal(total_dir,depth+4);//绝对路径递归调用错误 modify by flq
         }
         else
         {
@@ -123,6 +126,28 @@ void fragmentProcess::decode_base64_fragment(string dir, int depth)
             /////vecString.push_back(total_dir);//NULL
             ///std::vector<std::array<char,255>>* vecString = reinterpret_cast<std::vector<std::array<char,255>>*>(total_dir);
 
+            if(1)//is_base64_decode
+            {
+                char *des_str = new char[PATH_MAX];//home/montafan/QRcodeGrab/destination/2_base64_decode_location/nocolor.png/   //remeber free, flq
+                char *diplay_content;
+                memset(des_str, 0, PATH_MAX);
+                strcat(des_str, DES_BASE64_DECODE_LOCATION);
+                strcat(des_str, "nocolor.png/");
+                strcat(des_str, enty->d_name);
+
+                //dont forget mkdir fold
+                FILE *infile = fopen(total_dir.c_str(), "rb");
+                FILE *outfile = fopen(des_str, "w");
+
+                decode(infile, outfile);//生成二进制文件
+
+                ///===============后续在此生成二维码===============//
+                ///here qrgenrator
+
+                free(des_str);
+                fclose(infile);
+                fclose(outfile);
+            }
         }
     }
 
@@ -148,6 +173,54 @@ int fragmentProcess::process_QRdata_to_fragment(char *QRdata)//for test
 
 int fragmentProcess::process_QRdata_to_fragment(char *QRdata, char *des_str)
 {
+    //printf("process_QRdata_to_fragment\n");
+    FILE *Destination;
+
+    if(0 == strlen(QRdata))
+    {
+        return -1;
+    }
+
+    ///if Idle mode
+    if(0 == strcmp(QRdata, TRANSMIT_IDLE)){
+        return 0;
+    }
+    ///if Start mode
+    if(0 == strcmp(QRdata, TRANSMIT_START)){
+        return 0;
+    }
+
+    ///if End mode
+    if(0 == strcmp(QRdata, TRANSMIT_END)){
+        system("cat /home/montafan/QRcodeGrab/destination/2_base64_decode_location/nocolor.png/X* >>/home/montafan/QRcodeGrab/destination/3_cat_location/nocolor.png.lzo");
+        ///processLZO(argc, argv, LZO_DECOMPRESS);
+        return 0;
+    }
+
+    //模拟传输完成，做base64解码
+    printf("YYYYYYYYYYY strcmp(QRdata, TRANSMIT_END)=%d\n", strcmp(QRdata, TRANSMIT_END));
+    static bool flag = true;
+    if(0 == strcmp(QRdata, TRANSMIT_TEST) && flag){
+        printf("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n");
+        flag = false;
+        des_fragment_traversal(DES_RECEIVE_LOCATION2, 0);
+        return 0;
+    }
+
+    #if 1
+    Destination = fopen(des_str, "wb"); //ab+;
+    //测试读取二维码并生成文件，正式版删去
+    int size = fwrite(QRdata, 1, strlen(QRdata), Destination);   //Temp delete
+    printf("size=%d\n",size);
+
+    fclose(Destination); // 关闭文件
+    #endif
+
+    return 0;
+}
+
+int fragmentProcess::process_fragment_base64_decode(char *QRdata, char *des_str)
+{
     FILE *Destination;
 
     if(0 == strlen(QRdata))
@@ -167,6 +240,7 @@ int fragmentProcess::process_QRdata_to_fragment(char *QRdata, char *des_str)
 
     return 0;
 }
+
 
 bool fragmentProcess::is_md5sum_match(char *QRdata)
 {

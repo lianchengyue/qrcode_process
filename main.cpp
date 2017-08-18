@@ -52,8 +52,9 @@ int main(int argc, char* argv[])
 
 
 #if 1
-#define DISPLAY_QRCODE  //grab pic
-#define FILE_PROCESS
+//打开为发送端，屏蔽为接收端
+//#define DISPLAY_QRCODE  //grab pic
+//#define FILE_PROCESS
 
 #include "gigeGrab.h"
 #include "qrgenerator.h"
@@ -138,6 +139,12 @@ int main(int argc, char* argv[])
     QApplication a(argc, argv);
     QRCodeZbar w;
     w.show();
+
+    //temp
+    //const char* in_name = "/home/montafan/QRcodeGrab/destination/3_cat_location/nocolor.png.lzo";
+    //const char* out_name = "/home/montafan/QRcodeGrab/destination/4_location/nocolor.png";
+    //processLZO(argc, argv, in_name, out_name, LZO_DECOMPRESS);
+    //temp end
 
     gigegrab *m_gigegrab = new gigegrab();
     m_gigegrab->grab();

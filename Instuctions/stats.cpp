@@ -21,6 +21,7 @@ unsigned char md5sum_str_hex[MD5SUM_MAX];
 
 bool is_base64 = true;
 
+//后续会评估是否移动到src中
 void print_INI_Info(char *dir, int depth)
 {
     DIR *Dp;
@@ -118,6 +119,7 @@ void print_INI_Info(char *dir, int depth)
                 ///===============后续在此生成二维码===============//
                 ///here qrgenrator
 
+                free(des_str);
                 fclose(infile);
                 fclose(outfile);
             }

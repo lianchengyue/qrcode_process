@@ -163,7 +163,7 @@ int gigegrab::grab()
         //printf("out result=%s,length=%d\n", result, strlen(result));
         ///===========================fragmentWrite=============================//
         //生成文件
-        char *dir = DES_RECEIVE_LOCATION2;
+        char *dir = DES_BASE64_DECODE_LOCATION2;
         mfragmentProcess->process_QRdata_to_fragment(result, dir);
         if(1)//发送完毕
         {

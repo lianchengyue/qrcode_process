@@ -20,6 +20,7 @@ const char TRANSMIT_START[] = "0000000000";//传输开始
 const char TRANSMIT_END[] = "1111111111";//传输结束
 const char TRANSMIT_IDLE[] = "1010101010";//空闲状态
 const char TRANSMIT_INI[] = "2020202020"; //传输配置文件
+const char TRANSMIT_TEST[] = "http://baike.baidu.com";//传输TEST
 
 typedef struct{
     unsigned char* md5sum;  //64
