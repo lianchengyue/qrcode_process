@@ -151,7 +151,7 @@ void src_fragment_traversal(string dir, int depth) //get_file_to_generate_qrcode
             total_dir = dir + enty->d_name;
 
             //输出当前目录名
-            printf("%*s%s/\n",depth," ",enty->d_name);
+            //printf("%*s%s/\n",depth," ",enty->d_name);
             //get文件名
             vecString.push_back(total_dir);//NULL
             ///std::vector<std::array<char,255>>* vecString = reinterpret_cast<std::vector<std::array<char,255>>*>(total_dir);

@@ -9,6 +9,8 @@ TARGET = zbar_gige
 CONFIG += console
 CONFIG -= app_bundle
 
+DEFINES += _FILE_OFFSET_BITS=64 _LARGE_FILE
+
 TEMPLATE = app
 
 SOURCES += main.cpp \

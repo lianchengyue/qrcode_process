@@ -53,8 +53,8 @@ int main(int argc, char* argv[])
 
 #if 1
 //打开为发送端，屏蔽为接收端
-//#define DISPLAY_QRCODE  //grab pic
-//#define FILE_PROCESS
+#define DISPLAY_QRCODE  //grab pic
+#define FILE_PROCESS
 
 #include "server/gigeGrab.h"
 #include "client/qrgenerator.h"
@@ -98,6 +98,9 @@ int main(int argc, char* argv[])
 
     const char* in_name = "/home/montafan/QRcodeGrab/source/1_location/nocolor.png";
     const char* out_name = "/home/montafan/QRcodeGrab/source/2_lzo_location/nocolor.png.lzo";
+
+    //生成拓扑
+    src_init_topology();
     //文件遍历
     file_traversal();//stats.cpp
     //文件压缩
@@ -149,6 +152,9 @@ int main(int argc, char* argv[])
     #endif
     //temp end
 
+    //生成拓扑
+    des_init_topology();
+    //grab & recognize
     gigegrab *m_gigegrab = new gigegrab();
     m_gigegrab->grab();
 

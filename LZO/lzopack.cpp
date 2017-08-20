@@ -635,4 +635,85 @@ int processLZO(int argc, char *argv[], const char *in_name, const char *out_name
     xclose(fo); fo = NULL;
     return r;
 }
+
+int processLZO(const char *in_name, const char *out_name, enum lzo_compress_mode mode)
+{
+    int i = 1;
+    int r = 0;
+    FILE *fi = NULL;
+    FILE *fo = NULL;
+    //const char *in_name = NULL;
+    //const char *out_name = NULL;
+    unsigned opt_decompress = 0;
+    unsigned opt_test = 0;
+    int opt_compression_level = 1;
+    lzo_uint opt_block_size;
+    const char *s;
+
+    ///lzo_wildargv(&argc, &argv);
+
+    ///progname = argv[0];
+    /*
+    for (s = progname; *s; s++)
+        if ((*s == '/' || *s == '\\') && s[1])
+            progname = s + 1;
+    */
+
+    printf("\nLZO real-time data compression library (v%s, %s).\n",
+           lzo_version_string(), lzo_version_date());
+    printf("Copyright (C) 1996-2017 Markus Franz Xaver Johannes Oberhumer\nAll Rights Reserved.\n\n");
+
+/*
+ * Step 1: initialize the LZO library
+ */
+    if (lzo_init() != LZO_E_OK)
+    {
+        printf("internal error - lzo_init() failed !!!\n");
+        printf("(this usually indicates a compiler bug - try recompiling\nwithout optimizations, and enable '-DLZO_DEBUG' for diagnostics)\n");
+        exit(1);
+    }
+
+
+/*
+ * Step 2: setup memory
+ */
+    opt_block_size = 256 * 1024L;
+
+#if defined(LZO_MM_AHSHIFT)
+    /* reduce memory requirements for ancient 16-bit DOS 640kB real-mode */
+    if (LZO_MM_AHSHIFT != 3)
+        opt_block_size = 16 * 1024L;
+#endif
+
+    opt_compression_level = 9;
+    opt_decompress = mode;
+
+
+/*
+ * Step 4: process file(s)
+ */
+
+    if (opt_decompress)
+    {
+
+        fi = xopen_fi(in_name);
+        fo = xopen_fo(out_name);
+        r = do_decompress(fi, fo);
+        //if (r == 0)
+        //    printf("%s: decompressed %lu into %lu bytes\n", progname, total_in, total_out);
+    }
+    else /* compress */
+    {
+
+        fi = xopen_fi(in_name);
+        fo = xopen_fo(out_name);
+        r = do_compress(fi, fo, opt_compression_level, opt_block_size);
+        //if (r == 0)
+        //    printf("%s: compressed %lu into %lu bytes\n", progname, total_in, total_out);
+    }
+
+    xclose(fi); fi = NULL;
+    xclose(fo); fo = NULL;
+    return r;
+}
 /* vim:set ts=4 sw=4 et: */
