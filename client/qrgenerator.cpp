@@ -103,6 +103,8 @@ void readFragment(char* pdesBuf)
 #endif
 }
 
+
+///遍历3文件夹中，split+base64 encode完后的碎片
 void src_fragment_traversal(string dir, int depth) //get_file_to_generate_qrcode
 {
     DIR *Dp;
@@ -433,6 +435,11 @@ void QRGenerator::UpdateSlot(int num)
     int ie;
     //label->setText(QString::number(num));
     printf("UpdateSlot,Thread\n");
+
+    ///播放报头
+    //here to add content
+    //...
+    //added end
 
     ///播放开始二维码
     for (is = 0; is < 10; is++)

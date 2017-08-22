@@ -1,3 +1,13 @@
+//打开文件过大的解决办法
+
+//mmap 更优
+//只读,文件多次打开
+
+//Split
+//读取文件+偏移量
+//+多线程打开
+
+
 #if 0
 #include "Instuctions/inirw.h"
 //http://bbs.csdn.net/topics/391842320

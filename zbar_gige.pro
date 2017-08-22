@@ -24,7 +24,9 @@ SOURCES += main.cpp \
     server/fragmentProcess.cpp \
     fileParameters.cpp \
     client/qrgenerator.cpp \
-    server/gigeGrab.cpp
+    server/gigeGrab.cpp \
+    server/RecvStateMachine.cpp \
+    Instuctions/split.cpp
 
 HEADERS += \
     server/ScanCode.h \
@@ -42,7 +44,10 @@ HEADERS += \
     client/qrgenerator.h \
     server/gigeGrab.h \
     include/DirPath.h \
-    include/fileParameters.h
+    include/fileParameters.h \
+    include/Errors.h \
+    server/RecvStateMachine.h \
+    Instuctions/split.h
 
 
 

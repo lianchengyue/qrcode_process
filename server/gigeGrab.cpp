@@ -144,7 +144,7 @@ int gigegrab::grab()
 
         imshow("usb camera", frame);
 
-        char c = cv::waitKey(500); //100
+        char c = cv::waitKey(50); //100
         //char c = cvWaitKey(1000);
         if (c == 't')
         {
@@ -220,4 +220,3 @@ void gigegrab::printfps(cv::Mat frame)
     }
 #endif
 }
-

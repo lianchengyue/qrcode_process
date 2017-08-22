@@ -5,6 +5,7 @@
 #include "include/DirPath.h"
 #include "../Instuctions/base64.h"
 
+#include "include/Errors.h"
 #include <mutex>
 
 #include <string>
@@ -14,11 +15,14 @@ using namespace std;
 fragmentProcess::fragmentProcess()
 {
     init();
+    ini_flag = false;
+
+    m_stateMachine = new RecvStateMachine(this);
 }
 
 fragmentProcess::~fragmentProcess()
 {
-
+    free(m_stateMachine);
 }
 
 int fragmentProcess::init(){
@@ -69,10 +73,104 @@ int fragmentProcess::readFragmentINI(){
 //解析最先收到的INI文件
 int fragmentProcess::create_folder_tree_from_ini()
 {
-    return 0;
+    return NO_ERROR;
 }
 
 //process_QRdata_to_fragment完后执行
+void fragmentProcess::des_prestart_content_receiver(char *QRdata, char *des_str)
+{
+    FILE *INI_Destination = fopen(des_str, "wb"); //ab+;
+    //测试读取二维码并生成文件，正式版删去
+    int size = fwrite(QRdata, 1, strlen(QRdata), INI_Destination);
+
+    fclose(INI_Destination); // 关闭文件
+}
+void fragmentProcess::des_ini_fragment_traversal(string dir, int depth) //decode_base64_fragment
+{
+    DIR *Dp;
+    //文件目录结构体
+    struct dirent *enty;
+    //详细文件信息结构体
+    struct stat statbuf;
+    //文件相对或绝对路径
+    string total_dir;
+
+    //打开指定的目录，获得目录指针
+    if(NULL == (Dp = opendir(dir.c_str())))
+    {
+        fprintf(stderr,"can not open dir:%s\n",dir.c_str());
+        return;
+    }
+
+    //切换到这个目录
+    chdir(dir.c_str());
+
+    //遍历这个目录下的所有文件
+    while(NULL != (enty = readdir(Dp) ))
+    {
+        //通过文件名，得到详细文件信息
+        lstat(enty->d_name,&statbuf);
+        //判断是不是目录
+        if(S_ISDIR(statbuf.st_mode))
+        {
+            //当前目录和上一目录过滤掉
+            if(0 == strcmp(".",enty->d_name) ||
+                          0 == strcmp("..",enty->d_name))
+            {
+                continue;
+            }
+
+            total_dir = dir + enty->d_name + "/";
+            //输出当前文件名
+            printf("%*s%s/\n",depth," ",enty->d_name);
+
+            //继续递归调用
+            des_fragment_traversal(total_dir,depth+4);//绝对路径递归调用错误 modify by flq
+        }
+        else
+        {
+            //added by flq, get absolute path
+            total_dir = dir + enty->d_name;
+
+            //输出当前目录名
+            printf("%*s%s/\n",depth," ",enty->d_name);
+            //get文件名
+            /////vecString.push_back(total_dir);//NULL
+            ///std::vector<std::array<char,255>>* vecString = reinterpret_cast<std::vector<std::array<char,255>>*>(total_dir);
+
+            if(1)//is_base64_decode
+            {
+                char *des_str = new char[PATH_MAX];//home/montafan/QRcodeGrab/destination/2_base64_decode_location/nocolor.png/   //remeber free, flq
+                char *diplay_content;
+                memset(des_str, 0, PATH_MAX);
+                strcat(des_str, DES_BASE64_DECODE_LOCATION);
+                strcat(des_str, "nocolor.png/");
+                strcat(des_str, enty->d_name);
+
+                //dont forget mkdir fold
+                FILE *infile = fopen(total_dir.c_str(), "rb");
+                FILE *outfile = fopen(des_str, "w");
+
+                decode(infile, outfile);//生成二进制文件百度首页设置登录
+
+
+                ///===============后续在此生成二维码===============//
+                ///here qrgenrator
+
+                free(des_str);
+                fclose(infile);
+                fclose(outfile);
+            }
+        }
+    }
+
+    //切换到上一及目录
+    chdir("..");
+    //关闭文件指针
+    closedir(Dp);
+}
+
+///process_QRdata_to_fragment完后执行,遍历碎片并恢复
 void fragmentProcess::des_fragment_traversal(string dir, int depth) //decode_base64_fragment
 {
     DIR *Dp;
@@ -139,7 +237,8 @@ void fragmentProcess::des_fragment_traversal(string dir, int depth) //decode_bas
                 FILE *infile = fopen(total_dir.c_str(), "rb");
                 FILE *outfile = fopen(des_str, "w");
 
-                decode(infile, outfile);//生成二进制文件
+                decode(infile, outfile);//生成二进制文件百度首页设置登录
+
 
                 ///===============后续在此生成二维码===============//
                 ///here qrgenrator
@@ -168,12 +267,13 @@ int fragmentProcess::process_QRdata_to_fragment(char *QRdata)//for test
 
     fclose(Destination); // 关闭文件
 
-    return 0;
+    return NO_ERROR;
 }
 
+///逐帧识别,识别二维码并生成碎片
 int fragmentProcess::process_QRdata_to_fragment(char *QRdata, char *des_str)
 {
-    //printf("process_QRdata_to_fragment\n");
+    //printf("process_QRdata_to_fragment\n");  //count
     FILE *Destination;
 
     if(0 == strlen(QRdata))
@@ -183,28 +283,42 @@ int fragmentProcess::process_QRdata_to_fragment(char *QRdata, char *des_str)
 
     ///if Idle mode
     if(0 == strcmp(QRdata, TRANSMIT_IDLE)){
-        return 0;
+        return NO_ERROR;
     }
+
+    ///if Prestart mode
+    if(0 == strcmp(QRdata, TRANSMIT_PRESTART)){
+        ini_flag = true;  //置为ini状态
+        return NO_ERROR;
+    }
+
     ///if Start mode
     if(0 == strcmp(QRdata, TRANSMIT_START)){
-        return 0;
+        return NO_ERROR;
     }
 
     ///if End mode
     if(0 == strcmp(QRdata, TRANSMIT_END)){
         system("cat /home/montafan/QRcodeGrab/destination/2_base64_decode_location/nocolor.png/X* >>/home/montafan/QRcodeGrab/destination/3_cat_location/nocolor.png.lzo");
         ///processLZO(argc, argv, LZO_DECOMPRESS);
-        return 0;
+        return NO_ERROR;
+    }
+
+    ///在这里对目标路径收到的fragment做处理和还原 start
+    //恢复ini文件
+    if(ini_flag)
+    {
+        ini_flag = false;
     }
 
     //模拟传输完成，做base64解码
     printf("YYYYYYYYYYY strcmp(QRdata, TRANSMIT_END)=%d\n", strcmp(QRdata, TRANSMIT_END));
     static bool flag = true;
     if(0 == strcmp(QRdata, TRANSMIT_TEST) && flag){
-        printf("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n");
+        printf("===================逐帧接收二维码===========================\n");
         flag = false;
         des_fragment_traversal(DES_RECEIVE_LOCATION2, 0);
-        return 0;
+        return NO_ERROR;
     }
 
     #if 1
@@ -216,16 +330,20 @@ int fragmentProcess::process_QRdata_to_fragment(char *QRdata, char *des_str)
     fclose(Destination); // 关闭文件
     #endif
 
-    return 0;
+    ///在这里对目标路径收到的fragment做处理和还原 end
+
+    return NO_ERROR;
 }
 
+
+//该函数废弃,在des_fragment_traversal()中做decode
 int fragmentProcess::process_fragment_base64_decode(char *QRdata, char *des_str)
 {
     FILE *Destination;
 
     if(0 == strlen(QRdata))
     {
-        return -1;
+        return NO_DATA;
     }
 
     ///if Idle mode
@@ -238,7 +356,7 @@ int fragmentProcess::process_fragment_base64_decode(char *QRdata, char *des_str)
 
     fclose(Destination); // 关闭文件
 
-    return 0;
+    return NO_ERROR;
 }
 
 
@@ -255,5 +373,5 @@ bool fragmentProcess::is_md5sum_match(char *QRdata)
     ///memset(client_md5sum, 0, MD5SUM_MAX_S);
     //client_md5sum = generate_md5sum_from_charstr(input_str);
 
-    return 0;
+    return NO_ERROR;
 }
