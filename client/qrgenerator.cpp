@@ -193,8 +193,8 @@ QRGenerator::QRGenerator(QWidget *parent)
 
     ///后续改为在收到传输完成消息后调用 added by flq
     //首先遍历文件,路径保存到vector
-    //char *topdir = "/home/montafan/Qt5.6.2/project/zbar_gige/testFile/222/";
-    char *topdir = SRC_BASE64_ENCODE_LOCATION2;
+    //char *topdir = SRC_BASE64_ENCODE_LOCATION2;
+    char *topdir = SRC_BASE64_ENCODE_LOCATION;
     std::string topdir_str =  topdir;
     src_fragment_traversal(topdir_str, 0);
     ///added end
@@ -260,7 +260,6 @@ void QRGenerator::setString(QString str)
         QR_MODE_8,
         1);
     #if 1
-    //update();
     usleep(100000);
     repaint();
     #else

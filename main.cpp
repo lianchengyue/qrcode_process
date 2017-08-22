@@ -113,12 +113,14 @@ int main(int argc, char* argv[])
     src_init_topology();
     //文件遍历
     file_traversal();//stats.cpp
+    #if 0
     //文件压缩
     processLZO(argc, argv, in_name, out_name, LZO_COMPRESS);//后续需要做遍历, 2K大小判断
     //system("md5sum /home/montafan/Qt5.6.2/project/zbar_gige/testFile/nocolor.PNG");
     //裁剪
     ///system("cd /home/montafan/Qt5.6.2/project/zbar_gige/testFile && split -b 2k /home/montafan/Qt5.6.2/project/zbar_gige/testFile/1.lzo -d X");
     system("cd /home/montafan/QRcodeGrab/source/2_lzo_location && split -b 2k /home/montafan/QRcodeGrab/source/2_lzo_location/nocolor.png.lzo -d X");
+    #endif
     //遍历片段
     fragment_traversal();
 

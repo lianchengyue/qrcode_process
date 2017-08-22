@@ -16,6 +16,8 @@
 #include "LZO/lzopack.h"//temp
 #include "Instuctions/split.h"
 
+//#define PRINT_MD5SUM
+
 const char *HEAD = "/home/montafan/QRcodeGrab/source/wholeINI/config.ini";
 const char *folder_HEAD = "/home/montafan/QRcodeGrab/source/wholeINI/folder.ini";
 const char *fragment_HEAD = "/home/montafan/QRcodeGrab/source/temp_location/nocolor.png/ini/config.ini";
@@ -184,7 +186,7 @@ void src_file_traversal_imp(char *dir, char *_2_dir, char *_3_dir, char *_4_dir,
             FILE *in_file = fopen(total_dir, "rb");
             //FILE *out_2_file = fopen(_2_lzo_dir, "wb");
             //FILE *out_3_file = fopen(_3_split_dir, "wb");
-            FILE *out_4_file = fopen(_4_base64_encode_dir, "wb");
+            //FILE *out_4_file = fopen(_4_base64_encode_dir, "wb"); //temp delete
 
             if((statbuf.st_size > 0) && (statbuf.st_size < BLOCK_SIZE)){
                 //copy to des
@@ -233,10 +235,12 @@ void src_file_traversal_imp(char *dir, char *_2_dir, char *_3_dir, char *_4_dir,
                 //fwrite(des_buf, 1, statbuf.st_size, out_3_file);
                 mkdir(_3_split_dir, S_IRWXU|S_IRWXG|S_IRWXO);///这里的_3_split_dir是目录，不是文件，存放切割后的碎片
                 spilt(total_dir, _3_split_dir, BLOCK_SIZE); ///这里的_3_split_dir是目录，不是文件，存放切割后的碎片
+                mkdir(_4_base64_encode_dir, S_IRWXU|S_IRWXG|S_IRWXO);
 
                 //4_base64_encode_location,base64 encode文件
                 //memset(des_buf, 0, statbuf.st_size);
                 //fwrite(des_buf, 1, statbuf.st_size, out_4_file);
+
 
                 free(des_buf);
 
@@ -251,7 +255,7 @@ void src_file_traversal_imp(char *dir, char *_2_dir, char *_3_dir, char *_4_dir,
             fclose(in_file);
             //fclose(out_2_file);
             //fclose(out_3_file);
-            fclose(out_4_file);
+            //fclose(out_4_file);
         }
     }
 
@@ -388,7 +392,7 @@ void src_fragment_traversal_imp(char *dir, int depth)
 
 
 //后续会评估是否移动到src中
-void print_INI_Info(char *dir, int depth)
+void print_INI_Info(char *dir, char *des, int depth)
 {
     DIR *Dp;
     //文件目录结构体
@@ -397,6 +401,7 @@ void print_INI_Info(char *dir, int depth)
     struct stat statbuf;
     //文件相对或绝对路径 addded by flq
     char *total_dir;
+    char *des_str;
 
     //打开指定的目录，获得目录指针
     if(NULL == (Dp = opendir(dir)))
@@ -406,13 +411,15 @@ void print_INI_Info(char *dir, int depth)
     }
 
     total_dir = new char[PATH_MAX];
+    des_str = new char[PATH_MAX];
     memset(total_dir, 0, PATH_MAX);
+    memset(des_str, 0, PATH_MAX);
     memset(md5sum_str, 0, MD5SUM_MAX);
     memset(md5sum_str_hex, 0, MD5SUM_MAX);
 
     //切换到这个目录
     chdir(dir);
-    //printf("NAME_MAX=%d\n\n\n\n\n\n", NAME_MAX);
+
     //遍历这个目录下的所有文件
     while(NULL != (enty = readdir(Dp) ))
     {
@@ -428,6 +435,7 @@ void print_INI_Info(char *dir, int depth)
                 continue;
             }
 
+            #if 0
             strcpy(total_dir,dir);
             strcat(total_dir,enty->d_name);
             //strcat(total_dir,"/");
@@ -437,22 +445,31 @@ void print_INI_Info(char *dir, int depth)
             mkdir(enty->d_name, S_IRWXU|S_IRWXG|S_IRWXO);//int mkdir(const char *path, mode_t mode); //#include <sys/stat.h>
 
             strcat(total_dir,"/");
+            #else
+            strcpy(total_dir,dir);
+            strcat(total_dir,enty->d_name);
+            strcat(total_dir,"/");
+            #endif
+
+            strcpy(des_str,des);
+            strcat(des_str,enty->d_name);
+            strcat(des_str,"/");
 
             //继续递归调用
             /////////print_INI_Info(enty->d_name,depth+4);
-            print_INI_Info(total_dir,depth+4);//绝对路径递归调用错误 modify by flq
+            print_INI_Info(total_dir, des_str, depth+4);//绝对路径递归调用错误 modify by flq
         }
         else
         {
             //added by flq, get absolute path
             strcpy(total_dir,dir);
             strcat(total_dir,enty->d_name);
-            printf("%s\n", total_dir);
+            //printf("%s\n", total_dir);
             //generate_md5sum(total_dir);
 
             //输出文件名
-            printf("%*s%s",depth," ",enty->d_name);
-            printf(", statbuf.st_size=%d\n", statbuf.st_size);
+            //printf("%*s%s",depth," ",enty->d_name);
+            //printf(", statbuf.st_size=%d\n", statbuf.st_size);
             //added by flq
             iniSetString(enty->d_name, "name", enty->d_name);//name
             iniSetString(enty->d_name, "path", total_dir);//path
@@ -462,12 +479,17 @@ void print_INI_Info(char *dir, int depth)
             //added end
             /////////////////////////BASE64 ENCODE////////////////////////////
             if(is_base64){
+                #if 0
                 char *des_str = new char[PATH_MAX];///home/montafan/QRcodeGrab/source/4_base64_encode_location/   //remeber free, flq
-                char *diplay_content;
                 memset(des_str, 0, PATH_MAX);
                 strcat(des_str, SRC_BASE64_ENCODE_LOCATION);
                 strcat(des_str, "nocolor.png/");
                 strcat(des_str, enty->d_name);
+                #else
+                strcpy(des_str,des);
+                strcat(des_str,enty->d_name);
+                #endif
+                char *diplay_content;
 
                 //dont forget mkdir fold
                 FILE *infile = fopen(total_dir, "rb");
@@ -484,7 +506,7 @@ void print_INI_Info(char *dir, int depth)
                 ///===============后续在此生成二维码===============//
                 ///here qrgenrator
 
-                free(des_str);
+                //free(des_str);
                 fclose(infile);
                 fclose(outfile);
             }
@@ -502,9 +524,10 @@ void print_INI_Info(char *dir, int depth)
 
     //free
     free(total_dir);
+    free(des_str);
 }
 
-
+#if 0
 //后续会评估是否移动到src中
 void des_ini_traversal_imp(char *dir, int depth)
 {
@@ -621,6 +644,8 @@ void des_ini_traversal_imp(char *dir, int depth)
     //free
     free(total_dir);
 }
+#endif
+
 
 int file_traversal()
 {
@@ -648,24 +673,28 @@ int file_traversal()
     fclose(ini_folder);
     //iniFileLoad(folder_HEAD);
 
-    ///遍历源文件夹并生成所有的文件夹
+    ///遍历源文件夹并生成所有的文件夹,处理完后，在3中生成碎片
     src_file_traversal_imp(topDir, _2_dir, _3_dir, _4_dir, 0);
-    //printf("Done\n");
+
+    printf("Transmit Done\n");
     return 0;
 }
 
 
 int fragment_traversal()
 {
-    ///char *topdir = "/home/montafan/Qt5.6.2/project/zbar_gige/testFile/";
-    char *fragmentDir = SRC_SPLIT_LOCATION2;//"/home/montafan/QRcodeGrab/source/3_split_location/nocolor.png/";//文件夹
+    ///char *fragmentDir = "/home/montafan/Qt5.6.2/project/zbar_gige/testFile/";
+    //char *fragmentDir = SRC_SPLIT_LOCATION2;//"/home/montafan/QRcodeGrab/source/3_split_location/nocolor.png/";//文件夹
+    char *fragmentDir = SRC_SPLIT_LOCATION;//"/home/montafan/QRcodeGrab/source/3_split_location/";
+    char *fragmentDes = SRC_BASE64_ENCODE_LOCATION;
 
     printf("Directory fragement scan of %s\n",fragmentDir);
 
     is_base64 = true;
-    iniFileLoad(fragment_HEAD);
+    //待处理，寻找合适的位置
+    ////iniFileLoad(fragment_HEAD);
 
-    print_INI_Info(fragmentDir, 0);
+    print_INI_Info(fragmentDir, fragmentDes, 0);
     //printf("Done\n");
     return 0;
 }
@@ -685,50 +714,51 @@ unsigned long get_file_size(char *path)
 
 unsigned char* generate_md5sum(char *filename)
 {
-  FILE *fp;
-  char buffer[4096];
-  size_t n;
-  MD5_CONTEXT ctx;
-  int i;
+    FILE *fp;
+    char buffer[4096];
+    size_t n;
+    MD5_CONTEXT ctx;
+    int i;
 
-  fp = fopen (filename, "rb");
-  if (!fp)
+    fp = fopen (filename, "rb");
+    if (!fp)
     {
-      fprintf (stderr, "can't open `%s': %s\n", filename, strerror (errno));
-      exit (1);
-      //return -1;
+        fprintf (stderr, "can't open `%s': %s\n", filename, strerror (errno));
+        exit (1);
+        //return -1;
     }
 
-  memset(buffer, 0, 4096);
+    memset(buffer, 0, 4096);
 
-  md5_init (&ctx);
-  while ( (n = fread (buffer, 1, sizeof buffer, fp)))
+    md5_init (&ctx);
+    while ( (n = fread (buffer, 1, sizeof buffer, fp)))
     md5_write (&ctx, (unsigned char*)buffer, n);
 
-  if (ferror (fp))
+    if (ferror (fp))
     {
-      fprintf (stderr, "error reading `%s': %s\n", filename,strerror (errno));
-      exit (1);
-      //return -1;
+        fprintf (stderr, "error reading `%s': %s\n", filename,strerror (errno));
+        exit (1);
+        //return -1;
     }
-  md5_final (&ctx);
-  fclose (fp);
+    md5_final (&ctx);
+    fclose (fp);
 /*
-  printf("MD5SUM:");
+    printf("MD5SUM:");
 
-  for (i=0; i < 16; i++)
-  {
-    //printf ("%02x", ctx.buf[i]);
-  }
+    for (i=0; i < 16; i++)
+    {
+      //printf ("%02x", ctx.buf[i]);
+    }
 */
-  HexToStr(md5sum_str_hex, ctx.buf, 16);
-  for (i=0; i < 32; i++)
-  {
-    printf ("%c", md5sum_str_hex[i]);
-  }
-  printf ("\n");
-
-  return md5sum_str_hex;
+#ifdef PRINT_MD5SUM
+    HexToStr(md5sum_str_hex, ctx.buf, 16);
+    for (i=0; i < 32; i++)
+    {
+        printf ("%c", md5sum_str_hex[i]);
+    }
+    printf ("\n");
+#endif
+    return md5sum_str_hex;
 }
 
 //识别二维码后进行md5sum check，时减少一次读文件的操作，提高效率 , not sure
