@@ -121,6 +121,8 @@ int main(int argc, char* argv[])
     ///system("cd /home/montafan/Qt5.6.2/project/zbar_gige/testFile && split -b 2k /home/montafan/Qt5.6.2/project/zbar_gige/testFile/1.lzo -d X");
     system("cd /home/montafan/QRcodeGrab/source/2_lzo_location && split -b 2k /home/montafan/QRcodeGrab/source/2_lzo_location/nocolor.png.lzo -d X");
     #endif
+    //报头遍历
+    ini_traversal();
     //遍历片段
     fragment_traversal();
 

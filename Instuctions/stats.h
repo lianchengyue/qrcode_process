@@ -12,9 +12,11 @@ int src_init_topology();
 int des_init_topology();
 
 void src_file_traversal_imp(char *dir, char *_2_dir, char *_3_dir, char *_4_dir, int depth);
+void src_ini_traversal_imp(/*char *dir*/);
 void src_fragment_traversal_imp(char *dir, int depth);
 
 int file_traversal();
+int ini_traversal();
 int fragment_traversal();
 
 //获取文件大小

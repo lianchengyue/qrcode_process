@@ -16,8 +16,11 @@
 #include <string>
 using namespace std;
 
+#define WAIT_FRAME_COUNT 20
+#define DISPLAY_INTERVAL 100000  //unit: us
 
 char *pdesBuf;  //定义文件指针
+vector<string> vecINIString;
 vector<string> vecString;
 
 //QThread
@@ -104,8 +107,8 @@ void readFragment(char* pdesBuf)
 }
 
 
-///遍历3文件夹中，split+base64 encode完后的碎片
-void src_fragment_traversal(string dir, int depth) //get_file_to_generate_qrcode
+///遍历3文件夹中，split+base64 encode完后的碎片,把读到的绝对路径保存到vector中
+void src_fragment_traversal(string dir, bool is_ini, int depth) //get_file_to_generate_qrcode
 {
     DIR *Dp;
     //文件目录结构体
@@ -145,7 +148,7 @@ void src_fragment_traversal(string dir, int depth) //get_file_to_generate_qrcode
             printf("%*s%s/\n",depth," ",enty->d_name);
 
             //继续递归调用
-            src_fragment_traversal(total_dir,depth+4);//绝对路径递归调用错误 modify by flq
+            src_fragment_traversal(total_dir, is_ini, depth+4);//绝对路径递归调用错误 modify by flq
         }
         else
         {
@@ -155,8 +158,15 @@ void src_fragment_traversal(string dir, int depth) //get_file_to_generate_qrcode
             //输出当前目录名
             //printf("%*s%s/\n",depth," ",enty->d_name);
             //get文件名
-            vecString.push_back(total_dir);//NULL
+            if(is_ini)
+            {
+                vecINIString.push_back(total_dir);
             ///std::vector<std::array<char,255>>* vecString = reinterpret_cast<std::vector<std::array<char,255>>*>(total_dir);
+            }
+            else
+            {
+                vecString.push_back(total_dir);
+            }
 
         }
     }
@@ -193,10 +203,20 @@ QRGenerator::QRGenerator(QWidget *parent)
 
     ///后续改为在收到传输完成消息后调用 added by flq
     //首先遍历文件,路径保存到vector
-    //char *topdir = SRC_BASE64_ENCODE_LOCATION2;
+    //文件夹信息
+    char *folderdir = SRC_INI_FOLD_FRAG_LOCATION;
+    std::string folder_str =  folderdir;
+    src_fragment_traversal(folder_str, true, 0);  //isINI=true
+
+    //文件属性信息
+    char *configdir = SRC_INI_FILE_FRAG_LOCATION;
+    std::string config_str =  configdir;
+    src_fragment_traversal(config_str, true, 0);
+
+    //内容碎片信息
     char *topdir = SRC_BASE64_ENCODE_LOCATION;
     std::string topdir_str =  topdir;
-    src_fragment_traversal(topdir_str, 0);
+    src_fragment_traversal(topdir_str, false, 0);
     ///added end
 
     //定时器
@@ -260,7 +280,7 @@ void QRGenerator::setString(QString str)
         QR_MODE_8,
         1);
     #if 1
-    usleep(100000);
+    usleep(DISPLAY_INTERVAL);
     repaint();
     #else
     //repaint();
@@ -349,6 +369,7 @@ void QRGenerator::paintEvent(QPaintEvent *)
     QColor background(Qt::white);
     painter.setBrush(background);
     painter.setPen(Qt::NoPen);
+    //printf("FFF(%d,%d)\n",width(), height());//1920,1080
     painter.drawRect(0, 0, width(), height());
     if(qr != NULL)
     {
@@ -435,16 +456,43 @@ void QRGenerator::UpdateSlot(int num)
     //label->setText(QString::number(num));
     printf("UpdateSlot,Thread\n");
 
+    ///播放报头二维码
+    for (is = 0; is < WAIT_FRAME_COUNT; is++)
+    {
+        setString(TRANSMIT_PRESTART);
+    }
+
     ///播放报头
     //here to add content
     //...
+    for (size_t i = 0; i < vecINIString.size(); i++) {
+
+        std::string s = vecINIString[i];
+        FILE *pFile=fopen(s.c_str(),"rb"); //rb二进制, rt文本文件
+
+        fseek(pFile,0,SEEK_END); //把指针移动到文件的结尾 ，获取文件长度
+        int len=ftell(pFile); //获取文件长度
+        pdesBuf=new char[len+1];
+        rewind(pFile); //把指针移动到文件开头
+        fread(pdesBuf,1,len,pFile);
+        pdesBuf[len]=0;
+
+        fclose(pFile);
+        //added end
+
+        //显示二维码
+        setString(pdesBuf);
+        ///usleep(100);
+        free(pdesBuf);
+    }
     //added end
 
     ///播放开始二维码
-    for (is = 0; is < 10; is++)
+    for (is = 0; is < WAIT_FRAME_COUNT; is++)
     {
         setString(TRANSMIT_START);
     }
+
 #if 1
     for (size_t i = 0; i < vecString.size(); i++) {
 
@@ -469,7 +517,7 @@ void QRGenerator::UpdateSlot(int num)
 #endif
 
     ///播放结束二维码
-    for (ie = 0; ie < 10; ie++) {
+    for (ie = 0; ie < WAIT_FRAME_COUNT; ie++) {
         setString(TRANSMIT_END);
     }
     setString(TRANSMIT_IDLE);
