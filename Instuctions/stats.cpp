@@ -1,6 +1,5 @@
 ﻿//Auther fanlinqing
 //获取文件属性，并遍历文件
-//author fanlinqing
 //实现非常多业务的文件
 
 #include<time.h>
@@ -70,7 +69,7 @@ int des_init_topology()
 }
 
 //遍历完整文件，生成未做base64 encode的碎片
-void src_file_traversal_imp(char *dir, char *_2_dir, char *_3_dir, char *_4_dir, int depth)
+void src_file_traversal_imp(char *dir, char* _short_dir, char *_2_dir, char *_3_dir, char *_4_dir, int depth)
 {
     DIR *Dp;
     //文件目录结构体
@@ -79,6 +78,7 @@ void src_file_traversal_imp(char *dir, char *_2_dir, char *_3_dir, char *_4_dir,
     struct stat statbuf;
     //文件相对或绝对路径 addded by flq
     char *total_dir;
+    char *relative_dir;
 
     char *_2_lzo_dir;
     char *_3_split_dir;
@@ -95,6 +95,8 @@ void src_file_traversal_imp(char *dir, char *_2_dir, char *_3_dir, char *_4_dir,
 
     total_dir = new char[PATH_MAX];
     memset(total_dir, 0, PATH_MAX);
+    relative_dir = new char[PATH_MAX];
+    memset(relative_dir, 0, PATH_MAX);
     _2_lzo_dir = new char[PATH_MAX];
     memset(_2_lzo_dir, 0, PATH_MAX);
     _3_split_dir = new char[PATH_MAX];
@@ -127,6 +129,9 @@ void src_file_traversal_imp(char *dir, char *_2_dir, char *_3_dir, char *_4_dir,
             strcat(total_dir,enty->d_name);
             strcat(total_dir,"/");
 
+            //相对路径拼接
+            sprintf(relative_dir, "%s%s/", _short_dir, enty->d_name);
+
             //输出当前目录名
             printf("%*s%s/\n",depth," ",enty->d_name);
 
@@ -136,7 +141,7 @@ void src_file_traversal_imp(char *dir, char *_2_dir, char *_3_dir, char *_4_dir,
             static int count = 0;
             char str[256]= {0};
             sprintf(str,"folder%d",count++);
-            iniSetString("FOLDER", str, total_dir);//name
+            iniSetString("FOLDER", str, relative_dir);//局部路径
 
             //2_lzo_location
             strcpy(_2_lzo_dir,_2_dir);
@@ -155,7 +160,7 @@ void src_file_traversal_imp(char *dir, char *_2_dir, char *_3_dir, char *_4_dir,
             strcat(_4_base64_encode_dir,"/");
 
             //继续递归调用
-            src_file_traversal_imp(total_dir, _2_lzo_dir, _3_split_dir, _4_base64_encode_dir,depth+4);//绝对路径递归调用错误 modify by flq
+            src_file_traversal_imp(total_dir, relative_dir, _2_lzo_dir, _3_split_dir, _4_base64_encode_dir,depth+4);//绝对路径递归调用错误 modify by flq
         }
         //是文件
         else
@@ -167,6 +172,8 @@ void src_file_traversal_imp(char *dir, char *_2_dir, char *_3_dir, char *_4_dir,
             strcat(total_dir,enty->d_name);
             printf("%s\n", total_dir);
             //generate_md5sum(total_dir);
+            //1的相对路径
+            sprintf(relative_dir, "%s%s", _short_dir, enty->d_name);
 
             //2,3,4的绝对路径
             strcpy(_2_lzo_dir,_2_dir);
@@ -182,7 +189,7 @@ void src_file_traversal_imp(char *dir, char *_2_dir, char *_3_dir, char *_4_dir,
             //I:原文件目录的INI
             iniFileLoad(HEAD);
             iniSetString(enty->d_name, "name", enty->d_name);//name
-            iniSetString(enty->d_name, "path", total_dir);//path
+            iniSetString(enty->d_name, "path", relative_dir);//path
             iniSetInt(enty->d_name, "size", statbuf.st_size, 0);//size
             iniSetString(enty->d_name, "md5sum", (char*)generate_md5sum(total_dir));//md5sum   or (char*)md5sum_str_hex
             //getTimestamp();
@@ -690,32 +697,26 @@ void des_ini_traversal_imp(char *dir, int depth)
 
 int file_traversal()
 {
-    ///char *topdir = "/home/montafan/Qt5.6.2/project/zbar_gige/testFile/";
     char *topDir = SRC_LOCATION;//"/home/montafan/QRcodeGrab/source/location/";
+    char relativeDir[PATH_MAX] = {0};
     char *_2_dir = SRC_LZO_LOCATION;//"/home/montafan/QRcodeGrab/source/2_lzo_location/";
     char *_3_dir = SRC_SPLIT_LOCATION;//"/home/montafan/QRcodeGrab/source/3_split_location/";
     char *_4_dir = SRC_BASE64_ENCODE_LOCATION;//"/home/montafan/QRcodeGrab/source/4_base64_encode_location/";
 
     printf("Directory scan of %s\n",topDir);
 
-    is_base64 = false;
-#if 0
-    //生成配置文件
-    char *HEAD = new char[PATH_MAX];
-    strcpy(HEAD,topDir);
-    strcat(HEAD,"HEAD.ini");
-    freopen(HEAD, "a+", stdout);
-#else
+    is_base64 = false;//flag, dont neglect
+
     FILE *ini_file = fopen(HEAD, "w");
     fclose(ini_file);
     //iniFileLoad(HEAD);
-#endif
+
     FILE *ini_folder = fopen(folderHead, "w");
     fclose(ini_folder);
     //iniFileLoad(folderHead);
 
     ///遍历源文件夹并生成所有的文件夹,处理完后，在3中生成碎片
-    src_file_traversal_imp(topDir, _2_dir, _3_dir, _4_dir, 0);
+    src_file_traversal_imp(topDir, relativeDir,_2_dir, _3_dir, _4_dir, 0);
 
     printf("Transmit Done\n");
     return 0;
