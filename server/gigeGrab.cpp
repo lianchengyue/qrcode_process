@@ -157,14 +157,31 @@ int gigegrab::grab()
         waitKey(1);
 
         //added by flq
-        char *result = new char[3072];
-        memset(result, 0 , 3072);
-        m_scancode->scanimage((void*)imageGray.data, result);   //if single process, delete
+        char *result = new char[QRDATA_SIZE];
+        memset(result, 0 , QRDATA_SIZE);
+        int res = m_scancode->scanimage((void*)imageGray.data, result);   //if single process, delete
         //printf("out result=%s,length=%d\n", result, strlen(result));
+
+        ///init()
+        mfragmentProcess->create_folder_tree_from_ini(); //only once
+
+
+        //for test
+        char *testbuf = new char[2772];
+        FILE *infile = fopen("/home/montafan/QRcodeGrab/destination/INI/folder/X0", "rb");
+        fread(testbuf,1,2772,infile);
+
+        mfragmentProcess->des_prestart_content_receiver(testbuf);//有内存泄漏
+        fclose(infile); // 关闭文件
         ///===========================fragmentWrite=============================//
-        //生成文件
-        char *dir = DES_BASE64_DECODE_LOCATION2;
-        mfragmentProcess->process_QRdata_to_fragment(result, dir);
+        //成功接收
+        if(res)
+        {
+            char *dir = DES_RECEIVE_LOCATION;
+            mfragmentProcess->process_QRdata_to_fragment(result, dir);//有内存泄漏
+        }
+        //char *dir = DES_RECEIVE_LOCATION;
+        //mfragmentProcess->process_QRdata_to_fragment(result, dir);//有内存泄漏
         if(1)//发送完毕
         {
 

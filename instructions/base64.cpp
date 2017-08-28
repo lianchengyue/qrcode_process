@@ -266,6 +266,43 @@ void encode(FILE * fp_in, FILE * fp_out)
     base64=NULL;
 }
 
+void encode(FILE * fp_in, FILE * fp_out, char *dir, char *filename)
+{
+    unsigned char *bindata;  //input
+    char *base64;  //output
+    int len;
+    int out_len;
+
+    fseek(fp_in,0,SEEK_END); //把指针移动到文件的结尾 ，获取文件长度
+    len = ftell(fp_in); //获取文件长度
+    bindata = new unsigned char[len+1];
+    base64 = new char[2*len];//len*8/6  2*len  2849
+    memset(bindata, 0, len+1);
+    memset(base64, 0, 2*len);
+
+    rewind(fp_in); //把指针移动到文件开头
+    fread(bindata,1,len,fp_in); //读文件
+    bindata[len]=0;
+
+    out_len = base64_encode(base64, bindata, len, 0);
+
+    //相对路径
+    int size = fwrite(dir, sizeof(char), strlen(dir), fp_out);
+    size = fwrite("\n", sizeof(char), 1, fp_out);
+
+    //文件名
+    size = fwrite(filename, sizeof(char), strlen(filename), fp_out);
+    size = fwrite("\n", sizeof(char), 1, fp_out);
+
+    //文件内容
+    size = fwrite(base64, sizeof(char), out_len, fp_out);
+
+    free(bindata);
+    free(base64);
+    bindata=NULL;
+    base64=NULL;
+}
+
 void encode(FILE * fp_in, char *str_out)
 {
     unsigned char *bindata;  //input

@@ -6,7 +6,7 @@
 #define NO_MEMORY -29
 #define UNKNOWN_ERROR -30
 
-
+#define REV_CONTENT_ERROR   -2
 
 #define EPERM   1 /* Operation not permitted */
 

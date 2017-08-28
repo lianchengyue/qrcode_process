@@ -1,9 +1,9 @@
 #include "fragmentProcess.h"
-#include "../Instuctions/stats.h"
-#include "../Instuctions/inirw.h"
+#include "../instructions/stats.h"
+#include "../instructions/inirw.h"
 
 #include "include/DirPath.h"
-#include "../Instuctions/base64.h"
+#include "../instructions/base64.h"
 
 #include "include/Errors.h"
 #include <mutex>
@@ -73,18 +73,116 @@ int fragmentProcess::readFragmentINI(){
 //解析最先收到的INI文件
 int fragmentProcess::create_folder_tree_from_ini()
 {
+    char *sect = "FOLDER";
+
+    //ini中记录所有的文件夹路径
+    iniFileLoad(DES_INI_FOLD_LOCATION);
+
+    static int count = 0;
+    char key[256]= {0};
+    char value[256] = {0};
+    char *dir;
+
+    dir = new char[PATH_MAX];
+    memset(dir, 0, PATH_MAX);
+
+    //发送的内容中没有文件夹
+    if(0)
+    {
+        return -1;//稍后定义错误码
+    }
+
+    do{
+        sprintf(key,"folder%d",count++);
+        //iniSetString("FOLDER", str, total_dir);//name
+        iniGetString(sect, key, value, sizeof(value), "");
+        if(0 != strlen(value))
+        {
+            //mkdir 4 location
+            sprintf(dir, "%s%s", DES_LOCATION, value);
+            //printf("%s\n", dir);
+            mkdir(dir, S_IRWXU|S_IRWXG|S_IRWXO);
+
+            //mkdir 1_receive_location
+            sprintf(dir, "%s%s", DES_RECEIVE_LOCATION, value);
+            //printf("%s\n", dir);
+            mkdir(dir, S_IRWXU|S_IRWXG|S_IRWXO);
+        }
+        //else
+        //{
+        //    break;
+        //}
+    }
+    while (strlen(value)>0);
+
+    free(dir);
     return NO_ERROR;
 }
 
 //process_QRdata_to_fragment完后执行
-void fragmentProcess::des_prestart_content_receiver(char *QRdata, char *des_str)
+//含有路径信息和文件名
+int fragmentProcess::des_prestart_content_receiver(char *QRdata)
+{
+    char *relative_dir  = new char[PATH_MAX];
+    char *total_dir  = new char[PATH_MAX];
+    char *name = new char[NAME_MAX];
+    char *pureQRdata;//temp
+    int *offset = (int *)malloc(sizeof(int));
+
+    memset(relative_dir, 0, PATH_MAX);
+    memset(total_dir, 0, PATH_MAX);
+    memset(name, 0, NAME_MAX);
+
+    *offset = 0;
+    //temp
+    //pureQRdata = new char[QRDATA_SIZE];//temp
+    memset(pureQRdata, 0, QRDATA_SIZE);//temp
+
+    //cutQRdata(QRdata, pureQRdata, relative_dir, name); //temp
+    int ret = cutQRdata(QRdata, offset, relative_dir, name); //temp
+    if(NO_ERROR != ret){
+        return -1;
+    }
+    pureQRdata = QRdata;
+    pureQRdata = pureQRdata + *offset;
+
+
+    sprintf(total_dir, "%s%s", DES_RECEIVE_LOCATION, relative_dir);
+
+    //文件夹是否存在
+    if(0 != access(total_dir, F_OK))
+    {
+        mkdir(total_dir, S_IRWXU|S_IRWXG|S_IRWXO);
+    }
+
+    strcat(total_dir, name);
+
+    FILE *INI_Destination = fopen(total_dir, "wb"); //ab+;
+    //测试读取二维码并生成文件，正式版删去
+    int size = fwrite(pureQRdata, 1, strlen(pureQRdata), INI_Destination);
+
+    fclose(INI_Destination); // 关闭文件
+
+    free(relative_dir);
+    free(total_dir);
+    free(name);
+    //free(pureQRdata);//temp
+    free(offset);
+    return NO_ERROR;
+}
+
+//process_QRdata_to_fragment完后执行
+int fragmentProcess::des_prestart_content_receiver(char *QRdata, char *des_str)
 {
     FILE *INI_Destination = fopen(des_str, "wb"); //ab+;
     //测试读取二维码并生成文件，正式版删去
     int size = fwrite(QRdata, 1, strlen(QRdata), INI_Destination);
 
     fclose(INI_Destination); // 关闭文件
+
+    return NO_ERROR;
 }
+
 void fragmentProcess::des_ini_fragment_traversal(string dir, int depth) //decode_base64_fragment
 {
     DIR *Dp;
@@ -149,7 +247,7 @@ void fragmentProcess::des_ini_fragment_traversal(string dir, int depth) //decode
 
                 //dont forget mkdir fold
                 FILE *infile = fopen(total_dir.c_str(), "rb");
-                FILE *outfile = fopen(des_str, "w");
+                FILE *outfile = fopen(des_str, "wb");
 
                 decode(infile, outfile);//生成二进制文件百度首页设置登录
 
@@ -317,7 +415,7 @@ int fragmentProcess::process_QRdata_to_fragment(char *QRdata, char *des_str)
     if(0 == strcmp(QRdata, TRANSMIT_TEST) && flag){
         printf("===================逐帧接收二维码===========================\n");
         flag = false;
-        des_fragment_traversal(DES_RECEIVE_LOCATION2, 0);
+        des_fragment_traversal(DES_RECEIVE_LOCATION, 0);
         return NO_ERROR;
     }
 

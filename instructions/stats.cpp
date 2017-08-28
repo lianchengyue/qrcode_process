@@ -9,11 +9,12 @@
 #include "md5sum.h"
 //#include "qrgenerator.h"
 #include "include/fileParameters.h"
-#include "Instuctions/base64.h"
+#include "instructions/base64.h"
 #include "include/DirPath.h"
 
 #include "LZO/lzopack.h"//temp
-#include "Instuctions/split.h"
+#include "instructions/split.h"
+#include "include/Errors.h"
 
 //#define PRINT_MD5SUM
 
@@ -245,9 +246,21 @@ void src_file_traversal_imp(char *dir, char* _short_dir, char *_2_dir, char *_3_
                 //3_split_location,切割文件
                 //memset(des_buf, 0, statbuf.st_size);
                 //fwrite(des_buf, 1, statbuf.st_size, out_3_file);
-                mkdir(_3_split_dir, S_IRWXU|S_IRWXG|S_IRWXO);///这里的_3_split_dir是目录，不是文件，存放切割后的碎片
-                spilt(total_dir, _3_split_dir, BLOCK_SIZE); ///这里的_3_split_dir是目录，不是文件，存放切割后的碎片
-                mkdir(_4_base64_encode_dir, S_IRWXU|S_IRWXG|S_IRWXO);
+                if(0 != access(_3_split_dir, F_OK))
+                {
+                    mkdir(_3_split_dir, S_IRWXU|S_IRWXG|S_IRWXO);///这里的_3_split_dir是目录，不是文件，存放切割后的碎片
+                    //在最后会添加一个额外的过程来显示碎片路径的ini,
+                    //在此添加虽然代码显得麻烦，但会在接收端的每次接收都减少一次判断
+                    //consider whether need to add code to generate a ini of fragment for mkdir
+                    //...
+                    //...
+                    //...
+                }
+                    spilt(total_dir, _3_split_dir, BLOCK_SIZE); ///这里的_3_split_dir是目录，不是文件，存放切割后的碎片
+                if(0 != access(_4_base64_encode_dir, F_OK))
+                {
+                    mkdir(_4_base64_encode_dir, S_IRWXU|S_IRWXG|S_IRWXO);
+                }
 
                 //4_base64_encode_location,base64 encode文件
                 //memset(des_buf, 0, statbuf.st_size);
@@ -303,12 +316,32 @@ void src_ini_traversal_imp(/*char *dir*/)
     sprintf(folder_dir,"%sfolder/",SRC_INI_LOCATION);
 
     //稍后判断文件是否为空start
+    //flq, to be added
     //稍后判断文件是否为空end
 
-    mkdir(config_dir, S_IRWXU|S_IRWXG|S_IRWXO);///这里的_3_split_dir是目录，不是文件，存放切割后的碎片
+    //稍后判断文件是否exist
+    //access(config_dir, F_OK);  //got=0, none or without permission
+
+    ///后续在此添加报头
+    //方法:遍历时读取，并添加内容
+    if(0 != access(config_dir, F_OK))
+    {
+        mkdir(config_dir, S_IRWXU|S_IRWXG|S_IRWXO);///这里的_3_split_dir是目录，不是文件，存放切割后的碎片
+    }
+    #ifdef INI_FRAGMENT_WITHOUT_MASTHEAD
     spilt(SRC_INI_FILE_LOCATION, config_dir, BLOCK_SIZE); ///这里的_3_split_dir是目录，不是文件，存放切割后的碎片
-    mkdir(folder_dir, S_IRWXU|S_IRWXG|S_IRWXO);///这里的_3_split_dir是目录，不是文件，存放切割后的碎片
+    #else
+    spilt_ini(SRC_INI_FILE_LOCATION, config_dir, "source/INI/config/", BLOCK_SIZE); ///这里的_3_split_dir是目录，不是文件，存放切割后的碎片
+    #endif
+    if(0 != access(folder_dir, F_OK))
+    {
+        mkdir(folder_dir, S_IRWXU|S_IRWXG|S_IRWXO);///这里的_3_split_dir是目录，不是文件，存放切割后的碎片
+    }
+    #ifdef INI_FRAGMENT_WITHOUT_MASTHEAD
     spilt(SRC_INI_FOLD_LOCATION, folder_dir, BLOCK_SIZE); ///这里的_3_split_dir是目录，不是文件，存放切割后的碎片
+    #else
+    spilt_ini(SRC_INI_FOLD_LOCATION, folder_dir, "source/INI/folder/", BLOCK_SIZE); ///这里的_3_split_dir是目录，不是文件，存放切割后的碎片
+    #endif
 
 }
 
@@ -316,7 +349,7 @@ void src_ini_traversal_imp(/*char *dir*/)
 
 //遍历3目录的碎片文件，做base64 encode的
 //src_fragment_traversal_imp
-void src_fragment_traversal_imp(char *dir, char *des, int depth)
+void src_fragment_traversal_imp(char *dir, char* _short_dir, char *des, int depth)
 {
     DIR *Dp;
     //文件目录结构体
@@ -325,6 +358,7 @@ void src_fragment_traversal_imp(char *dir, char *des, int depth)
     struct stat statbuf;
     //文件相对或绝对路径 addded by flq
     char *total_dir;
+    char *relative_dir;
     char *des_str;
 
     //打开指定的目录，获得目录指针
@@ -335,9 +369,13 @@ void src_fragment_traversal_imp(char *dir, char *des, int depth)
     }
 
     total_dir = new char[PATH_MAX];
-    des_str = new char[PATH_MAX];
     memset(total_dir, 0, PATH_MAX);
+    relative_dir = new char[PATH_MAX];
+    memset(relative_dir, 0, PATH_MAX);
+
+    des_str = new char[PATH_MAX];
     memset(des_str, 0, PATH_MAX);
+
     memset(md5sum_str, 0, MD5SUM_MAX);
     memset(md5sum_str_hex, 0, MD5SUM_MAX);
 
@@ -375,6 +413,9 @@ void src_fragment_traversal_imp(char *dir, char *des, int depth)
             strcat(total_dir,"/");
             #endif
 
+            //相对路径拼接
+            sprintf(relative_dir, "%s%s/", _short_dir, enty->d_name);
+
             strcpy(des_str,des);
             strcat(des_str,enty->d_name);
             strcat(des_str,"/");
@@ -383,7 +424,7 @@ void src_fragment_traversal_imp(char *dir, char *des, int depth)
             iniFileLoad(fragmentHEAD);
             //继续递归调用
             /////////print_INI_Info(enty->d_name,depth+4);
-            src_fragment_traversal_imp(total_dir, des_str, depth+4);//绝对路径递归调用错误 modify by flq
+            src_fragment_traversal_imp(total_dir, relative_dir, des_str, depth+4);//绝对路径递归调用错误 modify by flq
         }
         else
         {
@@ -392,6 +433,8 @@ void src_fragment_traversal_imp(char *dir, char *des, int depth)
             strcat(total_dir,enty->d_name);
             //printf("%s\n", total_dir);
             //generate_md5sum(total_dir);
+            //相对路径拼接
+            sprintf(relative_dir, "%s%s", _short_dir, enty->d_name);
 
             //输出文件名
             //printf("%*s%s",depth," ",enty->d_name);
@@ -418,12 +461,13 @@ void src_fragment_traversal_imp(char *dir, char *des, int depth)
                 #endif
                 char *diplay_content;
 
-                //dont forget mkdir fold
+                //dont forget mkdir fold, already done
                 FILE *infile = fopen(total_dir, "rb");
                 FILE *outfile = fopen(des_str, "wb");
 
                 #if 1
-                encode(infile, outfile);//OK
+                //encode(infile, outfile);//OK
+                encode(infile, outfile, _short_dir, enty->d_name);//添加路径信息
                 #else
                 //first length. then new, then
                 int length = get_length_after_base64(infile);
@@ -734,6 +778,7 @@ int fragment_traversal()
 {
     char *fragmentDir = SRC_SPLIT_LOCATION;//"/home/montafan/QRcodeGrab/source/3_split_location/";
     char *fragmentDes = SRC_BASE64_ENCODE_LOCATION;
+    char relativeDir[PATH_MAX] = {0};
 
     printf("Directory fragement scan of %s\n",fragmentDir);
 
@@ -741,7 +786,7 @@ int fragment_traversal()
     //待处理，寻找合适的位置
     ////iniFileLoad(fragmentHEAD);
 
-    src_fragment_traversal_imp(fragmentDir, fragmentDes, 0);
+    src_fragment_traversal_imp(fragmentDir, relativeDir, fragmentDes, 0);
     //printf("Done\n");
     return 0;
 }
@@ -917,4 +962,113 @@ static void getTimestamp()
     memset(ctime, 0, 40);
     sprintf(ctime, "%02:%02d:%02d\n", t->tm_hour, t->tm_min, t->tm_sec);
     printf("ctime:%s", ctime);
+}
+
+//instr: 输入内容
+//pureQRdata: 数据信息
+//relative_path:碎片中的碎片中的相对路径信息
+//filename:碎片中的文件名信息
+int cutQRdata(char *instr, int *offset, char *relative_path,char *filename)
+{//要求截取的字符串不可以改变，但指向字符串的指针可以改变
+    char *pp = instr;
+    int i = 0;
+    int j = 0;
+    int cnt = 0;
+
+    if(pp==NULL)
+    {//如果截取的字符串是空的直接返回
+        return -1;
+    }
+
+    while(*pp!='\0')
+    {
+        if(*pp=='\n')
+        {
+            pp++;
+            cnt++;
+            break;
+        }
+
+        relative_path[i] = instr[i];
+        pp++;
+        i++;
+    }
+
+    while(*pp!='\0')
+    {
+        if(*pp=='\n')
+        {
+            pp++;
+            cnt++;
+            break;
+        }
+
+        filename[j] = instr[i+1+j];
+        pp++;
+        j++;
+    }
+
+    if(cnt<2)
+    {
+        //*offset = i+1+j;
+        return REV_CONTENT_ERROR;
+    }
+
+    *offset = i+2+j;
+
+    return NO_ERROR;
+}
+//instr: 输入内容
+//pureQRdata: 数据信息
+//relative_path:碎片中的碎片中的相对路径信息
+//filename:碎片中的文件名信息
+int cutQRdata(char *instr, char *pureQRdata, char *relative_path,char *filename)
+{//要求截取的字符串不可以改变，但指向字符串的指针可以改变
+    char *pp = instr;
+    int i = 0;
+    int j = 0;
+    int cnt = 0;
+
+    if(pp==NULL)
+    {//如果截取的字符串是空的直接返回
+        return -1;
+    }
+
+    while(*pp!='\0')
+    {
+        if(*pp=='\n')
+        {
+            pp++;
+            cnt++;
+            break;
+        }
+
+        relative_path[i] = instr[i];
+        pp++;
+        i++;
+    }
+
+    while(*pp!='\0')
+    {
+        if(*pp=='\n')
+        {
+            pp++;
+            cnt++;
+            break;
+        }
+
+        filename[j] = instr[i+1+j];
+        pp++;
+        j++;
+    }
+
+    if(cnt<2)
+    {
+        return REV_CONTENT_ERROR;
+    }
+
+    ///strcpy(pureQRdata, pp);
+    pureQRdata = pureQRdata+20;
+
+    return NO_ERROR;
 }

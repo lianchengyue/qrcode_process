@@ -24,7 +24,12 @@ public:
     fragmentProcess();
     virtual ~fragmentProcess();
 
-    int process_QRdata_to_fragment(char* QRdata); //for test
+    int create_folder_tree_from_ini();
+
+    int des_prestart_content_receiver(char *QRdata);
+    int des_prestart_content_receiver(char *QRdata, char *des_str);
+
+    int process_QRdata_to_fragment(char* QRdata);
     int process_QRdata_to_fragment(char *QRdata, char *des_str);
     bool is_md5sum_match(char* QRdata);
     int process_fragment_base64_decode(char *QRdata, char *des_str);
@@ -35,8 +40,9 @@ private:
     int init();
     int readFragmentINI();
     void des_fragment_traversal(string dir, int depth);
-    int create_folder_tree_from_ini();
-    void des_prestart_content_receiver(char *QRdata, char *des_str);
+    //int create_folder_tree_from_ini();
+    //int des_prestart_content_receiver(char *QRdata);
+    //int des_prestart_content_receiver(char *QRdata, char *des_str);
     void des_ini_fragment_traversal(string dir, int depth);
 
     char *iniWholePath;//发送端完整文件的遍历结果

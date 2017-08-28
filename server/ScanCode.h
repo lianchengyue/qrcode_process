@@ -16,7 +16,7 @@ public:
     ScanCode();
     virtual ~ScanCode();
 
-    void scanimage(const void *pic, char *result);
+    int scanimage(const void *pic, char *result);
 
 private:
     bool flag;

@@ -17,16 +17,16 @@ SOURCES += main.cpp \
     server/ScanCode.cpp \
     server/qrcodezbar.cpp \
     LZO/lzopack.cpp \
-    Instuctions/stats.cpp \
-    Instuctions/inirw.cpp \
-    Instuctions/md5sum.cpp \
-    Instuctions/base64.cpp \
+    instructions/stats.cpp \
+    instructions/inirw.cpp \
+    instructions/md5sum.cpp \
+    instructions/base64.cpp \
     server/fragmentProcess.cpp \
     fileParameters.cpp \
     client/qrgenerator.cpp \
     server/gigeGrab.cpp \
     server/RecvStateMachine.cpp \
-    Instuctions/split.cpp
+    instructions/split.cpp \
 
 HEADERS += \
     server/ScanCode.h \
@@ -35,10 +35,10 @@ HEADERS += \
     LZO/portab_a.h \
     LZO/lzo_supp.h \
     LZO/lzopack.h \
-    Instuctions/stats.h \
-    Instuctions/inirw.h \
-    Instuctions/md5sum.h \
-    Instuctions/base64.h \
+    instructions/stats.h \
+    instructions/inirw.h \
+    instructions/md5sum.h \
+    instructions/base64.h \
     server/fragmentProcess.h \
     server/gigeGrab.h \
     client/qrgenerator.h \
@@ -47,10 +47,7 @@ HEADERS += \
     include/fileParameters.h \
     include/Errors.h \
     server/RecvStateMachine.h \
-    Instuctions/split.h
-
-
-
+    instructions/split.h \
 
 
 INCLUDEPATH += /usr/local/opencv320/include \

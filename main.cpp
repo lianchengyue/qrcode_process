@@ -9,11 +9,11 @@
 
 
 #if 0
-#include "Instuctions/inirw.h"
+#include "instructions/inirw.h"
 //http://bbs.csdn.net/topics/391842320
 int main(int argc, char* argv[])
 {
-    const char *file = "/home/montafan/Qt5.6.2/project/zbar_gige/Instuctions/inirw/config.ini";
+    const char *file = "/home/montafan/Qt5.6.2/project/zbar_gige/instructions/inirw/config.ini";
 
     char *sect;
     char *key;
@@ -63,16 +63,16 @@ int main(int argc, char* argv[])
 
 #if 1
 //打开为发送端，屏蔽为接收端
-#define DISPLAY_QRCODE  //grab pic
-#define FILE_PROCESS
+//#define DISPLAY_QRCODE  //grab pic
+//#define FILE_PROCESS
 
 #include "server/gigeGrab.h"
 #include "client/qrgenerator.h"
 #include <QApplication>
 
 #include "LZO/lzopack.h"
-#include "Instuctions/stats.h"
-#include "Instuctions/base64.h"  //temp
+#include "instructions/stats.h"
+#include "instructions/base64.h"  //temp
 #include "server/fragmentProcess.h"  //temp
 
 
@@ -105,16 +105,14 @@ int main(int argc, char* argv[])
                                                                                     #endif
 
     #ifdef FILE_PROCESS
-
-    const char* in_name = "/home/montafan/QRcodeGrab/source/1_location/nocolor.png";
-    const char* out_name = "/home/montafan/QRcodeGrab/source/2_lzo_location/nocolor.png.lzo";
-
     //生成拓扑
     src_init_topology();
     //文件遍历
     file_traversal();//stats.cpp
     #if 0
     //文件压缩
+    const char* in_name = "/home/montafan/QRcodeGrab/source/1_location/nocolor.png";
+    const char* out_name = "/home/montafan/QRcodeGrab/source/2_lzo_location/nocolor.png.lzo";
     processLZO(argc, argv, in_name, out_name, LZO_COMPRESS);//后续需要做遍历, 2K大小判断
     //system("md5sum /home/montafan/Qt5.6.2/project/zbar_gige/testFile/nocolor.PNG");
     //裁剪
@@ -152,10 +150,13 @@ int main(int argc, char* argv[])
 
 #elif 1 //#ifdef DISPLAY_QRCODE
 //抓取二维码
+    des_init_topology();
+
     //grab frame
-    QApplication a(argc, argv);
-    QRCodeZbar w;
-    w.show();
+    //QApplication a(argc, argv);
+    //QRCodeZbar w;
+    //w.show();
+    //return a.exec();
 
     //temp
     #if 0
@@ -172,7 +173,7 @@ int main(int argc, char* argv[])
     gigegrab *m_gigegrab = new gigegrab();
     m_gigegrab->grab();
 
-    return a.exec();
+    return 0;
 #else
     char* input_str = "QR-Code:http://u.wechat.com/EEq9zMbMatp40tW2WV6cKkA";
     fragmentProcess *m_fragmentProcess = new fragmentProcess();

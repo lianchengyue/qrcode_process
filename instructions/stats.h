@@ -30,4 +30,7 @@ static void HexToStr(unsigned char *pbDest, unsigned char *pbSrc, int nLen);
 static void getTimestamp();
 //static void getTimestamp(char *des_time)
 
+
+int cutQRdata(char *instr, int *offset, char *relative_path,char *filename);
+int cutQRdata(char *instr, char *pureQRdata, char *relative_path,char *filename);
 #endif // STATS_H

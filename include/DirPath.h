@@ -16,8 +16,8 @@ static char SRC_INI_FOLD_FRAG_LOCATION[] = "/home/montafan/QRcodeGrab/source/INI
 
 
 //DES
-static char DES_LOCATION[] = "/home/montafan/QRcodeGrab/destination/4_location";
-static char DES_RECEIVE_LOCATION[] = "/home/montafan/QRcodeGrab/destination/1_receive_location";
+static char DES_LOCATION[] = "/home/montafan/QRcodeGrab/destination/4_location/";
+static char DES_RECEIVE_LOCATION[] = "/home/montafan/QRcodeGrab/destination/1_receive_location/";
 static char DES_BASE64_DECODE_LOCATION[] = "/home/montafan/QRcodeGrab/destination/2_base64_decode_location/";
 
 

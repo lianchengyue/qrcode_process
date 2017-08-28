@@ -30,7 +30,8 @@ int ScanCode::initZbar(){
 
 }
 
-void ScanCode::scanimage(const void *raw, char *result)
+//return 0:fail 1:success
+int ScanCode::scanimage(const void *raw, char *result)
 {
     /* obtain image data */
 #if 0//CvMat
@@ -85,5 +86,6 @@ void ScanCode::scanimage(const void *raw, char *result)
     /* clean up */
     //zbar_image_destroy(image);
     //zbar_image_scanner_destroy(scanner);
-    //return(0);
+
+    return n;
 }
