@@ -24,10 +24,14 @@ public:
     fragmentProcess();
     virtual ~fragmentProcess();
 
+    int QRdataProcess(char* QRdata);
+
     int create_folder_tree_from_ini();
 
     int des_prestart_content_receiver(char *QRdata);
     int des_prestart_content_receiver(char *QRdata, char *des_str);
+
+    int des_start_content_receiver(char *QRdata);
 
     int process_QRdata_to_fragment(char* QRdata);
     int process_QRdata_to_fragment(char *QRdata, char *des_str);
@@ -45,9 +49,14 @@ private:
     //int des_prestart_content_receiver(char *QRdata, char *des_str);
     void des_ini_fragment_traversal(string dir, int depth);
 
+    TransmitStatus getTransmitStatus();
+    int setTransmitStatus(TransmitStatus status);
+
     char *iniWholePath;//发送端完整文件的遍历结果
     char *iniPath;//接收到的每个大文件的ini识别并拼接后
     bool ini_flag;
+    TransmitStatus mTransStatus;
+
 
     RecvStateMachine *m_stateMachine;
 };

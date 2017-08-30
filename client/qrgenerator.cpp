@@ -487,6 +487,12 @@ void QRGenerator::UpdateSlot(int num)
     }
     //added end
 
+    ///播放报头二维码
+    for (is = 0; is < WAIT_FRAME_COUNT; is++)
+    {
+        setString(TRANSMIT_PREEND);
+    }
+
     ///播放开始二维码
     for (is = 0; is < WAIT_FRAME_COUNT; is++)
     {
