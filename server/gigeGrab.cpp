@@ -2,6 +2,8 @@
 #include "gigeGrab.h"
 
 #include "include/DirPath.h"
+#include "include/Errors.h"
+
 
 //#define GIGE_GRAB_FUNC
 
@@ -162,32 +164,75 @@ int gigegrab::grab()
         int res = m_scancode->scanimage((void*)imageGray.data, result);   //if single process, delete
         //printf("out result=%s,length=%d\n", result, strlen(result));
 
+
         ///init()
         mfragmentProcess->create_folder_tree_from_ini(); //only once
 
 
-        //for test
-        char *testbuf = new char[2772];
-        FILE *infile = fopen("/home/montafan/QRcodeGrab/destination/INI/folder/X0", "rb");
-        fread(testbuf,1,2772,infile);
+        //for test验证接收文件
+        char *QRcodebuf = new char[2772];  //模拟识别到的二维码
+        FILE *infile = fopen("/home/montafan/QRcodeGrab/destination/recvINI/folder.ini/X0", "rb");
+        fread(QRcodebuf,1,2772,infile);
 
-        mfragmentProcess->des_prestart_content_receiver(testbuf);//有内存泄漏
+        //mfragmentProcess->des_prestart_content_receiver(QRcodebuf);
         fclose(infile); // 关闭文件
+
+
+        mfragmentProcess->QRdataProcess(QRcodebuf);
+        //for test end
+#if 1
         ///===========================fragmentWrite=============================//
         //成功接收
         if(res)
         {
-            char *dir = DES_RECEIVE_LOCATION;
-            mfragmentProcess->process_QRdata_to_fragment(result, dir);//有内存泄漏
+            /*
+            if(0 == strcmp(result, TRANSMIT_IDLE))
+            {
+                //return NO_ERROR;
+            }
+
+            //接受配置文件
+            else if(0 == strcmp(result, TRANSMIT_PRESTART))
+            {
+                mfragmentProcess->des_prestart_content_receiver(QRcodebuf);
+            }
+
+            //处理配置文件
+            else if(0 == strcmp(result, TRANSMIT_START))
+            {
+                //delay(300)//ms
+                //创建所有的文件目录,（不包括碎片目录）
+                mfragmentProcess->des_ini_fragment_traversal(DES_INI_FOLD_LOCATION, 0);
+                mfragmentProcess->create_folder_tree_from_ini(); //only once;
+
+                mfragmentProcess->des_ini_fragment_traversal(DES_INI_FILE_LOCATION, 0);
+            }
+
+            else if(0 == strcmp(result, TRANSMIT_END))
+            {
+                //delay(300)//ms
+                //遍历待拼接文件
+                mfragmentProcess->des_fragment_traversal(DES_RECEIVE_LOCATION, 0);
+                //cat
+            }
+
+            //处理配置文件或文件正文
+            else
+            {
+                mfragmentProcess->des_start_content_receiver(QRcodebuf);
+                //记录每一个需要拼接的路径
+            }
+            */
         }
-        //char *dir = DES_RECEIVE_LOCATION;
-        //mfragmentProcess->process_QRdata_to_fragment(result, dir);//有内存泄漏
+
         if(1)//发送完毕
         {
 
         }
-
+#endif
+        free(QRcodebuf);
         free(result);
+
     }
 #endif
 }

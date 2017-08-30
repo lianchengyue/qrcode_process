@@ -64,7 +64,6 @@ int main(int argc, char* argv[])
 #if 1
 //打开为发送端，屏蔽为接收端
 //#define DISPLAY_QRCODE  //grab pic
-//#define FILE_PROCESS
 
 #include "server/gigeGrab.h"
 #include "client/qrgenerator.h"
@@ -79,32 +78,32 @@ int main(int argc, char* argv[])
 int main(int argc, char* argv[])
 {
 #ifdef DISPLAY_QRCODE
-                                                                                    //使用base64二次封装接口
-                                                                                    #if 0
-                                                                                    //encode
-                                                                                    char *des_str = "/home/montafan/Qt5.6.2/project/zbar_gige/testFile/111/X00png.txt";
-                                                                                    char *src_str = "/home/montafan/Qt5.6.2/project/zbar_gige/testFile/111/X00";
+    //使用base64二次封装接口
+    #if 0
+    //encode
+    char *des_str = "/home/montafan/Qt5.6.2/project/zbar_gige/testFile/111/X00png.txt";
+    char *src_str = "/home/montafan/Qt5.6.2/project/zbar_gige/testFile/111/X00";
 
-                                                                                    FILE *infile = fopen(src_str, "rb");
-                                                                                    FILE *outfile = fopen(des_str, "w");
-                                                                                    encode(infile, outfile);
+    FILE *infile = fopen(src_str, "rb");
+    FILE *outfile = fopen(des_str, "w");
+    encode(infile, outfile);
 
-                                                                                    fclose(infile); // 关闭文件
-                                                                                    fclose(outfile); // 关闭文件
-                                                                                    #elif 0
-                                                                                    //decode
-                                                                                    char *des_str = "/home/montafan/Qt5.6.2/project/zbar_gige/testFile/111/X11.png";
-                                                                                    char *src_str = "/home/montafan/Qt5.6.2/project/zbar_gige/testFile/111/X00png.txt";
+    fclose(infile); // 关闭文件
+    fclose(outfile); // 关闭文件
+    #elif 0
+    //decode
+    char *des_str = "/home/montafan/Qt5.6.2/project/zbar_gige/testFile/111/X11.png";
+    char *src_str = "/home/montafan/Qt5.6.2/project/zbar_gige/testFile/111/X00png.txt";
 
-                                                                                    FILE *infile = fopen(src_str, "r");
-                                                                                    FILE *outfile = fopen(des_str, "wb");
-                                                                                    decode(infile, outfile);
+    FILE *infile = fopen(src_str, "r");
+    FILE *outfile = fopen(des_str, "wb");
+    decode(infile, outfile);
 
-                                                                                    fclose(infile); // 关闭文件
-                                                                                    fclose(outfile); // 关闭文件
-                                                                                    #endif
+    fclose(infile); // 关闭文件
+    fclose(outfile); // 关闭文件
+    #endif
 
-    #ifdef FILE_PROCESS
+
     //生成拓扑
     src_init_topology();
     //文件遍历
@@ -130,7 +129,7 @@ int main(int argc, char* argv[])
     //system("md5sum /home/montafan/Qt5.6.2/project/zbar_gige/testFile/2.lzo");
     //解压
     //processLZO(argc, argv, LZO_DECOMPRESS);
-    #endif
+
 
     //二维码显示
     QApplication a(argc, argv);
@@ -148,9 +147,8 @@ int main(int argc, char* argv[])
     //w.setString("1234567890");
     return a.exec();
 
-#elif 1 //#ifdef DISPLAY_QRCODE
+#else //#ifdef DISPLAY_QRCODE
 //抓取二维码
-    des_init_topology();
 
     //grab frame
     //QApplication a(argc, argv);
@@ -174,11 +172,6 @@ int main(int argc, char* argv[])
     m_gigegrab->grab();
 
     return 0;
-#else
-    char* input_str = "QR-Code:http://u.wechat.com/EEq9zMbMatp40tW2WV6cKkA";
-    fragmentProcess *m_fragmentProcess = new fragmentProcess();
-    m_fragmentProcess->process_QRdata_to_fragment(input_str);
-    //m_fragmentProcess->is_md5sum_match(input_str);  Not ok yet
 
 #endif
     return 0;

@@ -33,4 +33,6 @@ static void getTimestamp();
 
 int cutQRdata(char *instr, int *offset, char *relative_path,char *filename);
 int cutQRdata(char *instr, char *pureQRdata, char *relative_path,char *filename);
+
+int cutFileName(char *instr, char *filename);
 #endif // STATS_H

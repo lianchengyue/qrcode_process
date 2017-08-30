@@ -61,10 +61,11 @@ int des_init_topology()
     mkdir("2_base64_decode_location", S_IRWXU|S_IRWXG|S_IRWXO);
     mkdir("3_cat_location", S_IRWXU|S_IRWXG|S_IRWXO);
     mkdir("4_location", S_IRWXU|S_IRWXG|S_IRWXO);
+    mkdir("recvINI", S_IRWXU|S_IRWXG|S_IRWXO);
     mkdir("INI", S_IRWXU|S_IRWXG|S_IRWXO);
     //所有完整文件的属性
-    mkdir("config", S_IRWXU|S_IRWXG|S_IRWXO);
-    mkdir("folder", S_IRWXU|S_IRWXG|S_IRWXO);
+    mkdir("recvINI/config.ini", S_IRWXU|S_IRWXG|S_IRWXO);
+    mkdir("recvINI/folder.ini", S_IRWXU|S_IRWXG|S_IRWXO);
 
     return 0;
 }
@@ -331,7 +332,7 @@ void src_ini_traversal_imp(/*char *dir*/)
     #ifdef INI_FRAGMENT_WITHOUT_MASTHEAD
     spilt(SRC_INI_FILE_LOCATION, config_dir, BLOCK_SIZE); ///这里的_3_split_dir是目录，不是文件，存放切割后的碎片
     #else
-    spilt_ini(SRC_INI_FILE_LOCATION, config_dir, "source/INI/config/", BLOCK_SIZE); ///这里的_3_split_dir是目录，不是文件，存放切割后的碎片
+    spilt_ini(SRC_INI_FILE_LOCATION, config_dir, "config/", BLOCK_SIZE); ///这里的_3_split_dir是目录，不是文件，存放切割后的碎片
     #endif
     if(0 != access(folder_dir, F_OK))
     {
@@ -340,7 +341,7 @@ void src_ini_traversal_imp(/*char *dir*/)
     #ifdef INI_FRAGMENT_WITHOUT_MASTHEAD
     spilt(SRC_INI_FOLD_LOCATION, folder_dir, BLOCK_SIZE); ///这里的_3_split_dir是目录，不是文件，存放切割后的碎片
     #else
-    spilt_ini(SRC_INI_FOLD_LOCATION, folder_dir, "source/INI/folder/", BLOCK_SIZE); ///这里的_3_split_dir是目录，不是文件，存放切割后的碎片
+    spilt_ini(SRC_INI_FOLD_LOCATION, folder_dir, "folder/", BLOCK_SIZE); ///这里的_3_split_dir是目录，不是文件，存放切割后的碎片
     #endif
 
 }
@@ -964,6 +965,7 @@ static void getTimestamp()
     printf("ctime:%s", ctime);
 }
 
+/*函数功能:摘取报头信息与正文*/
 //instr: 输入内容
 //pureQRdata: 数据信息
 //relative_path:碎片中的碎片中的相对路径信息
@@ -1018,9 +1020,11 @@ int cutQRdata(char *instr, int *offset, char *relative_path,char *filename)
 
     return NO_ERROR;
 }
+
+/*函数功能:摘取报头信息与正文*/
 //instr: 输入内容
 //pureQRdata: 数据信息
-//relative_path:碎片中的碎片中的相对路径信息
+//relative_path:碎片中的相对路径信息
 //filename:碎片中的文件名信息
 int cutQRdata(char *instr, char *pureQRdata, char *relative_path,char *filename)
 {//要求截取的字符串不可以改变，但指向字符串的指针可以改变
@@ -1067,8 +1071,80 @@ int cutQRdata(char *instr, char *pureQRdata, char *relative_path,char *filename)
         return REV_CONTENT_ERROR;
     }
 
-    ///strcpy(pureQRdata, pp);
-    pureQRdata = pureQRdata+20;
+    strcpy(pureQRdata, pp);
 
     return NO_ERROR;
+}
+
+/*函数功能:反转文件名*/
+void reverse(char *filename)
+{
+    int i=0;
+    int j=0;
+    char *rename;
+
+    j = strlen(filename)-1;
+
+    rename = new char[strlen(filename) + 1];
+    memset(rename, 0, strlen(filename) + 1);
+
+    for (/*j = strlen(filename)-1*/; j>=0; j--)
+    {
+         rename[strlen(filename)-1-j] = filename[j];
+    }
+
+    strncpy(filename, rename, strlen(rename));
+}
+
+/*函数功能:获取碎片文件夹中文件的原文件名,作为相对路径*/
+//param1:输入的目录，如/home/montafan/QRcodeGrab/destination/INI/config.ini/
+int cutFileName(char *instr, char *filename)
+{
+    int cnt;
+    char *pp;
+    int i = 0;
+    bool is_start_getting = false;
+
+    cnt = strlen(instr) - 1;
+
+    pp = instr + cnt;
+
+    while(cnt > 0)
+    {
+        if('/' == pp[0]){
+            //遇到第1个‘/’
+            if(!is_start_getting)
+            {
+                cnt--;
+                pp = instr + cnt;
+                is_start_getting = true;
+            }
+            //遇到第2个‘/’
+            else
+            {
+                //反转文件名
+                reverse(filename);
+                break;
+            }
+
+        }
+        //开始获取传入路径的内容,
+        else if('/' != pp[0]){
+            filename[i++] = pp[0];
+            //printf("%c",pp[0]);
+            cnt--;
+            pp = instr + cnt;
+        }
+        else
+        {
+            cnt--;
+            printf("cutFileName error!!");
+        }
+
+    }
+}
+/*函数功能:获取上一级目录完整路径*/
+int getUpperTotalDir(char *dir)
+{
+
 }
