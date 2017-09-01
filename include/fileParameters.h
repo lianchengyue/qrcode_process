@@ -11,6 +11,9 @@
 #define BLOCK_SIZE 2048  //split_size suggest smaller than 2048 1792
 
 #define QRDATA_SIZE 3072  //split_size suggest smaller than 2048 1792
+
+#define LZO_SUFFIX ".lzo"
+
 typedef enum{
     FILE_FOLD=0,
     FRAGMENT_FULLSIZE,

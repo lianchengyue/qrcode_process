@@ -165,20 +165,20 @@ int gigegrab::grab()
         //printf("out result=%s,length=%d\n", result, strlen(result));
 
 
-        ///init()
-        mfragmentProcess->create_folder_tree_from_ini(); //only once
-
-
+        ///test
         //for test验证接收文件
         char *QRcodebuf = new char[2772];  //模拟识别到的二维码
-        FILE *infile = fopen("/home/montafan/QRcodeGrab/destination/recvINI/folder.ini/X0", "rb");
+        FILE *infile = fopen("/home/montafan/QRcodeGrab/run.sh", "rb");
         fread(QRcodebuf,1,2772,infile);
 
-        //mfragmentProcess->des_prestart_content_receiver(QRcodebuf);
+        //mfragmentProcess->des_prestart_content_receiver(QRcodebuf); //OK already
+        ///mfragmentProcess->des_start_content_receiver(QRcodebuf);  //OK already
         fclose(infile); // 关闭文件
 
 
         mfragmentProcess->QRdataProcess(QRcodebuf);
+
+        //mfragmentProcess->des_fragment_traversal(DES_RECEIVE_LOCATION, 0);;
         //for test end
 #if 1
         ///===========================fragmentWrite=============================//
@@ -233,6 +233,8 @@ int gigegrab::grab()
         free(QRcodebuf);
         free(result);
 
+        //只执行一次就退出循环
+        return 0; //temp, stop loop, for TEST
     }
 #endif
 }

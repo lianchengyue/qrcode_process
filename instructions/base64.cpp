@@ -338,7 +338,6 @@ void encode(FILE * fp_in, char *str_out)
 //output:bindata, out_len
 void decode(FILE * fp_in, FILE * fp_out)
 {
-    int i;
     unsigned char *bindata;  //output
     char *base64;  //input
     int len;
@@ -364,5 +363,23 @@ void decode(FILE * fp_in, FILE * fp_out)
     free(base64);
     bindata=NULL;
     base64=NULL;
+}
+
+void decode(char *str_in, FILE * fp_out)
+{
+    unsigned char *bindata;  //output
+    int len;
+    int out_len;
+
+    len = strlen(str_in); //获取文件长度
+    bindata = new unsigned char[len+1];
+    memset(bindata, 0, len+1);
+
+    out_len = base64_decode(bindata, str_in, len+1,0);
+    int size = fwrite(bindata, sizeof(char), out_len, fp_out);
+
+    free(bindata);
+
+    bindata=NULL;
 }
 //http://www.cnblogs.com/yejianfei/archive/2013/04/06/3002838.html

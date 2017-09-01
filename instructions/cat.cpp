@@ -61,7 +61,8 @@ int getUpperName(char *dir)
 }
 
 //param1:输入的碎片文件夹的路径
-//param3:输出的绝对路径
+//param2:输出的路径
+//param3:输出的文件名
 int cat(char *input, char *outputpath, char *outfilenname)
 {
     FILE *inf;  //要连接的文件

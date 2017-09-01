@@ -43,7 +43,9 @@ public:
 private:
     int init();
     int readFragmentINI();
-    void des_fragment_traversal(string dir, int depth);
+    int des_fragment_traversal();
+    void des_fragment_traversal_imp(char *dir, char* _short_dir, char *des, int depth);//遍历相对目录
+    void des_fragment_traversal_imp(string dir, int depth);//遍历绝对目录
     //int create_folder_tree_from_ini();
     //int des_prestart_content_receiver(char *QRdata);
     //int des_prestart_content_receiver(char *QRdata, char *des_str);
@@ -55,6 +57,7 @@ private:
     char *iniWholePath;//发送端完整文件的遍历结果
     char *iniPath;//接收到的每个大文件的ini识别并拼接后
     bool ini_flag;
+    bool need_cat;
     TransmitStatus mTransStatus;
 
 

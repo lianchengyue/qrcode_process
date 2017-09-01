@@ -15,6 +15,7 @@
 #include "LZO/lzopack.h"//temp
 #include "instructions/split.h"
 #include "include/Errors.h"
+#include "include/macros.h"
 
 //#define PRINT_MD5SUM
 
@@ -238,12 +239,13 @@ void src_file_traversal_imp(char *dir, char* _short_dir, char *_2_dir, char *_3_
                 //fwrite(des_buf, 1, statbuf.st_size, out_2_file);
 
                 //压缩des_buf的内容到文件夹,到3_split_location
+#ifdef USE_LZO_COMPRESSION
                 char *lzo_content =new char[PATH_MAX];
                 memset(lzo_content, 0, PATH_MAX);
                     strcpy(lzo_content,_2_lzo_dir);
-                    strcat(lzo_content,".lzo");
+                    strcat(lzo_content,LZO_SUFFIX);  //LZO_SUFFIX = ".lzo"
                 processLZO(total_dir, lzo_content, LZO_COMPRESS);
-
+#endif
                 //3_split_location,切割文件
                 //memset(des_buf, 0, statbuf.st_size);
                 //fwrite(des_buf, 1, statbuf.st_size, out_3_file);
@@ -257,7 +259,18 @@ void src_file_traversal_imp(char *dir, char* _short_dir, char *_2_dir, char *_3_
                     //...
                     //...
                 }
-                    spilt(total_dir, _3_split_dir, BLOCK_SIZE); ///这里的_3_split_dir是目录，不是文件，存放切割后的碎片
+#ifdef USE_LZO_COMPRESSION
+                char *outputDir = new char[PATH_MAX];
+                memset(outputDir, 0, PATH_MAX);
+                sprintf(outputDir, "%s%s%s%s", SRC_LZO_LOCATION, _short_dir, enty->d_name, LZO_SUFFIX);
+
+                spilt(outputDir, _3_split_dir, BLOCK_SIZE); ///这里的_3_split_dir是目录，不是文件，存放切割后的碎片
+
+                free(outputDir);
+
+#else
+                spilt(total_dir, _3_split_dir, BLOCK_SIZE); ///这里的_3_split_dir是目录，不是文件，存放切割后的碎片
+#endif
                 if(0 != access(_4_base64_encode_dir, F_OK))
                 {
                     mkdir(_4_base64_encode_dir, S_IRWXU|S_IRWXG|S_IRWXO);
@@ -1097,8 +1110,10 @@ void reverse(char *filename)
 }
 
 /*函数功能:获取碎片文件夹中文件的原文件名,作为相对路径*/
+//param1: 输入：完整的文件夹名,绝对路径
 //param1:输入的目录，如/home/montafan/QRcodeGrab/destination/INI/config.ini/
-int cutFileName(char *instr, char *filename)
+//param2: 输出：文件名
+int cutDirName(char *instr, char *filename)
 {
     int cnt;
     char *pp;
@@ -1138,13 +1153,94 @@ int cutFileName(char *instr, char *filename)
         else
         {
             cnt--;
-            printf("cutFileName error!!");
+            printf("cutDirName error!!");
         }
 
     }
 }
 /*函数功能:获取上一级目录完整路径*/
-int getUpperTotalDir(char *dir)
+int getUpperTotalDir(char *instr)
 {
+    int cnt;
+    char *pp;
+    int i = 0;
+    bool is_start_getting = false;
 
+    cnt = strlen(instr) - 1;
+
+    pp = instr + cnt;
+
+    while(cnt > 0)
+    {
+        if('/' == pp[0]){
+            //遇到第1个‘/’
+            if(!is_start_getting)
+            {
+                cnt--;
+                pp = instr + cnt;
+                is_start_getting = true;
+                pp[0] = '\0';
+            }
+            //遇到第2个‘/’
+            else
+            {
+
+                break;
+            }
+
+        }
+        //开始获取传入路径的内容,
+        else if('/' != pp[0]){
+            pp[0] = '\0';
+            //printf("%c",pp[0]);
+            cnt--;
+            pp = instr + cnt;
+        }
+        else
+        {
+            cnt--;
+            printf("cutDirName error!!");
+        }
+
+    }
+}
+
+/*函数功能:获取文件的文件名*/
+//param1: 输入：完整的文件名,绝对路径
+//输入的目录，如/home/montafan/QRcodeGrab/destination/INI/config.ini
+//param2: 输出：文件名
+int cutFileName(char *instr, char *filename)
+{
+    int cnt;
+    char *pp;
+    int i = 0;
+    bool is_start_getting = false;
+
+    cnt = strlen(instr) - 1;
+
+    pp = instr + cnt;
+
+    while(cnt > 0)
+    {
+        if('/' == pp[0]){
+            //遇到第1个‘/’
+            //反转文件名
+            reverse(filename);
+            break;
+
+        }
+        //开始获取传入路径的内容,
+        else if('/' != pp[0]){
+            filename[i++] = pp[0];
+            //printf("%c",pp[0]);
+            cnt--;
+            pp = instr + cnt;
+        }
+        else
+        {
+            cnt--;
+            printf("cutDirName error!!");
+        }
+
+    }
 }

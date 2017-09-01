@@ -49,7 +49,8 @@ HEADERS += \
     include/Errors.h \
     server/RecvStateMachine.h \
     instructions/split.h \
-    instructions/cat.h
+    instructions/cat.h \
+    include/macros.h
 
 
 INCLUDEPATH += /usr/local/opencv320/include \

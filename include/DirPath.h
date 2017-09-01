@@ -19,12 +19,8 @@ static char SRC_INI_FOLD_FRAG_LOCATION[] = "/home/montafan/QRcodeGrab/source/INI
 static char DES_LOCATION[] = "/home/montafan/QRcodeGrab/destination/4_location/";
 static char DES_RECEIVE_LOCATION[] = "/home/montafan/QRcodeGrab/destination/1_receive_location/";
 static char DES_BASE64_DECODE_LOCATION[] = "/home/montafan/QRcodeGrab/destination/2_base64_decode_location/";
+static char DES_CAT_LOCATION[] = "/home/montafan/QRcodeGrab/destination/3_cat_location/";
 //static char DES_BASE64_DECODE_LOCATION[] = "/home/montafan/QRcodeGrab/destination/2_base64_decode_location/";
-
-static char DES_RECEIVE_LOCATION2[] = "/home/montafan/QRcodeGrab/destination/1_receive_location/nocolor.png/";
-static char DES_BASE64_DECODE_LOCATION2[] = "/home/montafan/QRcodeGrab/destination/2_base64_decode_location/nocolor.png/000";
-static char DES_BASE64_DECODE_LOCATION3[] = "/home/montafan/QRcodeGrab/destination/2_base64_decode_location/nocolor.png/";
-
 
 //DES INI
 static char DES_RECV_INI_LOCATION[] = "/home/montafan/QRcodeGrab/destination/recvINI/";
