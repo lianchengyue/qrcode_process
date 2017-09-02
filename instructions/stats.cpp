@@ -240,11 +240,11 @@ void src_file_traversal_imp(char *dir, char* _short_dir, char *_2_dir, char *_3_
 
                 //压缩des_buf的内容到文件夹,到3_split_location
 #ifdef USE_LZO_COMPRESSION
-                char *lzo_content =new char[PATH_MAX];
-                memset(lzo_content, 0, PATH_MAX);
-                    strcpy(lzo_content,_2_lzo_dir);
-                    strcat(lzo_content,LZO_SUFFIX);  //LZO_SUFFIX = ".lzo"
-                processLZO(total_dir, lzo_content, LZO_COMPRESS);
+                char *lzo_dir =new char[PATH_MAX];
+                memset(lzo_dir, 0, PATH_MAX);
+                    strcpy(lzo_dir,_2_lzo_dir);
+                    strcat(lzo_dir,LZO_SUFFIX);  //LZO_SUFFIX = ".lzo"
+                processLZO(total_dir, lzo_dir, LZO_COMPRESS);
 #endif
                 //3_split_location,切割文件
                 //memset(des_buf, 0, statbuf.st_size);
@@ -267,6 +267,7 @@ void src_file_traversal_imp(char *dir, char* _short_dir, char *_2_dir, char *_3_
                 spilt(outputDir, _3_split_dir, BLOCK_SIZE); ///这里的_3_split_dir是目录，不是文件，存放切割后的碎片
 
                 free(outputDir);
+                free(lzo_dir);
 
 #else
                 spilt(total_dir, _3_split_dir, BLOCK_SIZE); ///这里的_3_split_dir是目录，不是文件，存放切割后的碎片
@@ -282,8 +283,6 @@ void src_file_traversal_imp(char *dir, char* _short_dir, char *_2_dir, char *_3_
 
 
                 free(des_buf);
-
-                free(lzo_content);
             }/* else if(statbuf.st_size > 2048*512){ //>1M
                 ///支持对1M以上文件的传输
 
@@ -776,7 +775,7 @@ int file_traversal()
     ///遍历源文件夹并生成所有的文件夹,处理完后，在3中生成碎片
     src_file_traversal_imp(topDir, relativeDir,_2_dir, _3_dir, _4_dir, 0);
 
-    printf("Transmit Done\n");
+    printf("src_file_traversal_imp(), Done\n");
     return 0;
 }
 
@@ -784,7 +783,7 @@ int file_traversal()
 int ini_traversal()
 {
     src_ini_traversal_imp();
-    //printf("Done\n");
+    //printf("ini_traversalDone\n");
     return 0;
 }
 
@@ -794,7 +793,7 @@ int fragment_traversal()
     char *fragmentDes = SRC_BASE64_ENCODE_LOCATION;
     char relativeDir[PATH_MAX] = {0};
 
-    printf("Directory fragement scan of %s\n",fragmentDir);
+    //printf("\nDirectory fragement scan of %s\n",fragmentDir);
 
     is_base64 = true;
     //待处理，寻找合适的位置

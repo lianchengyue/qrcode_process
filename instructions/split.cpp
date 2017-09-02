@@ -18,6 +18,13 @@ int spilt(char *file, char*outpath, int blocksize)
     char *pdesBuf;  //定义文件指针
     fseek(InFile,0,SEEK_END); //把指针移动到文件的结尾 ，获取文件长度
     uint32_t len=ftell(InFile); //获取文件长度
+
+    if(0 == len)
+    {
+        printf("spilt(), empty fold,outpath=%s\n",outpath);
+        return -1;
+    }
+
     pdesBuf=new char[len+1];
     memset(pdesBuf, 0, len+1);
     rewind(InFile); //把指针移动到文件开头
@@ -41,10 +48,13 @@ int spilt(char *file, char*outpath, int blocksize)
             fread(pdesBuf,1,len%blocksize,InFile); //读文件
             fwrite(pdesBuf, 1, len%blocksize, OutFile);
         }
+        //0<len<blocksize
         else
         {
-            //will never in here
-            printf("XXXXXXXXXXXXXXXXXXXXXXXXXXNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN");
+            //<blocksize, only XO
+            printf("flq1, only X0,%s\n", file);
+            fread(pdesBuf,1,len%blocksize,InFile); //读文件
+            fwrite(pdesBuf, 1, len%blocksize, OutFile);
         }
 
         free(str);
@@ -57,6 +67,7 @@ int spilt(char *file, char*outpath, int blocksize)
     fclose(InFile); // 关闭文件
 }
 
+/*拆分ini文件*/
 //param1:待拆分文件
 //param2:目标目录
 //param3:待拆分文件的大小
@@ -68,6 +79,18 @@ int spilt_ini(char *file, char*outpath, char *dir,int blocksize)
     char * filename;
     fseek(InFile,0,SEEK_END); //把指针移动到文件的结尾 ，获取文件长度
     uint32_t len=ftell(InFile); //获取文件长度
+
+    if(0 == len)
+    {
+        printf("spilt_ini(), empty fold,outpath=%s\n",outpath);
+        //后续如果需要加空白的辨认信息，在这里加 added
+        //...
+        //...
+        //end
+        return -1;
+    }
+
+
     pdesBuf=new char[len+1];
     memset(pdesBuf, 0, len+1);
     rewind(InFile); //把指针移动到文件开头
@@ -113,10 +136,25 @@ int spilt_ini(char *file, char*outpath, char *dir,int blocksize)
             fread(pdesBuf,1,len%blocksize,InFile); //读文件
             fwrite(pdesBuf, 1, len%blocksize, OutFile);
         }
+        //0<len<blocksize
         else
         {
-            //will never in here
-            printf("XXXXXXXXXXXXXXXXXXXXXXXXXXNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN");
+            //<blocksize, only XO
+            //如果ini仅拆分成1个，也需要加报头信息
+            printf("flq2, only X0,%s\n", file);
+
+            //报头信息 start
+            //相对路径
+            fwrite(dir, 1, strlen(dir), OutFile);
+            fwrite("\n", sizeof(char), 1, OutFile);
+
+            //文件名
+            fwrite(filename, 1, strlen(filename), OutFile);
+            fwrite("\n", sizeof(char), 1, OutFile);
+            //报头信息 end
+
+            fread(pdesBuf,1,len%blocksize,InFile); //读文件
+            fwrite(pdesBuf, 1, len%blocksize, OutFile);
         }
 
         free(str);

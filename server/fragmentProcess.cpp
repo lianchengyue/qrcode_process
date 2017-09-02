@@ -34,35 +34,6 @@ int fragmentProcess::init(){
 
 }
 
-int fragmentProcess::readFragmentINI(){
-    const char *file = "/home/montafan/QRcodeGrab/source/temp_location/nocolor.png/ini/config.ini";
-
-    char *sect;
-    char *key;
-    char value[256];
-    int intval;
-
-    printf("load file %s\n\n", file);
-    iniFileLoad(file);
-
-    sect = 0;
-    key = "X01";
-    iniGetString(sect, key, value, sizeof(value), "notfound!");
-    printf("[%s] %s = %s\n", sect, key, value);
-
-    sect = "X02";
-    key = "str001";
-    iniGetString(sect, key, value, sizeof(value), "notfound!");
-    printf("[%s] %s = %s\n", sect, key, value);
-
-
-    sect = "sect2";
-    key = "int002";
-    intval = iniGetInt(sect, key, 1000);
-    printf("[%s] %s = %d\n", sect, key, intval);
-
-}
-
 //整个处理的入口函数，识别二维码成功后进入
 int fragmentProcess::QRdataProcess(char* QRdata)
 {
@@ -541,7 +512,7 @@ void fragmentProcess::des_fragment_traversal_imp(char *dir, char* _short_dir, ch
                 char *outputDir = new char[PATH_MAX];
                 memset(content_buf, 0, statbuf.st_size);
                 memset(outputDir, 0, PATH_MAX);
-                sprintf(outputDir, "%s%s%sLZO_SUFFIX", DES_CAT_LOCATION, _short_dir, enty->d_name); //xxx.c
+                sprintf(outputDir, "%s%s%s%s", DES_CAT_LOCATION, _short_dir, enty->d_name, LZO_SUFFIX); //xxx.c
 
                 FILE *infile = fopen(total_dir, "rb");
                 FILE *outfile = fopen(outputDir, "wb");
@@ -587,6 +558,14 @@ void fragmentProcess::des_fragment_traversal_imp(char *dir, char* _short_dir, ch
 
         //裁剪的文件，还需要做LZO解压缩 start
 #ifdef USE_LZO_COMPRESSION
+        char *lzo_dir =new char[PATH_MAX];
+        memset(lzo_dir, 0, PATH_MAX);
+        sprintf(lzo_dir, "%s%s", DES_LOCATION, _short_dir);
+        getUpperTotalDir(lzo_dir);//返回上一级目录路径
+        strcat(lzo_dir, rename);
+        strcat(lzo_dir,LZO_SUFFIX);  //LZO_SUFFIX = ".lzo"
+        processLZO(total_dir, lzo_dir, LZO_DECOMPRESS);  //flq
+        free(lzo_dir);
 #endif
         //裁剪的文件，还需要做LZO解压缩 end
 

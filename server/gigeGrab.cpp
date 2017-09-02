@@ -176,9 +176,10 @@ int gigegrab::grab()
         fclose(infile); // 关闭文件
 
 
+        ////整个处理的入口函数，识别二维码成功后进入
         mfragmentProcess->QRdataProcess(QRcodebuf);
 
-        //mfragmentProcess->des_fragment_traversal(DES_RECEIVE_LOCATION, 0);;
+        free(QRcodebuf);
         //for test end
 #if 1
         ///===========================fragmentWrite=============================//
@@ -230,7 +231,6 @@ int gigegrab::grab()
 
         }
 #endif
-        free(QRcodebuf);
         free(result);
 
         //只执行一次就退出循环

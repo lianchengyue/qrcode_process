@@ -42,7 +42,6 @@ public:
 
 private:
     int init();
-    int readFragmentINI();
     int des_fragment_traversal();
     void des_fragment_traversal_imp(char *dir, char* _short_dir, char *des, int depth);//遍历相对目录
     void des_fragment_traversal_imp(string dir, int depth);//遍历绝对目录

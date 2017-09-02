@@ -121,7 +121,7 @@ void src_fragment_traversal(string dir, bool is_ini, int depth) //get_file_to_ge
     //打开指定的目录，获得目录指针
     if(NULL == (Dp = opendir(dir.c_str())))
     {
-        fprintf(stderr,"can not open dir:%s\n",dir.c_str());
+        fprintf(stderr,"src_fragment_traversal(), can not open dir:%s\n",dir.c_str());
         return;
     }
 
@@ -456,12 +456,14 @@ void QRGenerator::UpdateSlot(int num)
     //label->setText(QString::number(num));
     printf("UpdateSlot,Thread\n");
 
+    printf("TRANSMIT_PRESTART\n");
     ///播放报头二维码
     for (is = 0; is < WAIT_FRAME_COUNT; is++)
     {
         setString(TRANSMIT_PRESTART);
     }
 
+    printf("TRANSMIT ini\n");
     ///播放报头
     //here to add content
     //...
@@ -487,12 +489,14 @@ void QRGenerator::UpdateSlot(int num)
     }
     //added end
 
+    printf("TRANSMIT_PREEND\n");
     ///播放报头二维码
     for (is = 0; is < WAIT_FRAME_COUNT; is++)
     {
         setString(TRANSMIT_PREEND);
     }
 
+    printf("TRANSMIT_START\n");
     ///播放开始二维码
     for (is = 0; is < WAIT_FRAME_COUNT; is++)
     {
@@ -500,6 +504,7 @@ void QRGenerator::UpdateSlot(int num)
     }
 
 #if 1
+    printf("TRANSMIT content\n");
     for (size_t i = 0; i < vecString.size(); i++) {
 
         std::string s = vecString[i];
@@ -523,9 +528,12 @@ void QRGenerator::UpdateSlot(int num)
 #endif
 
     ///播放结束二维码
+    printf("TRANSMIT_END\n");
     for (ie = 0; ie < WAIT_FRAME_COUNT; ie++) {
         setString(TRANSMIT_END);
     }
+
+    printf("TRANSMIT_IDLE\n");
     setString(TRANSMIT_IDLE);
 }
 

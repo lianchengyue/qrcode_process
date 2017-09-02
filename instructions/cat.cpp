@@ -16,7 +16,7 @@ int CopytoOutput(FILE *inf,FILE *outf)
     rewind(inf); //把指针移动到文件开头
 
     fread(Xbuf,1,len,inf);
-    fwrite(Xbuf, 1, len-1, outf);////////////////////////////-1,去掉多余的\n
+    fwrite(Xbuf, 1, len, outf);////////////////////////////-1,去掉多余的\n
 
     free(Xbuf);
 

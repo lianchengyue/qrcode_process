@@ -73,6 +73,7 @@ int main(int argc, char* argv[])
 #include "instructions/stats.h"
 #include "instructions/base64.h"  //temp
 #include "server/fragmentProcess.h"  //temp
+#include "include/macros.h"
 
 
 int main(int argc, char* argv[])
