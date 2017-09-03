@@ -57,6 +57,7 @@ private:
     char *iniPath;//接收到的每个大文件的ini识别并拼接后
     bool ini_flag;
     bool need_cat;
+    bool is_folder_created;
     TransmitStatus mTransStatus;
 
 

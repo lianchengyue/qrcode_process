@@ -12,7 +12,7 @@
 #endif
 
 
-//调试宏控，发送的ini是否带报头
+//调试宏控，发送端,发送的ini与正文是否带报头(正常流程不打开)
 #ifndef INI_FRAGMENT_WITHOUT_MASTHEAD
 //#define INI_FRAGMENT_WITHOUT_MASTHEAD
 #endif

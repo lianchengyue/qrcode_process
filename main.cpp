@@ -105,6 +105,8 @@ int main(int argc, char* argv[])
     #endif
 
 
+
+    ///inotify_add_watch
     //生成拓扑
     src_init_topology();
     //文件遍历

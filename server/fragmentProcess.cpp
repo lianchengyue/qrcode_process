@@ -3,10 +3,14 @@
 #include "../instructions/inirw.h"
 #include "../instructions/cat.h"
 
+#include "LZO/lzopack.h"
+
 #include "include/DirPath.h"
 #include "../instructions/base64.h"
 
 #include "include/Errors.h"
+#include "include/macros.h"
+
 #include <mutex>
 
 #include <string>
@@ -18,6 +22,7 @@ fragmentProcess::fragmentProcess()
     init();
     ini_flag = false;
     need_cat = false;
+    is_folder_created = false;
 
     m_stateMachine = new RecvStateMachine(this);
 }
@@ -84,9 +89,11 @@ int fragmentProcess::QRdataProcess(char* QRdata)
         //创建所有的文件目录,（不包括碎片目录）
         ///遍历完后拼接fold.ini
         des_ini_fragment_traversal(DES_INI_FOLD_LOCATION, 0);
-        if(1)
+        if(is_folder_created)
         {
+            printf("CREATE_FOLDER_FROM_INI\n");
             create_folder_tree_from_ini(); //only once;
+            is_folder_created = false;
         }
 
         //遍历完后拼接config.ini
@@ -101,6 +108,7 @@ int fragmentProcess::QRdataProcess(char* QRdata)
         setTransmitStatus(END);
         //delay(300)//ms
         ///遍历待拼接文件
+        printf("FRAGMENT_TRAVERSAL\n");
         des_fragment_traversal_imp(DES_RECEIVE_LOCATION, 0);
     }
 
@@ -110,11 +118,13 @@ int fragmentProcess::QRdataProcess(char* QRdata)
         //发送报头
         if(PRESTART == getTransmitStatus()){
             ///接收报头并放到目标目录
+            printf("RECEIVE_INI\n");
             des_prestart_content_receiver(QRdata);
         }
         //发送内容
         else if(TRANSMITTING == getTransmitStatus()){
             ///接收正文并放到目标目录
+            printf("RECEIVE_CONTENT\n");
             des_start_content_receiver(QRdata);
         }
         else{
@@ -301,7 +311,7 @@ int fragmentProcess::des_start_content_receiver(char *QRdata)
 
     decode(pureQRdata, base64_decode_Destination);
 #else
-    //生成文件
+    //1_receive 生成文件
     int size = fwrite(pureQRdata, 1, strlen(pureQRdata), cut_head_Destination);
 #endif
 
@@ -506,25 +516,38 @@ void fragmentProcess::des_fragment_traversal_imp(char *dir, char* _short_dir, ch
             printf("des_fragment_traversal_imp(),FILE,%*s%s/\n",depth," ",enty->d_name);
             if(enty->d_name[0] !='X')
             {
-                #if 1
-                //不需裁剪，从目录2拷贝到目录3 start
+                #if 1  ///flq    copy file
+                //不需裁剪，从目录2拷贝到目录3 & 4 start
                 char *content_buf = new char[statbuf.st_size];  //statbuf.st_size + 1
-                char *outputDir = new char[PATH_MAX];
+                char *output3Dir = new char[PATH_MAX];
+                char *output4Dir = new char[PATH_MAX];
                 memset(content_buf, 0, statbuf.st_size);
-                memset(outputDir, 0, PATH_MAX);
-                sprintf(outputDir, "%s%s%s%s", DES_CAT_LOCATION, _short_dir, enty->d_name, LZO_SUFFIX); //xxx.c
+                memset(output3Dir, 0, PATH_MAX);
+                memset(output4Dir, 0, PATH_MAX);
+#if 0
+                sprintf(output3Dir, "%s%s%s%s", DES_CAT_LOCATION, _short_dir, enty->d_name, LZO_SUFFIX); //xxx.c
+                sprintf(output4Dir, "%s%s%s%s", DES_LOCATION, _short_dir, enty->d_name, LZO_SUFFIX); //xxx.c
+#else
+                //此处的完整文件均是小于blocksize的,所以直接拷贝
+                sprintf(output3Dir, "%s%s%s", DES_CAT_LOCATION, _short_dir, enty->d_name); //xxx.c
+                sprintf(output4Dir, "%s%s%s", DES_LOCATION, _short_dir, enty->d_name); //xxx.c
+#endif
 
                 FILE *infile = fopen(total_dir, "rb");
-                FILE *outfile = fopen(outputDir, "wb");
+                FILE *outfile = fopen(output3Dir, "wb");
+                FILE *outfile4 = fopen(output4Dir, "wb");
 
                 fread(content_buf,1,statbuf.st_size,infile);
                 fwrite(content_buf, 1, statbuf.st_size, outfile);
+                fwrite(content_buf, 1, statbuf.st_size, outfile4);
 
                 fclose(infile);
                 fclose(outfile);
+                fclose(outfile4);
 
                 free(content_buf);
-                free(outputDir);
+                free(output3Dir);
+                free(output4Dir);
                 //不需裁剪，从目录2拷贝到目录3 end
                 #endif
 
@@ -541,20 +564,29 @@ void fragmentProcess::des_fragment_traversal_imp(char *dir, char* _short_dir, ch
     //待拼接正文碎片的目录
     if(true == need_cat)
     {
-        char *outputDir = new char[PATH_MAX];
+        char *output3Dir = new char[PATH_MAX];
+        char *purename = new char[NAME_MAX];
         char *rename = new char[NAME_MAX];
 
-        memset(outputDir, 0, PATH_MAX);
+        memset(output3Dir, 0, PATH_MAX);
+        memset(purename, 0, NAME_MAX);
         memset(rename, 0, NAME_MAX);
 
-        sprintf(outputDir, "%s%s", DES_CAT_LOCATION, _short_dir);
-        cutDirName(outputDir, rename);//input should be a filefold
+        sprintf(output3Dir, "%s%s", DES_CAT_LOCATION, _short_dir);
+        cutDirName(output3Dir, purename);//input should be a filefold
 
-        //printf("%s\n", rename);
-        getUpperTotalDir(outputDir);
+        //printf("%s\n", purename);
+        getUpperTotalDir(output3Dir);
 
-
-        cat(dir, outputDir, rename);  //参数23拼接完成为后输出的目录（xiangdui路径）
+#ifdef USE_LZO_COMPRESSION
+        //add .lzo
+        strcpy(rename, purename);
+        strcat(rename, LZO_SUFFIX);
+        cat(dir, output3Dir, rename);  //参数23拼接完成为后输出的目录（xiangdui路径
+        strcat(output3Dir, rename);//将output3Dir作为LZO解压缩的输入
+#else
+        cat(dir, output3Dir, rename);  //参数23拼接完成为后输出的目录（xiangdui路径）
+#endif
 
         //裁剪的文件，还需要做LZO解压缩 start
 #ifdef USE_LZO_COMPRESSION
@@ -562,16 +594,17 @@ void fragmentProcess::des_fragment_traversal_imp(char *dir, char* _short_dir, ch
         memset(lzo_dir, 0, PATH_MAX);
         sprintf(lzo_dir, "%s%s", DES_LOCATION, _short_dir);
         getUpperTotalDir(lzo_dir);//返回上一级目录路径
-        strcat(lzo_dir, rename);
-        strcat(lzo_dir,LZO_SUFFIX);  //LZO_SUFFIX = ".lzo"
-        processLZO(total_dir, lzo_dir, LZO_DECOMPRESS);  //flq
+        strcat(lzo_dir, purename);
+        //strcat(lzo_dir,LZO_SUFFIX);  //LZO_SUFFIX = ".lzo"
+        processLZO(output3Dir, lzo_dir, LZO_DECOMPRESS);  //flq
         free(lzo_dir);
 #endif
         //裁剪的文件，还需要做LZO解压缩 end
 
         need_cat = false;
 
-        free(outputDir);
+        free(output3Dir);
+        free(purename);
         free(rename);
     }
 

@@ -5,6 +5,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "include/macros.h"
+
 #define BAD     -1
 
 #define INVALID_ARG -1
@@ -272,6 +274,7 @@ void encode(FILE * fp_in, FILE * fp_out, char *dir, char *filename)
     char *base64;  //output
     int len;
     int out_len;
+    int size ;
 
     fseek(fp_in,0,SEEK_END); //把指针移动到文件的结尾 ，获取文件长度
     len = ftell(fp_in); //获取文件长度
@@ -286,14 +289,15 @@ void encode(FILE * fp_in, FILE * fp_out, char *dir, char *filename)
 
     out_len = base64_encode(base64, bindata, len, 0);
 
+#ifndef INI_FRAGMENT_WITHOUT_MASTHEAD
     //相对路径
-    int size = fwrite(dir, sizeof(char), strlen(dir), fp_out);
+    size = fwrite(dir, sizeof(char), strlen(dir), fp_out);
     size = fwrite("\n", sizeof(char), 1, fp_out);
 
     //文件名
     size = fwrite(filename, sizeof(char), strlen(filename), fp_out);
     size = fwrite("\n", sizeof(char), 1, fp_out);
-
+#endif
     //文件内容
     size = fwrite(base64, sizeof(char), out_len, fp_out);
 

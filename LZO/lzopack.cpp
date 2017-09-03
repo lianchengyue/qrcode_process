@@ -514,9 +514,8 @@ int processLZO(int argc, char *argv[], const char *in_name, const char *out_name
         if ((*s == '/' || *s == '\\') && s[1])
             progname = s + 1;
 
-    printf("\nLZO real-time data compression library (v%s, %s).\n",
-           lzo_version_string(), lzo_version_date());
-    printf("Copyright (C) 1996-2017 Markus Franz Xaver Johannes Oberhumer\nAll Rights Reserved.\n\n");
+    ///printf("\nLZO real-time data compression library (v%s, %s).\n", lzo_version_string(), lzo_version_date());
+    ///printf("Copyright (C) 1996-2017 Markus Franz Xaver Johannes Oberhumer\nAll Rights Reserved.\n\n");
 
 #if 0
     printf(
@@ -659,9 +658,8 @@ int processLZO(const char *in_name, const char *out_name, enum lzo_compress_mode
             progname = s + 1;
     */
 
-    printf("\nLZO real-time data compression library (v%s, %s).\n",
-           lzo_version_string(), lzo_version_date());
-    printf("Copyright (C) 1996-2017 Markus Franz Xaver Johannes Oberhumer\nAll Rights Reserved.\n\n");
+    ///printf("\nLZO real-time data compression library (v%s, %s).\n", lzo_version_string(), lzo_version_date());
+    ///printf("Copyright (C) 1996-2017 Markus Franz Xaver Johannes Oberhumer\nAll Rights Reserved.\n\n");
 
 /*
  * Step 1: initialize the LZO library
