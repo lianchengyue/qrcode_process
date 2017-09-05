@@ -62,9 +62,6 @@ int main(int argc, char* argv[])
 
 
 #if 1
-//打开为发送端，屏蔽为接收端
-//#define DISPLAY_QRCODE  //grab pic
-
 #include "server/gigeGrab.h"
 #include "client/qrgenerator.h"
 #include <QApplication>
@@ -75,6 +72,7 @@ int main(int argc, char* argv[])
 #include "server/fragmentProcess.h"  //temp
 #include "include/macros.h"
 
+#include "client/DirMonitor.h"
 
 int main(int argc, char* argv[])
 {
@@ -107,6 +105,11 @@ int main(int argc, char* argv[])
 
 
     ///inotify_add_watch
+    //DirMonitor *m_DirMonitor = new DirMonitor;
+    //m_DirMonitor->startMonitoring();
+
+
+
     //生成拓扑
     src_init_topology();
     //文件遍历

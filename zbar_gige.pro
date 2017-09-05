@@ -27,7 +27,8 @@ SOURCES += main.cpp \
     server/gigeGrab.cpp \
     server/RecvStateMachine.cpp \
     instructions/split.cpp \
-    instructions/cat.cpp
+    instructions/cat.cpp \
+    client/DirMonitor.cpp
 
 HEADERS += \
     server/ScanCode.h \
@@ -50,7 +51,8 @@ HEADERS += \
     server/RecvStateMachine.h \
     instructions/split.h \
     instructions/cat.h \
-    include/macros.h
+    include/macros.h \
+    client/DirMonitor.h
 
 
 INCLUDEPATH += /usr/local/opencv320/include \

@@ -42,6 +42,7 @@ int fragmentProcess::init(){
 //整个处理的入口函数，识别二维码成功后进入
 int fragmentProcess::QRdataProcess(char* QRdata)
 {
+#ifdef USE_DEBUG
     //TEST
     //cat后ini即完全恢复start
     ///*
@@ -59,7 +60,7 @@ int fragmentProcess::QRdataProcess(char* QRdata)
     des_fragment_traversal();
     //对没有报头的碎片，做base64,并生成文件到2_base64文件夹 end
     //TEST END
-
+#endif
     if(0 == strcmp(QRdata, TRANSMIT_IDLE))
     {
         return NO_ERROR;

@@ -12,6 +12,15 @@
 #endif
 
 
+#ifndef USE_MUTIPLE_THREAD
+#define USE_MUTIPLE_THREAD
+#endif
+
+//接收端模拟接收的处理，模拟已经成功接收完碎片
+#ifndef USE_DEBUG
+//#define  USE_DEBUG
+#endif
+
 //调试宏控，发送端,发送的ini与正文是否带报头(正常流程不打开)
 #ifndef INI_FRAGMENT_WITHOUT_MASTHEAD
 //#define INI_FRAGMENT_WITHOUT_MASTHEAD
