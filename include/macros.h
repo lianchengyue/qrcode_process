@@ -11,7 +11,7 @@
 #define USE_LZO_COMPRESSION
 #endif
 
-
+//是否使用多线程加速
 #ifndef USE_MUTIPLE_THREAD
 #define USE_MUTIPLE_THREAD
 #endif

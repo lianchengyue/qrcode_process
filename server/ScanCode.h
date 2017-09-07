@@ -16,14 +16,19 @@ public:
     ScanCode();
     virtual ~ScanCode();
 
-    int scanimage(const void *pic, char *result);
+    //static void *scanimage(const void *pic, char *result);
+    static void *scanimage(void *pic);
+    static void *canby(void *ptr);
+
+    //static zbar_image_scanner_t *scanner;
+    //static zbar_image_t *image;
 
 private:
     bool flag;
-    zbar_image_scanner_t *scanner;
-    zbar_image_t *image;
+    //static zbar_image_scanner_t *scanner;
+    //static zbar_image_t *image;
 
-    int initZbar();
+    static int initZbar();
 
 };
 #endif // SCAN_IMAGE_H

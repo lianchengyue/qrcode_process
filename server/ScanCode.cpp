@@ -5,13 +5,19 @@
 #include "opencv2/imgproc/imgproc.hpp"
 #include "opencv2/core/core.hpp"
 
+#include "include/fileParameters.h"
+
 using namespace std;
 using namespace zbar;
 using namespace cv;
 
+
+static zbar_image_scanner_t *scanner;
+static zbar_image_t *image;
+
 ScanCode::ScanCode()
 {
-    scanner = NULL;
+    //scanner = NULL;
     initZbar();
 }
 
@@ -31,7 +37,7 @@ int ScanCode::initZbar(){
 }
 
 //return 0:fail 1:success
-int ScanCode::scanimage(const void *raw, char *result)
+void* ScanCode::scanimage(/*const*/ void *raw/*, char *result*/)
 {
     /* obtain image data */
 #if 0//CvMat
@@ -47,7 +53,7 @@ int ScanCode::scanimage(const void *raw, char *result)
     raw = img1.data;
     //uchar* raw = img1.ptr<uchar>(0);
 #else
-    int width = 640, height = 480;
+    int width = INPUT_WIDTH, height = INPUT_HEIGHT;
 #endif
 
 //added by flq
@@ -76,7 +82,7 @@ int ScanCode::scanimage(const void *raw, char *result)
         const char *data = zbar_symbol_get_data(symbol);
         printf("decoded: %s symbol:%s\n", zbar_get_symbol_name(typ), data);
         ///传值
-        strcpy(result, data);
+        ////strcpy(result, data);
 
         delete(data);//added for flq
     }
@@ -87,5 +93,10 @@ int ScanCode::scanimage(const void *raw, char *result)
     //zbar_image_destroy(image);
     //zbar_image_scanner_destroy(scanner);
 
-    return n;
+    ///return &n;
+}
+
+ void* ScanCode::canby(void *ptr)
+{
+    printf("11");
 }

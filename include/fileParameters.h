@@ -12,6 +12,11 @@
 
 #define QRDATA_SIZE 3072  //split_size suggest smaller than 2048 1792
 
+#define INPUT_WIDTH 640
+#define INPUT_HEIGHT 480
+
+#define CV_WAITKEY_INTERVAL 3//3
+
 #define LZO_SUFFIX ".lzo"
 
 typedef enum{
