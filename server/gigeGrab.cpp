@@ -22,6 +22,14 @@ gigegrab::gigegrab()
     mPreviewFrames = 0;
     mFPSCount = 0;
 
+#ifdef USE_MUTIPLE_THREAD
+    memset(&mScanImgData1, 0, sizeof(mScanImgData1));
+    memset(&mScanImgData2, 0, sizeof(mScanImgData2));
+    memset(&mScanImgData3, 0, sizeof(mScanImgData3));
+    memset(&mScanImgData4, 0, sizeof(mScanImgData4));
+#else
+    memset(&mScanImgData, 0, sizeof(mScanImgData));
+#endif
     mfragmentProcess = new fragmentProcess();
 }
 
@@ -96,7 +104,7 @@ int gigegrab::grab()
                     }
 
                     //added by flq
-                    char result[1024] = {0};
+                    char result[QRDATA_SIZE] = {0};
                     Mat imageGray;
                     cvtColor(frame,imageGray,CV_RGB2GRAY);
                     m_scancode->scanimage((void*)imageGray.data, result);
@@ -149,60 +157,79 @@ int gigegrab::grab()
 
         //imshow("usb camera", frame);
 
-        char c = cv::waitKey(3); //100 CV_WAITKEY_INTERVAL
+        char c = cv::waitKey(CV_WAITKEY_INTERVAL); //100 CV_WAITKEY_INTERVAL
         if (c == 't')
         {
             break;
         }
 
-        ////Mat imageGray;
-        cvtColor(frame,imageGray,CV_RGB2GRAY);
-
-        imshow("usb camera",imageGray);
-        waitKey(1);
 
 #ifdef USE_MUTIPLE_THREAD
         if (0 == mPreviewFrames%4)
         {
-           takeFirstProcess();
-           pthread_join(mFirstThread, 0);
+            mScanImgData1.ret = 9;
+            cvtColor(frame,mScanImgData1.imageGray,CV_RGB2GRAY);
+            imshow("usb camera",mScanImgData1.imageGray);
+            waitKey(1);
+
+            takeFirstProcess();
+            pthread_join(mFirstThread, 0);
         }
 
         if (1 == mPreviewFrames%4)
         {
+            cvtColor(frame,mScanImgData2.imageGray,CV_RGB2GRAY);
+            imshow("usb camera",mScanImgData2.imageGray);
+            waitKey(1);
+
             takeSecondProcess();
             pthread_join(mSecondThread, 0);
         }
 
         if (2 == mPreviewFrames%4)
         {
-           takeThirdProcess();
-           pthread_join(mThirdThread, 0);
+            cvtColor(frame,mScanImgData3.imageGray,CV_RGB2GRAY);
+            imshow("usb camera",mScanImgData3.imageGray);
+            waitKey(1);
+
+            takeThirdProcess();
+            pthread_join(mThirdThread, 0);
         }
 
         if (3 == mPreviewFrames%4)
         {
+            cvtColor(frame,mScanImgData4.imageGray,CV_RGB2GRAY);
+            imshow("usb camera",mScanImgData4.imageGray);
+            waitKey(1);
+
             takeFourthProcess();
             pthread_join(mFourthThread, 0);
         }
 
 #else
+        cvtColor(frame,mScanImgData.imageGray,CV_RGB2GRAY);
+        imshow("usb camera",mScanImgData.imageGray);
+        waitKey(1);
+
         //added by flq
-        char *result = new char[QRDATA_SIZE];
-        memset(result, 0 , QRDATA_SIZE);
+        //char *result = new char[QRDATA_SIZE];
+        //memset(result, 0 , QRDATA_SIZE);
         //int *res = ScanCode::scanimage((void*)imageGray.data, result);   //if single process, delete
         //int *res = m_scancode->scanimage((void*)imageGray.data, result);   //if single process, delete
 
-        int *res =0;
-                m_scancode->scanimage((void*)imageGray.data);   //if single process, delete
+        //int *res =0;
+        //        m_scancode->scanimage((void*)imageGray.data);   //if single process, delete
+        m_scancode->scanimage((void*)&mScanImgData);   //if single process, delete
 
-        //printf("out result=%s,length=%d\n", result, strlen(result));
+        ///////printf("out result=%s,length=%d, res=%d\n", mScanImgData.result, strlen(mScanImgData.result),mScanImgData.ret);
 #endif
+        mPreviewFrames++;
+
 
         ///test
-        #if 0
+    #ifdef USE_DEBUG
         //for test验证接收文件
-        char *QRcodebuf = new char[2772];  //模拟识别到的二维码
+        char *QRcodebuf = new char[QRDATA_SIZE];  //模拟识别到的二维码
         FILE *infile = fopen("/home/montafan/QRcodeGrab/run.sh", "rb");
         fread(QRcodebuf,1,2772,infile);
 
@@ -216,27 +243,32 @@ int gigegrab::grab()
 
         free(QRcodebuf);
         //for test end
-        #endif
 
         ///===========================fragmentWrite=============================//
         //成功接收
-/*
-#ifndef USE_MUTIPLE_THREAD
-        if(*res)
+        //if(*res)
         {
-            mfragmentProcess->QRdataProcess(result);
+            mfragmentProcess->QRdataProcess(QRcodebuf);
         }
 
-        mPreviewFrames++;
-        free(result);
-#endif
-*/
-        mPreviewFrames++;//temp
-
-#ifdef USE_DEBUG
         //只执行一次就退出循环
         return 0; //temp, stop loop, for TEST
-#endif
+    #else
+        //if(*res)
+        {
+        #ifdef USE_MUTIPLE_THREAD
+        //if(mScanImgData.ret)
+        //{
+        //    mfragmentProcess->QRdataProcess(mScanImgData.result);
+        //}
+        #else
+        if(mScanImgData.ret)
+        {
+            mfragmentProcess->QRdataProcess(mScanImgData.result);
+        }
+        #endif
+        }
+    #endif
     }
 #endif
 }
@@ -245,7 +277,7 @@ int gigegrab::grab()
 int gigegrab::takeFirstProcess()
 {
     int rc = 0;
-    rc = pthread_create(&mFirstThread, NULL, m_scancode->scanimage, (void*)imageGray.data);// ScanCode::canby
+    rc = pthread_create(&mFirstThread, NULL, m_scancode->scanimage, (void*)&mScanImgData1);// imageGray.data
     if(0 != rc)
     {
         printf("Thread1 creation failed, rc=%d\n",rc);
@@ -256,7 +288,7 @@ int gigegrab::takeFirstProcess()
 int gigegrab::takeSecondProcess()
 {
     int rc = 0;
-    rc = pthread_create(&mSecondThread, NULL, m_scancode->scanimage, (void*)imageGray.data);
+    rc = pthread_create(&mSecondThread, NULL, m_scancode->scanimage, (void*)&mScanImgData2);
     if(0 != rc)
     {
         printf("Thread1 creation failed, rc=%d\n",rc);
@@ -267,7 +299,7 @@ int gigegrab::takeSecondProcess()
 int gigegrab::takeThirdProcess()
 {
     int rc = 0;
-    rc = pthread_create(&mThirdThread, NULL, m_scancode->scanimage, (void*)imageGray.data);
+    rc = pthread_create(&mThirdThread, NULL, m_scancode->scanimage, (void*)&mScanImgData3);
     if(0 != rc)
     {
         printf("Thread1 creation failed, rc=%d\n",rc);
@@ -278,7 +310,7 @@ int gigegrab::takeThirdProcess()
 int gigegrab::takeFourthProcess()
 {
     int rc = 0;
-    rc = pthread_create(&mFourthThread, NULL, m_scancode->scanimage, (void*)imageGray.data);
+    rc = pthread_create(&mFourthThread, NULL, m_scancode->scanimage, (void*)&mScanImgData4);
     if(0 != rc)
     {
         printf("Thread1 creation failed, rc=%d\n",rc);

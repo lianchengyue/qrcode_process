@@ -6,6 +6,7 @@
 #include "opencv2/core/core.hpp"
 
 #include "include/fileParameters.h"
+#include "gigeGrab.h"
 
 using namespace std;
 using namespace zbar;
@@ -54,6 +55,7 @@ void* ScanCode::scanimage(/*const*/ void *raw/*, char *result*/)
     //uchar* raw = img1.ptr<uchar>(0);
 #else
     int width = INPUT_WIDTH, height = INPUT_HEIGHT;
+    scanimageData *raw1 = reinterpret_cast<scanimageData *>(raw);
 #endif
 
 //added by flq
@@ -67,7 +69,8 @@ void* ScanCode::scanimage(/*const*/ void *raw/*, char *result*/)
     image = zbar_image_create();
     zbar_image_set_format(image, *(int*)"Y800");
     zbar_image_set_size(image, width, height);
-    zbar_image_set_data(image, raw, width * height, zbar_image_free_data);
+    //zbar_image_set_data(image, raw, width * height, zbar_image_free_data);
+    zbar_image_set_data(image, raw1->imageGray.data, width * height, zbar_image_free_data);
 
     /* scan the image for barcodes */
     int n = zbar_scan_image(scanner, image);
@@ -82,7 +85,8 @@ void* ScanCode::scanimage(/*const*/ void *raw/*, char *result*/)
         const char *data = zbar_symbol_get_data(symbol);
         printf("decoded: %s symbol:%s\n", zbar_get_symbol_name(typ), data);
         ///传值
-        ////strcpy(result, data);
+        strcpy(raw1->result, data);
+        raw1->ret = n;
 
         delete(data);//added for flq
     }
@@ -92,8 +96,6 @@ void* ScanCode::scanimage(/*const*/ void *raw/*, char *result*/)
     /* clean up */
     //zbar_image_destroy(image);
     //zbar_image_scanner_destroy(scanner);
-
-    ///return &n;
 }
 
  void* ScanCode::canby(void *ptr)

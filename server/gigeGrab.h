@@ -21,6 +21,12 @@
 #include "server/fragmentProcess.h"  //fragment fwrite
 #include "include/macros.h"
 
+typedef struct scanimageData {
+    cv::Mat imageGray;
+    char result[QRDATA_SIZE];
+    int ret;  //0:FAIL  1:SUCCESS
+} ScanImage_Data;
+
 class gigegrab
 {
 public:
@@ -51,6 +57,15 @@ private:
     pthread_t mSecondThread;
     pthread_t mThirdThread;
     pthread_t mFourthThread;
+#endif
+
+#ifdef USE_MUTIPLE_THREAD
+    ScanImage_Data mScanImgData1;
+    ScanImage_Data mScanImgData2;
+    ScanImage_Data mScanImgData3;
+    ScanImage_Data mScanImgData4;
+#else
+    ScanImage_Data mScanImgData;
 #endif
 
 };

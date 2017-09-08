@@ -10,7 +10,7 @@
 
 #define BLOCK_SIZE 2048  //split_size suggest smaller than 2048 1792
 
-#define QRDATA_SIZE 3072  //split_size suggest smaller than 2048 1792
+#define QRDATA_SIZE 3072  //3072,  2076
 
 #define INPUT_WIDTH 640
 #define INPUT_HEIGHT 480
