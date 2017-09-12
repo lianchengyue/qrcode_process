@@ -22,20 +22,26 @@ gigegrab::gigegrab()
     mPreviewFrames = 0;
     mFPSCount = 0;
 
-#ifdef USE_MUTIPLE_THREAD
-    memset(&mScanImgData1, 0, sizeof(mScanImgData1));
-    memset(&mScanImgData2, 0, sizeof(mScanImgData2));
-    memset(&mScanImgData3, 0, sizeof(mScanImgData3));
-    memset(&mScanImgData4, 0, sizeof(mScanImgData4));
-#else
     memset(&mScanImgData, 0, sizeof(mScanImgData));
-#endif
+    mScanImgData.framecnt = 0;
     mfragmentProcess = new fragmentProcess();
+
+#ifdef USE_MUTIPLE_THREAD
+    pthread_mutex_init(&mScanImgData.lock, NULL);
+
+    assert((pool = threadpool_create(THREAD_NUM, QUEUES, 0)) != NULL);
+    fprintf(stderr, "Pool started with %d threads and queue size of %d\n", THREAD_NUM, QUEUES);
+#endif
 }
 
 gigegrab::~gigegrab()
 {
+#ifdef USE_MUTIPLE_THREAD
+    assert(threadpool_destroy(pool, 0) == 0);
+    //fprintf(stderr, "Did %d tasks\n", mPreviewFrames);
 
+    pthread_mutex_destroy(&mScanImgData.lock);
+#endif
 }
 
 
@@ -146,7 +152,7 @@ int gigegrab::grab()
             printf("first usb frame arrives!\n");
         }
 
-        printf("mPreviewFrames=%d\n", mPreviewFrames);
+        printf("mPreviewFrames=%d,", mPreviewFrames);
 
         if(0 == mFPSCount)
         {
@@ -165,46 +171,15 @@ int gigegrab::grab()
 
 
 #ifdef USE_MUTIPLE_THREAD
-        if (0 == mPreviewFrames%4)
-        {
-            mScanImgData1.ret = 9;
-            cvtColor(frame,mScanImgData1.imageGray,CV_RGB2GRAY);
-            imshow("usb camera",mScanImgData1.imageGray);
-            waitKey(1);
+        mScanImgData.ret = 9;
+        mScanImgData.framecnt = mPreviewFrames;
+        cvtColor(frame,mScanImgData.imageGray,CV_RGB2GRAY);
+        imshow("usb camera",mScanImgData.imageGray);
 
-            takeFirstProcess();
-            pthread_join(mFirstThread, 0);
-        }
-
-        if (1 == mPreviewFrames%4)
-        {
-            cvtColor(frame,mScanImgData2.imageGray,CV_RGB2GRAY);
-            imshow("usb camera",mScanImgData2.imageGray);
-            waitKey(1);
-
-            takeSecondProcess();
-            pthread_join(mSecondThread, 0);
-        }
-
-        if (2 == mPreviewFrames%4)
-        {
-            cvtColor(frame,mScanImgData3.imageGray,CV_RGB2GRAY);
-            imshow("usb camera",mScanImgData3.imageGray);
-            waitKey(1);
-
-            takeThirdProcess();
-            pthread_join(mThirdThread, 0);
-        }
-
-        if (3 == mPreviewFrames%4)
-        {
-            cvtColor(frame,mScanImgData4.imageGray,CV_RGB2GRAY);
-            imshow("usb camera",mScanImgData4.imageGray);
-            waitKey(1);
-
-            takeFourthProcess();
-            pthread_join(mFourthThread, 0);
-        }
+        /////关注为什么ASSERT失败
+        //assert(threadpool_add(pool, m_scancode->scanimagefunc, (void*)&mScanImgData, 0) == 0);
+        threadpool_add(pool, m_scancode->scanimagefunc, (void*)&mScanImgData, 0);
+        //assert(threadpool_destroy(pool, threadpool_graceful) == 0);
 
 #else
         cvtColor(frame,mScanImgData.imageGray,CV_RGB2GRAY);
@@ -219,7 +194,7 @@ int gigegrab::grab()
 
         //int *res =0;
         //        m_scancode->scanimage((void*)imageGray.data);   //if single process, delete
-        m_scancode->scanimage((void*)&mScanImgData);   //if single process, delete
+        ////////////////m_scancode->scanimage((void*)&mScanImgData);   //if single process, delete
 
         ///////printf("out result=%s,length=%d, res=%d\n", mScanImgData.result, strlen(mScanImgData.result),mScanImgData.ret);
 #endif
@@ -272,53 +247,6 @@ int gigegrab::grab()
     }
 #endif
 }
-
-#ifdef USE_MUTIPLE_THREAD
-int gigegrab::takeFirstProcess()
-{
-    int rc = 0;
-    rc = pthread_create(&mFirstThread, NULL, m_scancode->scanimage, (void*)&mScanImgData1);// imageGray.data
-    if(0 != rc)
-    {
-        printf("Thread1 creation failed, rc=%d\n",rc);
-    }
-
-    return 0;
-}
-int gigegrab::takeSecondProcess()
-{
-    int rc = 0;
-    rc = pthread_create(&mSecondThread, NULL, m_scancode->scanimage, (void*)&mScanImgData2);
-    if(0 != rc)
-    {
-        printf("Thread1 creation failed, rc=%d\n",rc);
-    }
-
-    return 0;
-}
-int gigegrab::takeThirdProcess()
-{
-    int rc = 0;
-    rc = pthread_create(&mThirdThread, NULL, m_scancode->scanimage, (void*)&mScanImgData3);
-    if(0 != rc)
-    {
-        printf("Thread1 creation failed, rc=%d\n",rc);
-    }
-
-    return 0;
-}
-int gigegrab::takeFourthProcess()
-{
-    int rc = 0;
-    rc = pthread_create(&mFourthThread, NULL, m_scancode->scanimage, (void*)&mScanImgData4);
-    if(0 != rc)
-    {
-        printf("Thread1 creation failed, rc=%d\n",rc);
-    }
-
-    return 0;
-}
-#endif
 
 //print fps
 void gigegrab::printfps(cv::Mat frame)

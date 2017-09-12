@@ -20,11 +20,24 @@
 
 #include "server/fragmentProcess.h"  //fragment fwrite
 #include "include/macros.h"
+#ifdef USE_MUTIPLE_THREAD
+#include "instructions/threadpool.h"
+#endif
+
+#ifdef USE_MUTIPLE_THREAD
+#define THREAD_NUM 8
+//#define SIZE   8192
+#define QUEUES 64
+#endif
 
 typedef struct scanimageData {
     cv::Mat imageGray;
     char result[QRDATA_SIZE];
     int ret;  //0:FAIL  1:SUCCESS
+    int framecnt;
+#ifdef USE_MUTIPLE_THREAD
+    pthread_mutex_t lock;
+#endif
 } ScanImage_Data;
 
 class gigegrab
@@ -37,12 +50,6 @@ public:
 
 private:
     void printfps(cv::Mat frame);
-#ifdef USE_MUTIPLE_THREAD
-    int takeFirstProcess();
-    int takeSecondProcess();
-    int takeThirdProcess();
-    int takeFourthProcess();
-#endif
 
     ScanCode *m_scancode;
     int mPreviewFrames;
@@ -52,20 +59,10 @@ private:
 
     fragmentProcess *mfragmentProcess;
 
-#ifdef USE_MUTIPLE_THREAD
-    pthread_t mFirstThread;
-    pthread_t mSecondThread;
-    pthread_t mThirdThread;
-    pthread_t mFourthThread;
-#endif
+    ScanImage_Data mScanImgData;
 
 #ifdef USE_MUTIPLE_THREAD
-    ScanImage_Data mScanImgData1;
-    ScanImage_Data mScanImgData2;
-    ScanImage_Data mScanImgData3;
-    ScanImage_Data mScanImgData4;
-#else
-    ScanImage_Data mScanImgData;
+    threadpool_t *pool;
 #endif
 
 };

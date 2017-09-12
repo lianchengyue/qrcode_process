@@ -10,6 +10,9 @@
 
 using namespace zbar;
 
+typedef void scanimage(void *raw);
+typedef scanimage* scanimagefunc;
+
 class ScanCode
 {
 public:
@@ -17,11 +20,9 @@ public:
     virtual ~ScanCode();
 
     //static void *scanimage(const void *pic, char *result);
-    static void *scanimage(void *pic);
+    //static void* scanimage(void *raw);
+    static void scanimagefunc(void *raw);
     static void *canby(void *ptr);
-
-    //static zbar_image_scanner_t *scanner;
-    //static zbar_image_t *image;
 
 private:
     bool flag;

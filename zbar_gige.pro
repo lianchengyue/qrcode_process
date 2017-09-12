@@ -28,7 +28,8 @@ SOURCES += main.cpp \
     server/RecvStateMachine.cpp \
     instructions/split.cpp \
     instructions/cat.cpp \
-    client/DirMonitor.cpp
+    client/DirMonitor.cpp \
+    instructions/threadpool.cpp
 
 HEADERS += \
     server/ScanCode.h \
@@ -52,34 +53,43 @@ HEADERS += \
     instructions/split.h \
     instructions/cat.h \
     include/macros.h \
-    client/DirMonitor.h
+    client/DirMonitor.h \
+    instructions/threadpool.h
 
 
-INCLUDEPATH += /usr/local/opencv320/include \
-/usr/local/opencv320/include/opencv \
-/usr/local/opencv320/include/opencv2 \
+INCLUDEPATH += \
+#/usr/local/opencv320/include \
+#/usr/local/opencv320/include/opencv \
+#/usr/local/opencv320/include/opencv2 \
+/usr/local/opencv2.4.13/include \
+/usr/local/opencv2.4.13/include/opencv \
+/usr/local/opencv2.4.13/include/opencv2 \
 /opt/pylon5/include \
 /opt/pylon5/include/pylon \
 /usr/local/include \
 /usr/local/libqrencode/include \
 /home/montafan/3rdparty/lzo210/include \
 
-LIBS += /usr/local/opencv320/lib/libopencv_calib3d.so \
-/usr/local/opencv320/lib/libopencv_core.so \
-/usr/local/opencv320/lib/libopencv_features2d.so \
-/usr/local/opencv320/lib/libopencv_flann.so \
-/usr/local/opencv320/lib/libopencv_highgui.so \
-/usr/local/opencv320/lib/libopencv_imgcodecs.so \
-/usr/local/opencv320/lib/libopencv_imgproc.so \
-/usr/local/opencv320/lib/libopencv_ml.so \
-/usr/local/opencv320/lib/libopencv_objdetect.so \
-/usr/local/opencv320/lib/libopencv_photo.so \
-/usr/local/opencv320/lib/libopencv_shape.so \
-/usr/local/opencv320/lib/libopencv_stitching.so \
-/usr/local/opencv320/lib/libopencv_superres.so \
-/usr/local/opencv320/lib/libopencv_video.so \
-/usr/local/opencv320/lib/libopencv_videoio.so \
-/usr/local/opencv320/lib/libopencv_videostab.so \
+LIBS += \
+/usr/local/opencv2.4.13/lib/libopencv_core.so \
+/usr/local/opencv2.4.13/lib/libopencv_highgui.so \
+/usr/local/opencv2.4.13/lib/libopencv_imgproc.so \
+#/usr/local/opencv320/lib/libopencv_calib3d.so \
+#/usr/local/opencv320/lib/libopencv_core.so \
+#/usr/local/opencv320/lib/libopencv_features2d.so \
+#/usr/local/opencv320/lib/libopencv_flann.so \
+#/usr/local/opencv320/lib/libopencv_highgui.so \
+#/usr/local/opencv320/lib/libopencv_imgcodecs.so \
+#/usr/local/opencv320/lib/libopencv_imgproc.so \
+#/usr/local/opencv320/lib/libopencv_ml.so \
+#/usr/local/opencv320/lib/libopencv_objdetect.so \
+#/usr/local/opencv320/lib/libopencv_photo.so \
+#/usr/local/opencv320/lib/libopencv_shape.so \
+#/usr/local/opencv320/lib/libopencv_stitching.so \
+#/usr/local/opencv320/lib/libopencv_superres.so \
+#/usr/local/opencv320/lib/libopencv_video.so \
+#/usr/local/opencv320/lib/libopencv_videoio.so \
+#/usr/local/opencv320/lib/libopencv_videostab.so \
 /opt/pylon5/lib64/libbxapi.so \
 /opt/pylon5/lib64/libFirmwareUpdate_gcc_v3_0_Basler_pylon_v5_0.so \
 /opt/pylon5/lib64/libGCBase_gcc_v3_0_Basler_pylon_v5_0.so \
