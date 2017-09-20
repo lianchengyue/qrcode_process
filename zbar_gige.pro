@@ -29,7 +29,8 @@ SOURCES += main.cpp \
     instructions/split.cpp \
     instructions/cat.cpp \
     client/DirMonitor.cpp \
-    instructions/threadpool.cpp
+    instructions/threadpool.cpp \
+    server/ProcessInThread.cpp
 
 HEADERS += \
     server/ScanCode.h \
@@ -54,7 +55,8 @@ HEADERS += \
     instructions/cat.h \
     include/macros.h \
     client/DirMonitor.h \
-    instructions/threadpool.h
+    instructions/threadpool.h \
+    server/ProcessInThread.h
 
 
 INCLUDEPATH += \

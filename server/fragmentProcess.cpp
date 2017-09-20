@@ -10,6 +10,7 @@
 
 #include "include/Errors.h"
 #include "include/macros.h"
+#include "ScanCode.h"
 
 #include <mutex>
 
@@ -24,7 +25,18 @@ fragmentProcess::fragmentProcess()
     need_cat = false;
     is_folder_created = false;
 
-    m_stateMachine = new RecvStateMachine(this);
+    //m_stateMachine = new RecvStateMachine(this);  //flq
+    m_stateMachine = RecvStateMachine::getInstance();
+
+    //test for单例测试，是否成功
+    /*
+    RecvStateMachine* singleton1 = RecvStateMachine::getInstance();
+    RecvStateMachine* singleton2 = RecvStateMachine::getInstance();
+
+    if (singleton1 == singleton2)
+        printf("singleton1 = singleton2\n");
+    */
+    //test for单例测试，是否成功end
 }
 
 fragmentProcess::~fragmentProcess()
@@ -34,8 +46,8 @@ fragmentProcess::~fragmentProcess()
 
 int fragmentProcess::init(){
 
-    const char *iniPath = "/home/montafan/QRcodeGrab/server/nocolor.png/config.ini";//读取二维码头后生成,目前暂写成这样
-    iniFileLoad(iniPath);
+    //const char *iniPath = "/home/montafan/QRcodeGrab/server/nocolor.png/config.ini";//读取二维码头后生成,目前暂写成这样
+    //iniFileLoad(iniPath);
 
 }
 

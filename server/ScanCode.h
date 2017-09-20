@@ -8,10 +8,15 @@
 
 #include <pylon/PylonIncludes.h>
 
+#include "ProcessInThread.h"
+#include "RecvStateMachine.h"
+
 using namespace zbar;
 
 typedef void scanimage(void *raw);
 typedef scanimage* scanimagefunc;
+
+class RecvStateMachine;
 
 class ScanCode
 {
@@ -23,6 +28,7 @@ public:
     //static void* scanimage(void *raw);
     static void scanimagefunc(void *raw);
     static void *canby(void *ptr);
+    friend class RecvStateMachine;
 
 private:
     bool flag;
@@ -30,6 +36,9 @@ private:
     //static zbar_image_t *image;
 
     static int initZbar();
+    ///static ProcessInThread *mPinThread1;
+    ///staticRecvStateMachine *m_RecvstateMachine;
+
 
 };
 #endif // SCAN_IMAGE_H

@@ -26,4 +26,8 @@
 //#define INI_FRAGMENT_WITHOUT_MASTHEAD
 #endif
 
+//LOG级别开关
+#ifndef CONFIG_FUNC_DEBUG
+#define CONFIG_FUNC_DEBUG
+#endif
 #endif // MACROS_H

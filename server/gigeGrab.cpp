@@ -195,8 +195,6 @@ int gigegrab::grab()
         //int *res =0;
         //        m_scancode->scanimage((void*)imageGray.data);   //if single process, delete
         ////////////////m_scancode->scanimage((void*)&mScanImgData);   //if single process, delete
-
-        ///////printf("out result=%s,length=%d, res=%d\n", mScanImgData.result, strlen(mScanImgData.result),mScanImgData.ret);
 #endif
         mPreviewFrames++;
 
