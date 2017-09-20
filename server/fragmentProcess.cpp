@@ -22,7 +22,7 @@ fragmentProcess::fragmentProcess()
 {
     init();
     ini_flag = false;
-    need_cat = false;
+
     is_folder_created = false;
 
     //m_stateMachine = new RecvStateMachine(this);  //flq
@@ -45,9 +45,6 @@ fragmentProcess::~fragmentProcess()
 }
 
 int fragmentProcess::init(){
-
-    //const char *iniPath = "/home/montafan/QRcodeGrab/server/nocolor.png/config.ini";//读取二维码头后生成,目前暂写成这样
-    //iniFileLoad(iniPath);
 
 }
 
@@ -101,16 +98,16 @@ int fragmentProcess::QRdataProcess(char* QRdata)
 
         //创建所有的文件目录,（不包括碎片目录）
         ///遍历完后拼接fold.ini
-        des_ini_fragment_traversal(DES_INI_FOLD_LOCATION, 0);
-        if(is_folder_created)
+        des_ini_fragment_traversal_imp(DES_INI_FOLD_LOCATION, 0);
+        if(!is_folder_created)
         {
             printf("CREATE_FOLDER_FROM_INI\n");
             create_folder_tree_from_ini(); //only once;
-            is_folder_created = false;
+            is_folder_created = true;
         }
 
         //遍历完后拼接config.ini
-        des_ini_fragment_traversal(DES_INI_FILE_LOCATION, 0);
+        des_ini_fragment_traversal_imp(DES_INI_FILE_LOCATION, 0);
 
         setTransmitStatus(TRANSMITTING);
     }
@@ -122,7 +119,7 @@ int fragmentProcess::QRdataProcess(char* QRdata)
         //delay(300)//ms
         ///遍历待拼接文件
         printf("FRAGMENT_TRAVERSAL\n");
-        des_fragment_traversal_imp(DES_RECEIVE_LOCATION, 0);
+        des_fragment_traversal();
     }
 
     //处理配置文件或文件正文
@@ -340,8 +337,21 @@ int fragmentProcess::des_start_content_receiver(char *QRdata)
     return NO_ERROR;
 }
 
+//说明：des_fragment_traversal_imp()的对外接口函数
+int fragmentProcess::des_ini_traversal()
+{
+    des_ini_fragment_traversal_imp(DES_INI_FOLD_LOCATION, 0);
+
+    printf("CREATE_FOLDER_FROM_INI\n");
+    create_folder_tree_from_ini(); //创建文件夹
+
+    //遍历完后拼接config.ini
+    des_ini_fragment_traversal_imp(DES_INI_FILE_LOCATION, 0);
+    return 0;
+}
+
 //ini fragment traversal & process
-void fragmentProcess::des_ini_fragment_traversal(string dir, int depth) //decode_base64_fragment
+void fragmentProcess::des_ini_fragment_traversal_imp(string dir, int depth) //decode_base64_fragment
 {
     DIR *Dp;
     //文件目录结构体
@@ -381,7 +391,7 @@ void fragmentProcess::des_ini_fragment_traversal(string dir, int depth) //decode
             printf("%*s%s/\n",depth," ",enty->d_name);
 
             //继续递归调用
-            des_ini_fragment_traversal(total_dir,depth+4);//绝对路径递归调用错误 modify by flq
+            des_ini_fragment_traversal_imp(total_dir,depth+4);//绝对路径递归调用错误 modify by flq
         }
         else
         {
@@ -390,9 +400,6 @@ void fragmentProcess::des_ini_fragment_traversal(string dir, int depth) //decode
 
             //输出当前目录名
             printf("%*s%s/\n",depth," ",enty->d_name);
-            //get文件名
-            /////vecString.push_back(total_dir);//NULL
-            ///std::vector<std::array<char,255>>* vecString = reinterpret_cast<std::vector<std::array<char,255>>*>(total_dir);
 
             //拼接ini
             char *rename = new char[NAME_MAX];
@@ -402,7 +409,6 @@ void fragmentProcess::des_ini_fragment_traversal(string dir, int depth) //decode
             cat((char *)dir.c_str(), DES_INI_LOCATION, rename);  //参数23拼接完成为后输出的目录（xiangdui路径）
 
             free(rename);
-
 
         }
     }
@@ -442,6 +448,8 @@ int fragmentProcess::des_file_traversal()
 }
 */
 
+
+//说明：des_fragment_traversal_imp()的对外接口函数
 int fragmentProcess::des_fragment_traversal()
 {
     char *fragmentDir = DES_BASE64_DECODE_LOCATION;//DES_RECEIVE_LOCATION,    DES_BASE64_DECODE_LOCATION
@@ -468,6 +476,7 @@ void fragmentProcess::des_fragment_traversal_imp(char *dir, char* _short_dir, ch
     char *total_dir;
     char *relative_dir;
     char *des_str;
+    bool need_cat = false;
 
     //打开指定的目录，获得目录指针
     if(NULL == (Dp = opendir(dir)))
@@ -565,7 +574,6 @@ void fragmentProcess::des_fragment_traversal_imp(char *dir, char* _short_dir, ch
                 #endif
 
                 need_cat = false;
-                //break;
             } else
             {
                 need_cat = true;
@@ -679,7 +687,7 @@ void fragmentProcess::des_fragment_traversal_imp(string dir, int depth) //decode
             //输出当前目录名
             //printf("%*s%s/\n",depth," ",enty->d_name);
 
-            if(1)//is_base64_decode
+            if(0)//is_base64_decode
             {
                 char *des_str = new char[PATH_MAX];//home/montafan/QRcodeGrab/destination/2_base64_decode_location/nocolor.png/   //remeber free, flq
                 char *diplay_content;
@@ -771,31 +779,6 @@ int fragmentProcess::process_QRdata_to_fragment(char *QRdata, char *des_str)
 
     return NO_ERROR;
 }
-
-
-//该函数废弃,des_fragment_traversal_imp()中做decode
-int fragmentProcess::process_fragment_base64_decode(char *QRdata, char *des_str)
-{
-    FILE *Destination;
-
-    if(0 == strlen(QRdata))
-    {
-        return NO_DATA;
-    }
-
-    ///if Idle mode
-    ///if Start mode
-    ///if End mode
-
-    Destination = fopen(des_str, "wb"); //ab+;
-    ///int size = fwrite(QRdata, 1, strlen(QRdata), Destination);   //Temp delete
-    //printf("size=%d\n",size);
-
-    fclose(Destination); // 关闭文件
-
-    return NO_ERROR;
-}
-
 
 bool fragmentProcess::is_md5sum_match(char *QRdata)
 {

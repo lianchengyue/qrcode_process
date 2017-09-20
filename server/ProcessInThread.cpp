@@ -20,6 +20,9 @@ using namespace std;
 ProcessInThread::ProcessInThread()
 {
     m_stateMachine = RecvStateMachine::getInstance();
+
+    ini_traversal_flag = 1;
+    fragment_traversal_flag = 1;
 }
 
 ProcessInThread::~ProcessInThread()
@@ -31,27 +34,6 @@ ProcessInThread::~ProcessInThread()
 //整个处理的入口函数，识别二维码成功后进入
 int ProcessInThread::QRdataProcess(char* QRdata)
 {
-#ifdef USE_DEBUG
-    //TEST
-    //cat后ini即完全恢复start
-    ///*
-    des_ini_fragment_traversal(DES_INI_FOLD_LOCATION, 0);
-    if(1)
-    {
-        create_folder_tree_from_ini(); //only once;
-    }
-
-    des_ini_fragment_traversal(DES_INI_FILE_LOCATION, 0);
-    //*/
-    //cat后ini即完全恢复 end
-
-    //对没有报头的碎片，做base64,并生成文件到2_base64文件夹 start
-    des_fragment_traversal();
-    //对没有报头的碎片，做base64,并生成文件到2_base64文件夹 end
-    //TEST END
-#endif
-
-    #if 1
     if(0 == strcmp(QRdata, TRANSMIT_IDLE))
     {
         return NO_ERROR;
@@ -61,6 +43,10 @@ int ProcessInThread::QRdataProcess(char* QRdata)
     else if(0 == strcmp(QRdata, TRANSMIT_PRESTART))
     {
         setTransmitStatus(PRESTART);
+        //////////新的帧到来，将所有状态重置为激活///////
+        ini_traversal_flag = 1;
+        fragment_traversal_flag = 1;
+
         return NO_ERROR;
     }
 
@@ -69,7 +55,7 @@ int ProcessInThread::QRdataProcess(char* QRdata)
         setTransmitStatus(PREEND);
         return NO_ERROR;
     }
-#if 0
+#if 1
     //QRdata
 
     //处理配置文件
@@ -82,16 +68,12 @@ int ProcessInThread::QRdataProcess(char* QRdata)
 
         //创建所有的文件目录,（不包括碎片目录）
         ///遍历完后拼接fold.ini
-        des_ini_fragment_traversal(DES_INI_FOLD_LOCATION, 0);
-        if(is_folder_created)
+        ///===============================发消息，遍历ini并恢复，做处理================================///
+        if(1 == ini_traversal_flag)
         {
-            LOG_DBG("CREATE_FOLDER_FROM_INI\n");
-            create_folder_tree_from_ini(); //only once;
-            is_folder_created = false;
+            processEvt(RECV_SM_EVT_INI_START, NULL);
+            ini_traversal_flag = 0;
         }
-
-        //遍历完后拼接config.ini
-        des_ini_fragment_traversal(DES_INI_FILE_LOCATION, 0);
 
         setTransmitStatus(TRANSMITTING);
     }
@@ -103,7 +85,14 @@ int ProcessInThread::QRdataProcess(char* QRdata)
         //delay(300)//ms
         ///遍历待拼接文件
         LOG_DBG("FRAGMENT_TRAVERSAL\n");
-        des_fragment_traversal_imp(DES_RECEIVE_LOCATION, 0);
+        ///=====================================遍历文件======================================///
+        if(1 == fragment_traversal_flag)
+        {
+            processEvt(RECV_SM_EVT_FRAG_START, NULL);
+            setTransmitStatus(IDLE);
+            fragment_traversal_flag = 0;
+        }
+
     }
 #endif
     //处理配置文件或文件正文
@@ -128,7 +117,6 @@ int ProcessInThread::QRdataProcess(char* QRdata)
         //记录每一个需要拼接的路径
     }
 
-#endif
 }
 
 //process_QRdata_to_fragment完后执行
@@ -252,10 +240,9 @@ int ProcessInThread::des_start_content_receiver(char *QRdata)
     return NO_ERROR;
 }
 
-int ProcessInThread::proccessEvt()
+int ProcessInThread::processEvt(recv_sm_evt_enum_t evt, void *evt_payload)
 {
-    //return m_stateMachine->procEvt();
-    return NO_ERROR;
+    return m_stateMachine->procEvt(evt, evt_payload);
 }
 
 int ProcessInThread::setTransmitStatus(TransmitStatus status)

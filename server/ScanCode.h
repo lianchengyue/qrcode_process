@@ -10,6 +10,16 @@
 
 #include "ProcessInThread.h"
 #include "RecvStateMachine.h"
+#include "include/macros.h"
+
+#define CONFIG_FUNC_DEBUG
+#ifdef CONFIG_FUNC_DEBUG
+#define LOG_ERR(fmt,args...) printf(fmt,##args)//#define PR(...) printf(__VA_ARGS__)
+#define LOG_DBG(fmt,args...) printf(fmt,##args)
+#else
+#define LOG_ERR(fmt,args...) printf(fmt,##args)
+#define LOG_DBG(fmt,args...)
+#endif
 
 using namespace zbar;
 
@@ -27,6 +37,7 @@ public:
     //static void *scanimage(const void *pic, char *result);
     //static void* scanimage(void *raw);
     static void scanimagefunc(void *raw);
+    static void scanimage(/*const*/ void *raw/*, char *result*/);
     static void *canby(void *ptr);
     friend class RecvStateMachine;
 

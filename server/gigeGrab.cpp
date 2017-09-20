@@ -189,12 +189,11 @@ int gigegrab::grab()
         //added by flq
         //char *result = new char[QRDATA_SIZE];
         //memset(result, 0 , QRDATA_SIZE);
-        //int *res = ScanCode::scanimage((void*)imageGray.data, result);   //if single process, delete
         //int *res = m_scancode->scanimage((void*)imageGray.data, result);   //if single process, delete
 
         //int *res =0;
         //        m_scancode->scanimage((void*)imageGray.data);   //if single process, delete
-        ////////////////m_scancode->scanimage((void*)&mScanImgData);   //if single process, delete
+        m_scancode->scanimage((void*)&mScanImgData);   //if single process, delete
 #endif
         mPreviewFrames++;
 

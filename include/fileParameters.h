@@ -37,8 +37,10 @@ typedef enum{
 
 const char TRANSMIT_PRESTART[] = "1010101010"; //传输报头
 const char TRANSMIT_PREEND[] = "2020202020"; //传输报头
+//const char TRANSMIT_START[] = "http://baike.baidu.com";//传输开始
 const char TRANSMIT_START[] = "s0s0s0s0s0";//传输开始
-const char TRANSMIT_END[] = "e0e0e0e0e0";//传输结束
+const char TRANSMIT_END[] = "http://baike.baidu.com";//传输结束
+//const char TRANSMIT_END[] = "e0e0e0e0e0";//传输结束
 const char TRANSMIT_IDLE[] = "3030303030";//空闲状态
 //const char TRANSMIT_INI[] = "3030303030"; //传输配置文件
 

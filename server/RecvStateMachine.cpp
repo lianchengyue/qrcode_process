@@ -1,5 +1,6 @@
 #include "RecvStateMachine.h"
 #include "include/Errors.h"
+#include "include/DirPath.h"
 
 #include <string.h>
 
@@ -11,13 +12,31 @@ void *RecvStateMachine::smEvtProcessRoutine(void *data)
     int ret;
 
     RecvStateMachine *pMe = (RecvStateMachine *)data;
+
+    /*
+    do{
+        recv_sm_cmd_t *node = (recv_sm_cmd_t *)pMe->evt_queue.front();
+        if(node != NULL)
+        {
+            //switch(node->evt)
+            //{
+            //}
+            pMe->StateMachine(node->evt, node->evt_payload);
+
+            (recv_sm_cmd_t *)pMe->evt_queue.pop();//flq
+
+            free(node->evt_payload);
+            free(node);
+        }
+    } while (running);
+    */
 }
 
 //构造与析构函数
 RecvStateMachine::RecvStateMachine(fragmentProcess *ctrl)
 {
     m_parent = ctrl;
-    m_state = RECV_IDLE;
+    m_state = RECV_SM_EVT_IDLE;
     cmd_pid = 0;
 
     pthread_create(&cmd_pid,
@@ -41,6 +60,8 @@ RecvStateMachine* RecvStateMachine::getInstance()
 
 int RecvStateMachine::procEvt(recv_sm_evt_enum_t evt, void*evt_payload)
 {
+    StateMachine(evt, evt_payload);
+#if 0
     recv_sm_cmd_t *node = (recv_sm_cmd_t *)malloc(sizeof(recv_sm_cmd_t));
 
     if(NULL == node)
@@ -53,51 +74,46 @@ int RecvStateMachine::procEvt(recv_sm_evt_enum_t evt, void*evt_payload)
     node->evt = evt;
     node->evt_payload = evt_payload;
 
-    //插入队列
     /*
-    if(evt_queue.enqueue((void*)node)
+    //插入队列
+    if(evt_queue.push((void *)node))
     {
-        //cam_sem_post(&cmd_sem);
         return NO_ERROR;
     }
     else
     {
         free(node);
         return UNKNOWN_ERROR;
-    }
-    */
+    }*/
     free(node);
+#endif
 }
 
-int RecvStateMachine::StateMachine(recv_sm_evt_enum_t evt)
+int RecvStateMachine::StateMachine(recv_sm_evt_enum_t evt, void *payload)
 {
     int rc = NO_ERROR;
-    switch(m_state){
-    case RECV_IDLE:
-        //rc = ;
-        rc = m_parent->is_md5sum_match("11111111");
+    switch(evt){//m_state
+    case RECV_SM_EVT_INI_START:
+        LOG_DBG("RECV_SM_EVT_INI_START\n");
+        m_parent->des_ini_traversal();
+        //rc = m_parent->is_md5sum_match("11111111");
         break;
-    case RECV_PRESTART:
-        //rc = ;
-        break;
-    case RECV_INI_TRANS:
-        //rc = ;
-        break;
-    case RECV_START:
+    case RECV_SM_EVT_FRAG_START:
+        ///遍历待拼接文件
+        LOG_DBG("RECV_SM_EVT_FRAG_START\n");
+        m_parent->des_fragment_traversal();
         //rc = ;
         break;
-    case RECV_FRAG_TRANS:
+    case RECV_SM_EVT_FRAG_INTERRUPT:
         //rc = ;
         break;
-    case RECV_FRAG_TRANS_END:
+    case RECV_SM_EVT_FRAG_UPDATE:
         //rc = ;
         break;
-    case RECV_TEST_MODE:
+    case RECV_SM_EVT_FRAG_PROCESSING:
         //rc = ;
         break;
-    case RECV_TEST_FRAG_TRANS:
-        //rc = ;
-        break;
+
 
     default:
         break;

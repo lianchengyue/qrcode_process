@@ -96,6 +96,48 @@ void ScanCode::scanimagefunc(/*const*/ void *raw/*, char *result*/)
     pthread_mutex_unlock(&raw1->lock);
 #endif
 }
+void ScanCode::scanimage(/*const*/ void *raw/*, char *result*/)
+{
+    int width = INPUT_WIDTH, height = INPUT_HEIGHT;
+    scanimageData *raw1 = reinterpret_cast<scanimageData *>(raw);
+
+#ifdef USE_MUTIPLE_THREAD
+    pthread_mutex_lock(&raw1->lock);
+#endif
+    usleep(10);
+    /* wrap image data */
+    //zbar_image_t *image = zbar_image_create();
+
+    image = zbar_image_create();
+    zbar_image_set_format(image, *(int*)"Y800");
+    zbar_image_set_size(image, width, height);
+    //zbar_image_set_data(image, raw, width * height, zbar_image_free_data);
+    zbar_image_set_data(image, raw1->imageGray.data, width * height, zbar_image_free_data);
+
+    /* scan the image for barcodes */
+    int n = zbar_scan_image(scanner, image);
+    printf("n=%d\n",n);
+
+    /* extract results */
+    const zbar_symbol_t *symbol = zbar_image_first_symbol(image);
+    for(; symbol; symbol = zbar_symbol_next(symbol))
+    {
+        /* do something useful with results */
+        zbar_symbol_type_t typ = zbar_symbol_get_type(symbol);
+        const char *data = zbar_symbol_get_data(symbol);
+        printf("decoded: %s symbol:%s\n", zbar_get_symbol_name(typ), data);
+        ///传值
+        strcpy(raw1->result, data);
+        raw1->ret = n;
+
+        delete(data);//added for flq
+    }
+    //printf("The %d Frame processing\n", raw1->framecnt);
+
+#ifdef USE_MUTIPLE_THREAD
+    pthread_mutex_unlock(&raw1->lock);
+#endif
+}
 
  void* ScanCode::canby(void *ptr)
 {
