@@ -1,7 +1,5 @@
-#ifndef GIGEGRAB_H
-#define GIGEGRAB_H
-
-#include <pylon/PylonIncludes.h>
+#ifndef USBGRAB_H
+#define USBGRAB_H
 
 //opencv
 #include "opencv2/highgui/highgui.hpp"
@@ -13,8 +11,6 @@
 #include "qrcodezbar.h"
 #include <QApplication>
 
-#include <pylon/PylonIncludes.h>
-#include <pylon/usb/BaslerUsbInstantCamera.h>
 //pthread
 #ifdef USE_MUTIPLE_THREAD
 #include <pthread.h>
@@ -32,12 +28,6 @@
 #define QUEUES 64
 #endif
 
-typedef Pylon::CBaslerUsbInstantCamera Camera_t;
-using namespace Basler_UsbCameraParams;
-
-typedef Camera_t::GrabResultPtr_t GrabResultPtr_t;
-
-
 typedef struct scanimageData {
     cv::Mat imageGray;
     char result[QRDATA_SIZE];
@@ -48,22 +38,15 @@ typedef struct scanimageData {
 #endif
 } ScanImage_Data;
 
-class gigeGrab
+class usbGrab
 {
 public:
-    gigeGrab();
-    virtual ~gigeGrab();
+    usbGrab();
+    virtual ~usbGrab();
 
     int grab();
 
 private:
-    bool IsColorCamera(Camera_t& camera);
-    void AutoGainOnce(Camera_t& camera);
-    void AutoGainContinuous(Camera_t& camera);
-    void AutoExposureOnce(Camera_t& camera);
-    void AutoExposureContinuous(Camera_t& camera);
-    void AutoWhiteBalance(Camera_t& camera);
-
     void printfps(cv::Mat frame);
 
     ScanCode *m_scancode;
@@ -81,4 +64,5 @@ private:
 #endif
 
 };
-#endif // GIGEGRAB_H
+
+#endif // USBGRAB_H

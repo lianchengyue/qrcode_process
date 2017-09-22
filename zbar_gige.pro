@@ -30,7 +30,8 @@ SOURCES += main.cpp \
     instructions/cat.cpp \
     client/DirMonitor.cpp \
     instructions/threadpool.cpp \
-    server/ProcessInThread.cpp
+    server/ProcessInThread.cpp \
+    server/usbGrab.cpp
 
 HEADERS += \
     server/ScanCode.h \
@@ -56,7 +57,8 @@ HEADERS += \
     include/macros.h \
     client/DirMonitor.h \
     instructions/threadpool.h \
-    server/ProcessInThread.h
+    server/ProcessInThread.h \
+    server/usbGrab.h
 
 
 INCLUDEPATH += \

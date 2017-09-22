@@ -6,8 +6,13 @@
 #include "opencv2/core/core.hpp"
 
 #include "include/fileParameters.h"
-#include "gigeGrab.h"
 #include "ProcessInThread.h"
+#ifdef BASLER_GRAB_FUNC
+#include "server/gigeGrab.h"
+#elif defined USB_GRAB_FUNC
+#include "server/usbGrab.h"
+#endif
+
 
 using namespace std;
 using namespace zbar;

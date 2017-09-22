@@ -364,7 +364,7 @@ void fragmentProcess::des_ini_fragment_traversal_imp(string dir, int depth) //de
     //打开指定的目录，获得目录指针
     if(NULL == (Dp = opendir(dir.c_str())))
     {
-        fprintf(stderr,"can not open dir:%s\n",dir.c_str());
+        LOG_ERR("%s, can not open dir:%s\n",__func__, dir.c_str());
         return;
     }
 
@@ -418,36 +418,6 @@ void fragmentProcess::des_ini_fragment_traversal_imp(string dir, int depth) //de
     //关闭文件指针
     closedir(Dp);
 }
-#if 1
-/*
-int fragmentProcess::des_file_traversal()
-{
-    char *topDir = SRC_LOCATION;//"/home/montafan/QRcodeGrab/source/location/";
-    char relativeDir[PATH_MAX] = {0};
-    char *_2_dir = SRC_LZO_LOCATION;//"/home/montafan/QRcodeGrab/source/2_lzo_location/";
-    char *_3_dir = SRC_SPLIT_LOCATION;//"/home/montafan/QRcodeGrab/source/3_split_location/";
-    char *_4_dir = SRC_BASE64_ENCODE_LOCATION;//"/home/montafan/QRcodeGrab/source/4_base64_encode_location/";
-
-    printf("Directory scan of %s\n",topDir);
-
-    is_base64 = false;//flag, dont neglect
-
-    FILE *ini_file = fopen(HEAD, "w");
-    fclose(ini_file);
-    //iniFileLoad(HEAD);
-
-    FILE *ini_folder = fopen(folderHead, "w");
-    fclose(ini_folder);
-    //iniFileLoad(folderHead);
-
-    ///遍历源文件夹并生成所有的文件夹,处理完后，在3中生成碎片
-    des_file_traversal_imp(topDir, relativeDir,_2_dir, _3_dir, _4_dir, 0);
-
-    printf("Transmit Done\n");
-    return 0;
-}
-*/
-
 
 //说明：des_fragment_traversal_imp()的对外接口函数
 int fragmentProcess::des_fragment_traversal()
@@ -461,7 +431,6 @@ int fragmentProcess::des_fragment_traversal()
     des_fragment_traversal_imp(fragmentDir, relativeDir, fragmentDes, 0);
     return 0;
 }
-#endif
 
 ///process_QRdata_to_fragment完后执行,遍历碎片并恢复
 //遍历相对目录
@@ -481,7 +450,7 @@ void fragmentProcess::des_fragment_traversal_imp(char *dir, char* _short_dir, ch
     //打开指定的目录，获得目录指针
     if(NULL == (Dp = opendir(dir)))
     {
-        fprintf(stderr,"can not open dir:%s\n",dir);
+        LOG_ERR("%s, can not open dir:%s\n", __func__, dir);
         return;
     }
 
@@ -535,7 +504,7 @@ void fragmentProcess::des_fragment_traversal_imp(char *dir, char* _short_dir, ch
             strcat(total_dir,enty->d_name);
 
             //输出当前目录名
-            printf("des_fragment_traversal_imp(),FILE,%*s%s/\n",depth," ",enty->d_name);
+            LOG_DBG("des_fragment_traversal_imp(),FILE,%*s%s/\n",depth," ",enty->d_name);
             if(enty->d_name[0] !='X')
             {
                 #if 1  ///flq    copy file
@@ -596,7 +565,7 @@ void fragmentProcess::des_fragment_traversal_imp(char *dir, char* _short_dir, ch
         sprintf(output3Dir, "%s%s", DES_CAT_LOCATION, _short_dir);
         cutDirName(output3Dir, purename);//input should be a filefold
 
-        //printf("%s\n", purename);
+        //LOG_DBG("%s\n", purename);
         getUpperTotalDir(output3Dir);
 
 #ifdef USE_LZO_COMPRESSION
@@ -650,7 +619,7 @@ void fragmentProcess::des_fragment_traversal_imp(string dir, int depth) //decode
     //打开指定的目录，获得目录指针
     if(NULL == (Dp = opendir(dir.c_str())))
     {
-        fprintf(stderr,"can not open dir:%s\n",dir.c_str());
+        LOG_ERR("%s,can not open dir:%s\n",__func__, dir.c_str());
         return;
     }
 
@@ -674,7 +643,7 @@ void fragmentProcess::des_fragment_traversal_imp(string dir, int depth) //decode
 
             total_dir = dir + enty->d_name + "/";
             //输出当前文件名
-            printf("%*s%s/\n",depth," ",enty->d_name);
+            LOG_DBG("%*s%s/\n",depth," ",enty->d_name);
 
             //继续递归调用
             des_fragment_traversal_imp(total_dir,depth+4);//绝对路径递归调用错误 modify by flq
@@ -757,10 +726,10 @@ int fragmentProcess::process_QRdata_to_fragment(char *QRdata, char *des_str)
     }
 
     //模拟传输完成，做base64解码
-    printf("YYYYYYYYYYY strcmp(QRdata, TRANSMIT_END)=%d\n", strcmp(QRdata, TRANSMIT_END));
+    LOG_DBG("YYYYYYYYYYY strcmp(QRdata, TRANSMIT_END)=%d\n", strcmp(QRdata, TRANSMIT_END));
     static bool flag = true;
     if(0 == strcmp(QRdata, TRANSMIT_TEST) && flag){
-        printf("===================逐帧接收二维码===========================\n");
+        LOG_DBG("===================逐帧接收二维码===========================\n");
         flag = false;
         des_fragment_traversal_imp(DES_RECEIVE_LOCATION, 0);
         return NO_ERROR;
@@ -770,7 +739,7 @@ int fragmentProcess::process_QRdata_to_fragment(char *QRdata, char *des_str)
     Destination = fopen(des_str, "wb"); //ab+;
     //测试读取二维码并生成文件，正式版删去
     int size = fwrite(QRdata, 1, strlen(QRdata), Destination);   //Temp delete
-    printf("size=%d\n",size);
+    LOG_DBG("size=%d\n",size);
 
     fclose(Destination); // 关闭文件
     #endif

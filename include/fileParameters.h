@@ -8,7 +8,7 @@
 #define NAME_MAX 255
 #define PATH_MAX 255
 
-#define BLOCK_SIZE 2048  //split_size suggest smaller than 2048 1792
+#define BLOCK_SIZE 2048  //split_size suggest smaller than 2048, 1792
 
 #define QRDATA_SIZE 3072  //3072,  2076
 

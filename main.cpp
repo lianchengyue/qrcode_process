@@ -62,7 +62,6 @@ int main(int argc, char* argv[])
 
 
 #if 1
-#include "server/gigeGrab.h"
 #include "client/qrgenerator.h"
 #include <QApplication>
 
@@ -71,11 +70,79 @@ int main(int argc, char* argv[])
 #include "instructions/base64.h"  //temp
 #include "server/fragmentProcess.h"  //temp
 #include "include/macros.h"
+#include "include/DirPath.h" //tmp
 
 #include "client/DirMonitor.h"
 
+#ifdef BASLER_GRAB_FUNC
+#include "server/gigeGrab.h"
+#elif defined USB_GRAB_FUNC
+#include "server/usbGrab.h"
+#endif
+
+int CompletePath()
+{
+    //DES_LOCATION111 =new char[PATH_MAX];
+    //strcpy(DES_LOCATION111, "1111");
+/*
+    //SRC
+    memset(SRC_LOCATION, 0 ,PATH_MAX);
+    memset(SRC_LZO_LOCATION, 0 ,PATH_MAX);
+    memset(SRC_SPLIT_LOCATION, 0 ,PATH_MAX);
+    memset(SRC_BASE64_ENCODE_LOCATION, 0 ,PATH_MAX);
+    //SRC INI
+    memset(SRC_INI_LOCATION, 0 ,PATH_MAX);
+    memset(SRC_INI_FILE_LOCATION, 0 ,PATH_MAX);
+    memset(SRC_INI_FOLD_LOCATION, 0 ,PATH_MAX);
+    memset(SRC_INI_FRAGMENT_LOCATION, 0 ,PATH_MAX);
+    memset(SRC_INI_FILE_FRAG_LOCATION, 0 ,PATH_MAX);
+    memset(SRC_INI_FOLD_FRAG_LOCATION, 0 ,PATH_MAX);
+
+    //DES
+    memset(DES_LOCATION, 0 ,PATH_MAX);
+    memset(DES_RECEIVE_LOCATION, 0 ,PATH_MAX);
+    memset(DES_BASE64_DECODE_LOCATION, 0 ,PATH_MAX);
+    memset(DES_CAT_LOCATION, 0 ,PATH_MAX);
+    //DES INI
+    memset(DES_RECV_INI_LOCATION, 0 ,PATH_MAX);
+    memset(DES_INI_LOCATION, 0 ,PATH_MAX);
+    memset(DES_INI_FILE_LOCATION, 0 ,PATH_MAX);
+    memset(DES_INI_FOLD_LOCATION, 0 ,PATH_MAX);
+    memset(DES_INI_FILE, 0 ,PATH_MAX);
+    memset(DES_INI_FOLD, 0 ,PATH_MAX);
+
+    //SRC
+    sprintf(SRC_LOCATION, "%s%s", SRC_BASE_LOCATION ,SRC_LOCATION_REL);
+    sprintf(SRC_LZO_LOCATION, "%s%s", SRC_BASE_LOCATION ,SRC_LZO_LOCATION_REL);
+    sprintf(SRC_SPLIT_LOCATION, "%s%s", SRC_BASE_LOCATION ,SRC_SPLIT_LOCATION_REL);
+    sprintf(SRC_BASE64_ENCODE_LOCATION, "%s%s", SRC_BASE_LOCATION ,SRC_BASE64_ENCODE_LOCATION_REL);
+    //SRC INI
+    sprintf(SRC_INI_LOCATION, "%s%s", SRC_BASE_LOCATION ,SRC_INI_LOCATION_REL);
+    sprintf(SRC_INI_FILE_LOCATION, "%s%s", SRC_BASE_LOCATION ,SRC_INI_FILE_LOCATION_REL);
+    sprintf(SRC_INI_FOLD_LOCATION, "%s%s", SRC_BASE_LOCATION ,SRC_INI_FOLD_LOCATION_REL);
+    sprintf(SRC_INI_FRAGMENT_LOCATION, "%s%s", SRC_BASE_LOCATION ,SRC_INI_FRAGMENT_LOCATION_REL);
+    sprintf(SRC_INI_FILE_FRAG_LOCATION, "%s%s", SRC_BASE_LOCATION ,SRC_INI_FILE_FRAG_LOCATION_REL);
+    sprintf(SRC_INI_FOLD_FRAG_LOCATION, "%s%s", SRC_BASE_LOCATION ,SRC_INI_FOLD_FRAG_LOCATION_REL);
+
+    //DES
+    sprintf(DES_LOCATION, "%s%s", DES_BASE_LOCATION ,DES_LOCATION_REL);
+    sprintf(DES_RECEIVE_LOCATION, "%s%s", DES_BASE_LOCATION ,DES_RECEIVE_LOCATION_REL);
+    sprintf(DES_BASE64_DECODE_LOCATION, "%s%s", DES_BASE_LOCATION ,DES_BASE64_DECODE_LOCATION_REL);
+    sprintf(DES_CAT_LOCATION, "%s%s", DES_BASE_LOCATION ,DES_CAT_LOCATION_REL);
+    //DES INI
+    sprintf(DES_RECV_INI_LOCATION, "%s%s", DES_BASE_LOCATION ,DES_RECV_INI_LOCATION_REL);
+    sprintf(DES_INI_LOCATION, "%s%s", DES_BASE_LOCATION ,DES_INI_LOCATION_REL);
+    sprintf(DES_INI_FILE_LOCATION, "%s%s", DES_BASE_LOCATION ,DES_INI_FILE_LOCATION_REL);
+    sprintf(DES_INI_FOLD_LOCATION, "%s%s", DES_BASE_LOCATION ,DES_INI_FOLD_LOCATION_REL);
+    sprintf(DES_INI_FILE, "%s%s", DES_BASE_LOCATION ,DES_INI_FILE_REL);
+    sprintf(DES_INI_FOLD, "%s%s", DES_BASE_LOCATION ,DES_INI_FOLD_LOCATION_REL);
+*/
+
+}
+
 int main(int argc, char* argv[])
 {
+    CompletePath();
 #ifdef DISPLAY_QRCODE
     //使用base64二次封装接口
     #if 0
@@ -162,20 +229,16 @@ int main(int argc, char* argv[])
     //w.show();
     //return a.exec();
 
-    //temp
-    #if 0
-    system("cat /home/montafan/QRcodeGrab/destination/2_base64_decode_location/nocolor.png/X* >>/home/montafan/QRcodeGrab/destination/3_cat_location/nocolor.png.lzo");
-    const char* in_name = "/home/montafan/QRcodeGrab/destination/3_cat_location/nocolor.png.lzo";
-    const char* out_name = "/home/montafan/QRcodeGrab/destination/4_location/nocolor.png";
-    processLZO(argc, argv, in_name, out_name, LZO_DECOMPRESS);
-    #endif
-    //temp end
-
     //生成拓扑
     des_init_topology();
     //grab & recognize
-    gigegrab *m_gigegrab = new gigegrab();
+#ifdef BASLER_GRAB_FUNC
+    gigeGrab *m_gigegrab = new gigeGrab();
     m_gigegrab->grab();
+#elif defined USB_GRAB_FUNC
+    usbGrab *m_usbgrab = new usbGrab();
+    m_usbgrab->grab();
+#endif
 
     return 0;
 
