@@ -80,69 +80,8 @@ int main(int argc, char* argv[])
 #include "server/usbGrab.h"
 #endif
 
-int CompletePath()
-{
-    //DES_LOCATION111 =new char[PATH_MAX];
-    //strcpy(DES_LOCATION111, "1111");
-/*
-    //SRC
-    memset(SRC_LOCATION, 0 ,PATH_MAX);
-    memset(SRC_LZO_LOCATION, 0 ,PATH_MAX);
-    memset(SRC_SPLIT_LOCATION, 0 ,PATH_MAX);
-    memset(SRC_BASE64_ENCODE_LOCATION, 0 ,PATH_MAX);
-    //SRC INI
-    memset(SRC_INI_LOCATION, 0 ,PATH_MAX);
-    memset(SRC_INI_FILE_LOCATION, 0 ,PATH_MAX);
-    memset(SRC_INI_FOLD_LOCATION, 0 ,PATH_MAX);
-    memset(SRC_INI_FRAGMENT_LOCATION, 0 ,PATH_MAX);
-    memset(SRC_INI_FILE_FRAG_LOCATION, 0 ,PATH_MAX);
-    memset(SRC_INI_FOLD_FRAG_LOCATION, 0 ,PATH_MAX);
-
-    //DES
-    memset(DES_LOCATION, 0 ,PATH_MAX);
-    memset(DES_RECEIVE_LOCATION, 0 ,PATH_MAX);
-    memset(DES_BASE64_DECODE_LOCATION, 0 ,PATH_MAX);
-    memset(DES_CAT_LOCATION, 0 ,PATH_MAX);
-    //DES INI
-    memset(DES_RECV_INI_LOCATION, 0 ,PATH_MAX);
-    memset(DES_INI_LOCATION, 0 ,PATH_MAX);
-    memset(DES_INI_FILE_LOCATION, 0 ,PATH_MAX);
-    memset(DES_INI_FOLD_LOCATION, 0 ,PATH_MAX);
-    memset(DES_INI_FILE, 0 ,PATH_MAX);
-    memset(DES_INI_FOLD, 0 ,PATH_MAX);
-
-    //SRC
-    sprintf(SRC_LOCATION, "%s%s", SRC_BASE_LOCATION ,SRC_LOCATION_REL);
-    sprintf(SRC_LZO_LOCATION, "%s%s", SRC_BASE_LOCATION ,SRC_LZO_LOCATION_REL);
-    sprintf(SRC_SPLIT_LOCATION, "%s%s", SRC_BASE_LOCATION ,SRC_SPLIT_LOCATION_REL);
-    sprintf(SRC_BASE64_ENCODE_LOCATION, "%s%s", SRC_BASE_LOCATION ,SRC_BASE64_ENCODE_LOCATION_REL);
-    //SRC INI
-    sprintf(SRC_INI_LOCATION, "%s%s", SRC_BASE_LOCATION ,SRC_INI_LOCATION_REL);
-    sprintf(SRC_INI_FILE_LOCATION, "%s%s", SRC_BASE_LOCATION ,SRC_INI_FILE_LOCATION_REL);
-    sprintf(SRC_INI_FOLD_LOCATION, "%s%s", SRC_BASE_LOCATION ,SRC_INI_FOLD_LOCATION_REL);
-    sprintf(SRC_INI_FRAGMENT_LOCATION, "%s%s", SRC_BASE_LOCATION ,SRC_INI_FRAGMENT_LOCATION_REL);
-    sprintf(SRC_INI_FILE_FRAG_LOCATION, "%s%s", SRC_BASE_LOCATION ,SRC_INI_FILE_FRAG_LOCATION_REL);
-    sprintf(SRC_INI_FOLD_FRAG_LOCATION, "%s%s", SRC_BASE_LOCATION ,SRC_INI_FOLD_FRAG_LOCATION_REL);
-
-    //DES
-    sprintf(DES_LOCATION, "%s%s", DES_BASE_LOCATION ,DES_LOCATION_REL);
-    sprintf(DES_RECEIVE_LOCATION, "%s%s", DES_BASE_LOCATION ,DES_RECEIVE_LOCATION_REL);
-    sprintf(DES_BASE64_DECODE_LOCATION, "%s%s", DES_BASE_LOCATION ,DES_BASE64_DECODE_LOCATION_REL);
-    sprintf(DES_CAT_LOCATION, "%s%s", DES_BASE_LOCATION ,DES_CAT_LOCATION_REL);
-    //DES INI
-    sprintf(DES_RECV_INI_LOCATION, "%s%s", DES_BASE_LOCATION ,DES_RECV_INI_LOCATION_REL);
-    sprintf(DES_INI_LOCATION, "%s%s", DES_BASE_LOCATION ,DES_INI_LOCATION_REL);
-    sprintf(DES_INI_FILE_LOCATION, "%s%s", DES_BASE_LOCATION ,DES_INI_FILE_LOCATION_REL);
-    sprintf(DES_INI_FOLD_LOCATION, "%s%s", DES_BASE_LOCATION ,DES_INI_FOLD_LOCATION_REL);
-    sprintf(DES_INI_FILE, "%s%s", DES_BASE_LOCATION ,DES_INI_FILE_REL);
-    sprintf(DES_INI_FOLD, "%s%s", DES_BASE_LOCATION ,DES_INI_FOLD_LOCATION_REL);
-*/
-
-}
-
 int main(int argc, char* argv[])
 {
-    CompletePath();
 #ifdef DISPLAY_QRCODE
     //使用base64二次封装接口
     #if 0
@@ -222,13 +161,6 @@ int main(int argc, char* argv[])
 
 #else //#ifdef DISPLAY_QRCODE
 //抓取二维码
-
-    //grab frame
-    //QApplication a(argc, argv);
-    //QRCodeZbar w;
-    //w.show();
-    //return a.exec();
-
     //生成拓扑
     des_init_topology();
     //grab & recognize

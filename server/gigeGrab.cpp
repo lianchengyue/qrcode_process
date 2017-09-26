@@ -8,10 +8,12 @@
 
 
 #define OPENCV_WIN
-#define FPS_LOG_FREQ 3
+#define FPS_LOG_FREQ  3
 
 using namespace cv;
 using namespace Pylon;
+// Namespace for using GenApi objects.
+using namespace GenApi;
 using namespace std;
 
 Mat imageGray;
@@ -47,6 +49,10 @@ int gigeGrab::grab()
 {
     int exitCode = 0;
 
+
+    // Before using any pylon methods, the pylon runtime must be initialized.
+    PylonInitialize();
+
     // Automagically call PylonInitialize and PylonTerminate to ensure
     // the pylon runtime system is initialized during the lifetime of this object.
     Pylon::PylonAutoInitTerm autoInitTerm;
@@ -60,14 +66,77 @@ int gigeGrab::grab()
 #endif
     try
     {
+        // Only look for cameras supported by Camera_t.
+         CDeviceInfo info;
+         info.SetDeviceClass( Camera_t::DeviceClass());
 
-        CInstantCamera camera( CTlFactory::GetInstance().CreateFirstDevice());
+         // Create an instant camera object with the first found camera device that matches the specified device class.
+         Camera_t camera( CTlFactory::GetInstance().CreateFirstDevice( info));
+
+        //CInstantCamera camera( CTlFactory::GetInstance().CreateFirstDevice());
         cout << "Using device " << camera.GetDeviceInfo().GetModelName() << endl;
          camera.Open();
 
-        GenApi::CIntegerPtr width(camera.GetNodeMap().GetNode("Width"));
-         GenApi::CIntegerPtr height(camera.GetNodeMap().GetNode("Height"));
-         Mat frame(width->GetValue(), height->GetValue(), CV_8UC3);
+        INodeMap& nodemap = camera.GetNodeMap();
+        GenApi::CIntegerPtr width(nodemap.GetNode("Width"));
+        GenApi::CIntegerPtr height(nodemap.GetNode("Height"));
+        //GenApi::CIntegerPtr width(camera.GetNodeMap().GetNode("Width"));
+        //GenApi::CIntegerPtr height(camera.GetNodeMap().GetNode("Height"));
+
+        //手动设置分辨率
+        //width->SetValue(960);    //设置水平分辨率640，可根据自己需要修改
+        //height->SetValue(640);  //设置水平分辨率480，可根据自己需要修改
+
+        //设置Gain与曝光模式
+        // Set the the Gain Auto auto function to its minimum lower limit
+        // and its maximum upper limit
+        //int64_t minLowerLimit = CIntegerPtr(nodemap.GetNode("AutoGainRawLowerLimit"))->GetMin();    //获取相机允许的最小增益
+
+//        int64_t maxUpperLimit = CIntegerPtr(nodemap.GetNode("AutoGainRawUpperLimit"))->GetMax();      //获取相机允许的最大增益
+
+//        CIntegerPtr(nodemap.GetNode("AutoGainRawLowerLimit"))->SetValue(minLowerLimit);       //设置相机最小增益
+
+//        CIntegerPtr(nodemap.GetNode("AutoGainRawUpperLimit"))->SetValue(maxUpperLimit);         //设置相机最大增益
+
+        // Specify the target value
+//        CIntegerPtr(nodemap.GetNode("AutoTargetValue"))->SetValue(150);
+        // Select Auto Function ROI 1
+        //CEnumerationPtr(nodemap.GetNode("AutoFunctionAOISelector"))->FromString("AutoFunctionAOISelector_AOI1");
+        // Enable the 'Intensity' auto function (Gain Auto + Exposure Auto)
+        // for the Auto Function ROI selected
+        //CBooleanPtr(nodemap.GetNode("AutoFunctionAOIUsageIntensity"))->SetValue(true);   //红色标记的没有必要加
+
+        // Enable Gain Auto by setting the operating mode to Continuous
+        //CEnumerationPtr(nodemap.GetNode("GainAuto"))->FromString("GainAuto_Once");   ////参数改成"GainAuto_Once"就是一次自动曝光  //GainAuto_Continuous
+
+
+
+ //camera.AutoGainRawLowerLimit.SetValue(camera.GainRaw.GetMin());
+ //camera.AutoGainRawUpperLimit.SetValue(camera.GainRaw.GetMax());
+
+
+//        camera.GainAuto.SetValue(GainAuto_Continuous);//GainAuto_Once
+        //camera.ExposureAuto.SetValue(ExposureAuto_Once);//ExposureAuto_Once
+        //设置Gain与曝光模式end
+
+#if 0
+        if (camera.DeviceScanType.GetValue() == DeviceScanType_Areascan)
+        {
+            printf("DeviceScanType_Areascan\n");
+            AutoGainContinuous(camera);
+        }
+        else{
+            printf("NO DeviceScanType_Areascan\n");
+        }
+#endif
+
+
+
+
+
+
+        //输入帧的格式转换，转为Mat格式
+        Mat frame(width->GetValue(), height->GetValue(), CV_8UC3);
 
         camera.StartGrabbing();
         CPylonImage image;
@@ -80,8 +149,8 @@ int gigeGrab::grab()
 
             if (ptrGrabResult->GrabSucceeded()){
                      fc.Convert(image, ptrGrabResult);
-                     cout <<"SizeX: "<<ptrGrabResult->GetWidth()<<endl;
-                     cout <<"SizeY: "<<ptrGrabResult->GetHeight()<<endl;
+                     //cout <<"SizeX: "<<ptrGrabResult->GetWidth()<<endl;
+                     //cout <<"SizeY: "<<ptrGrabResult->GetHeight()<<endl;
 
                      //帧数及帧率
                      if(0 == mPreviewFrames)
@@ -89,7 +158,7 @@ int gigeGrab::grab()
                          printf("first gige frame arrives!\n");
                      }
 
-                     printf("mPreviewFrames=%d,", mPreviewFrames);
+                     ////////////////////////////////printf("mPreviewFrames=%d,", mPreviewFrames);
 
                      if(0 == mFPSCount)
                      {
@@ -104,7 +173,7 @@ int gigeGrab::grab()
                           break;
                     }
 
-                    frame = cv::Mat(ptrGrabResult->GetHeight(),     ptrGrabResult->GetWidth(), CV_8UC3,(uint8_t*)image.GetBuffer());
+                    frame = cv::Mat(ptrGrabResult->GetHeight(), ptrGrabResult->GetWidth(), CV_8UC3,(uint8_t*)image.GetBuffer());
             #ifdef USE_MUTIPLE_THREAD
                     mScanImgData.ret = 9;
                     mScanImgData.framecnt = mPreviewFrames;
@@ -169,7 +238,7 @@ void gigeGrab::printfps(cv::Mat frame)
     }
 }
 
-void AutoGainOnce(Camera_t& camera)
+void gigeGrab::AutoGainOnce(Camera_t& camera)
 {
     // Check whether the gain auto function is available.
     if ( !IsWritable( camera.GainAuto))

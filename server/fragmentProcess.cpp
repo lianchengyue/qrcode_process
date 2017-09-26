@@ -7,6 +7,7 @@
 
 #include "include/DirPath.h"
 #include "../instructions/base64.h"
+#include "../instructions/stats.h"
 
 #include "include/Errors.h"
 #include "include/macros.h"
@@ -16,7 +17,6 @@
 
 #include <string>
 using namespace std;
-
 
 fragmentProcess::fragmentProcess()
 {
@@ -45,7 +45,7 @@ fragmentProcess::~fragmentProcess()
 }
 
 int fragmentProcess::init(){
-
+    CompleteDesPath();
 }
 
 //整个处理的入口函数，识别二维码成功后进入
@@ -775,3 +775,21 @@ TransmitStatus fragmentProcess::getTransmitStatus()
 {
     return mTransStatus;
 }
+
+void fragmentProcess::CompleteDesPath()
+{
+    //DES
+    sprintf(DES_LOCATION, "%s%s", DES_BASE_LOCATION ,DES_LOCATION_REL);
+    sprintf(DES_RECEIVE_LOCATION, "%s%s", DES_BASE_LOCATION ,DES_RECEIVE_LOCATION_REL);
+    sprintf(DES_BASE64_DECODE_LOCATION, "%s%s", DES_BASE_LOCATION ,DES_BASE64_DECODE_LOCATION_REL);
+    sprintf(DES_CAT_LOCATION, "%s%s", DES_BASE_LOCATION ,DES_CAT_LOCATION_REL);
+    //DES INI
+    sprintf(DES_RECV_INI_LOCATION, "%s%s", DES_BASE_LOCATION ,DES_RECV_INI_LOCATION_REL);
+    sprintf(DES_INI_LOCATION, "%s%s", DES_BASE_LOCATION ,DES_INI_LOCATION_REL);
+    sprintf(DES_INI_FILE_LOCATION, "%s%s", DES_BASE_LOCATION ,DES_INI_FILE_LOCATION_REL);
+    sprintf(DES_INI_FOLD_LOCATION, "%s%s", DES_BASE_LOCATION ,DES_INI_FOLD_LOCATION_REL);
+    sprintf(DES_INI_FILE, "%s%s", DES_BASE_LOCATION ,DES_INI_FILE_REL);
+    sprintf(DES_INI_FOLD, "%s%s", DES_BASE_LOCATION ,DES_INI_FOLD_LOCATION_REL);
+
+}
+

@@ -11,6 +11,8 @@
 #include "qrcodezbar.h"
 #include <QApplication>
 
+#include "include/fileParameters.h"
+
 //pthread
 #ifdef USE_MUTIPLE_THREAD
 #include <pthread.h>
@@ -22,11 +24,10 @@
 #include "instructions/threadpool.h"
 #endif
 
-#ifdef USE_MUTIPLE_THREAD
-#define THREAD_NUM 8
-//#define SIZE   8192
-#define QUEUES 64
-#endif
+//#ifdef USE_MUTIPLE_THREAD
+//#define THREAD_NUM 8
+//#define QUEUES 64
+//#endif
 
 typedef struct scanimageData {
     cv::Mat imageGray;

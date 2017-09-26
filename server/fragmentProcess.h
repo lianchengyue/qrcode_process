@@ -51,6 +51,8 @@ private:
     TransmitStatus getTransmitStatus();
     int setTransmitStatus(TransmitStatus status);
 
+    void CompleteDesPath();
+
     char *iniWholePath;//发送端完整文件的遍历结果
     char *iniPath;//接收到的每个大文件的ini识别并拼接后
     bool ini_flag;

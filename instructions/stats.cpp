@@ -2,7 +2,8 @@
 //获取文件属性，并遍历文件
 //实现非常多业务的文件
 
-#include<time.h>
+#include <time.h>
+
 #include "stats.h"
 #include "inirw.h"
 //http://bbs.csdn.net/topics/391842320
@@ -29,8 +30,12 @@ unsigned char md5sum_str_hex[MD5SUM_MAX];
 
 bool is_base64 = true;
 
+long file_cnt = 0;
+
 int src_init_topology()
 {
+    CompletePath();
+
     chdir("/home/montafan/");
     mkdir("QRcodeGrab", S_IRWXU|S_IRWXG|S_IRWXO);
     chdir("QRcodeGrab");
@@ -51,6 +56,8 @@ int src_init_topology()
 
 int des_init_topology()
 {
+    CompletePath();
+
     chdir("/home/montafan/");
     mkdir("QRcodeGrab", S_IRWXU|S_IRWXG|S_IRWXO);
     chdir("QRcodeGrab");
@@ -87,7 +94,9 @@ void src_file_traversal_imp(char *dir, char* _short_dir, char *_2_dir, char *_3_
     char *_3_split_dir;
     char *_4_base64_encode_dir;
 
+    char value[34];
 
+    memset(value, 0, 34);
 
     //打开指定的目录，获得目录指针
     if(NULL == (Dp = opendir(dir)))
@@ -191,11 +200,15 @@ void src_file_traversal_imp(char *dir, char* _short_dir, char *_2_dir, char *_3_
             printf(", statbuf.st_size=%d\n", statbuf.st_size);
             //I:原文件目录的INI
             iniFileLoad(HEAD);
-            iniSetString(enty->d_name, "name", enty->d_name);//name
-            iniSetString(enty->d_name, "path", relative_dir);//path
-            iniSetInt(enty->d_name, "size", statbuf.st_size, 0);//size
-            iniSetString(enty->d_name, "md5sum", (char*)generate_md5sum(total_dir));//md5sum   or (char*)md5sum_str_hex
+            //define INI_ACCESS_MODE
+            sprintf(value, "%d", file_cnt); //将file_cnt转为10进制表示的字符串  %x:16进制
+            //参数1为sect
+            iniSetString(value/*enty->d_name*/, "name", enty->d_name);//name
+            iniSetString(value, "path", relative_dir);//path
+            iniSetInt(value, "size", statbuf.st_size, 0);//size
+            iniSetString(value, "md5sum", (char*)generate_md5sum(total_dir));//md5sum   or (char*)md5sum_str_hex
             //getTimestamp();
+            file_cnt++;
 
             //LZO压缩
             FILE *in_file = fopen(total_dir, "rb");
@@ -436,7 +449,6 @@ void src_fragment_traversal_imp(char *dir, char* _short_dir, char *des, int dept
             //I:碎片文件目录的INI
             iniFileLoad(fragmentHEAD);
             //继续递归调用
-            /////////print_INI_Info(enty->d_name,depth+4);
             src_fragment_traversal_imp(total_dir, relative_dir, des_str, depth+4);//绝对路径递归调用错误 modify by flq
         }
         else
@@ -450,8 +462,6 @@ void src_fragment_traversal_imp(char *dir, char* _short_dir, char *des, int dept
             sprintf(relative_dir, "%s%s", _short_dir, enty->d_name);
 
             //输出文件名
-            //printf("%*s%s",depth," ",enty->d_name);
-            //printf(", statbuf.st_size=%d\n", statbuf.st_size);
             //added by flq
             iniSetString(enty->d_name, "name", enty->d_name);//name
             iniSetString(enty->d_name, "path", total_dir);//path
@@ -1243,3 +1253,66 @@ int cutFileName(char *instr, char *filename)
 
     }
 }
+
+int CompletePath()
+{
+    //SRC
+    sprintf(SRC_LOCATION, "%s%s", SRC_BASE_LOCATION ,SRC_LOCATION_REL);
+    sprintf(SRC_LZO_LOCATION, "%s%s", SRC_BASE_LOCATION ,SRC_LZO_LOCATION_REL);
+    sprintf(SRC_SPLIT_LOCATION, "%s%s", SRC_BASE_LOCATION ,SRC_SPLIT_LOCATION_REL);
+    sprintf(SRC_BASE64_ENCODE_LOCATION, "%s%s", SRC_BASE_LOCATION ,SRC_BASE64_ENCODE_LOCATION_REL);
+    //SRC INI
+    sprintf(SRC_INI_LOCATION, "%s%s", SRC_BASE_LOCATION ,SRC_INI_LOCATION_REL);
+    sprintf(SRC_INI_FILE_LOCATION, "%s%s", SRC_BASE_LOCATION ,SRC_INI_FILE_LOCATION_REL);
+    sprintf(SRC_INI_FOLD_LOCATION, "%s%s", SRC_BASE_LOCATION ,SRC_INI_FOLD_LOCATION_REL);
+    sprintf(SRC_INI_FRAGMENT_LOCATION, "%s%s", SRC_BASE_LOCATION ,SRC_INI_FRAGMENT_LOCATION_REL);
+    sprintf(SRC_INI_FILE_FRAG_LOCATION, "%s%s", SRC_BASE_LOCATION ,SRC_INI_FILE_FRAG_LOCATION_REL);
+    sprintf(SRC_INI_FOLD_FRAG_LOCATION, "%s%s", SRC_BASE_LOCATION ,SRC_INI_FOLD_FRAG_LOCATION_REL);
+
+    //DES
+    sprintf(DES_LOCATION, "%s%s", DES_BASE_LOCATION ,DES_LOCATION_REL);
+    sprintf(DES_RECEIVE_LOCATION, "%s%s", DES_BASE_LOCATION ,DES_RECEIVE_LOCATION_REL);
+    sprintf(DES_BASE64_DECODE_LOCATION, "%s%s", DES_BASE_LOCATION ,DES_BASE64_DECODE_LOCATION_REL);
+    sprintf(DES_CAT_LOCATION, "%s%s", DES_BASE_LOCATION ,DES_CAT_LOCATION_REL);
+    //DES INI
+    sprintf(DES_RECV_INI_LOCATION, "%s%s", DES_BASE_LOCATION ,DES_RECV_INI_LOCATION_REL);
+    sprintf(DES_INI_LOCATION, "%s%s", DES_BASE_LOCATION ,DES_INI_LOCATION_REL);
+    sprintf(DES_INI_FILE_LOCATION, "%s%s", DES_BASE_LOCATION ,DES_INI_FILE_LOCATION_REL);
+    sprintf(DES_INI_FOLD_LOCATION, "%s%s", DES_BASE_LOCATION ,DES_INI_FOLD_LOCATION_REL);
+    sprintf(DES_INI_FILE, "%s%s", DES_BASE_LOCATION ,DES_INI_FILE_REL);
+    sprintf(DES_INI_FOLD, "%s%s", DES_BASE_LOCATION ,DES_INI_FOLD_LOCATION_REL);
+}
+
+int CompleteSrcPath()
+{
+    //SRC
+    sprintf(SRC_LOCATION, "%s%s", SRC_BASE_LOCATION ,SRC_LOCATION_REL);
+    sprintf(SRC_LZO_LOCATION, "%s%s", SRC_BASE_LOCATION ,SRC_LZO_LOCATION_REL);
+    sprintf(SRC_SPLIT_LOCATION, "%s%s", SRC_BASE_LOCATION ,SRC_SPLIT_LOCATION_REL);
+    sprintf(SRC_BASE64_ENCODE_LOCATION, "%s%s", SRC_BASE_LOCATION ,SRC_BASE64_ENCODE_LOCATION_REL);
+    //SRC INI
+    sprintf(SRC_INI_LOCATION, "%s%s", SRC_BASE_LOCATION ,SRC_INI_LOCATION_REL);
+    sprintf(SRC_INI_FILE_LOCATION, "%s%s", SRC_BASE_LOCATION ,SRC_INI_FILE_LOCATION_REL);
+    sprintf(SRC_INI_FOLD_LOCATION, "%s%s", SRC_BASE_LOCATION ,SRC_INI_FOLD_LOCATION_REL);
+    sprintf(SRC_INI_FRAGMENT_LOCATION, "%s%s", SRC_BASE_LOCATION ,SRC_INI_FRAGMENT_LOCATION_REL);
+    sprintf(SRC_INI_FILE_FRAG_LOCATION, "%s%s", SRC_BASE_LOCATION ,SRC_INI_FILE_FRAG_LOCATION_REL);
+    sprintf(SRC_INI_FOLD_FRAG_LOCATION, "%s%s", SRC_BASE_LOCATION ,SRC_INI_FOLD_FRAG_LOCATION_REL);
+}
+
+
+int CompleteDesPath()
+{
+    //DES
+    sprintf(DES_LOCATION, "%s%s", DES_BASE_LOCATION ,DES_LOCATION_REL);
+    sprintf(DES_RECEIVE_LOCATION, "%s%s", DES_BASE_LOCATION ,DES_RECEIVE_LOCATION_REL);
+    sprintf(DES_BASE64_DECODE_LOCATION, "%s%s", DES_BASE_LOCATION ,DES_BASE64_DECODE_LOCATION_REL);
+    sprintf(DES_CAT_LOCATION, "%s%s", DES_BASE_LOCATION ,DES_CAT_LOCATION_REL);
+    //DES INI
+    sprintf(DES_RECV_INI_LOCATION, "%s%s", DES_BASE_LOCATION ,DES_RECV_INI_LOCATION_REL);
+    sprintf(DES_INI_LOCATION, "%s%s", DES_BASE_LOCATION ,DES_INI_LOCATION_REL);
+    sprintf(DES_INI_FILE_LOCATION, "%s%s", DES_BASE_LOCATION ,DES_INI_FILE_LOCATION_REL);
+    sprintf(DES_INI_FOLD_LOCATION, "%s%s", DES_BASE_LOCATION ,DES_INI_FOLD_LOCATION_REL);
+    sprintf(DES_INI_FILE, "%s%s", DES_BASE_LOCATION ,DES_INI_FILE_REL);
+    sprintf(DES_INI_FOLD, "%s%s", DES_BASE_LOCATION ,DES_INI_FOLD_LOCATION_REL);
+}
+

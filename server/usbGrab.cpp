@@ -44,13 +44,15 @@ usbGrab::~usbGrab()
 
 int usbGrab::grab()
 {
+    int width = INPUT_WIDTH;
+    int height = INPUT_HEIGHT;
     m_scancode = new ScanCode(); //added by flq
     namedWindow("usb camera",WINDOW_AUTOSIZE);
 
     VideoCapture capture(0);
     //设置图片的大小
-    capture.set(CV_CAP_PROP_FRAME_WIDTH, INPUT_WIDTH);//1280
-    capture.set(CV_CAP_PROP_FRAME_HEIGHT, INPUT_HEIGHT);//960
+    capture.set(CV_CAP_PROP_FRAME_WIDTH, width);//1280 INPUT_WIDTH
+    capture.set(CV_CAP_PROP_FRAME_HEIGHT, height);//960 INPUT_HEIGHT
     while (1)
     {
         Mat frame;
@@ -62,7 +64,7 @@ int usbGrab::grab()
             printf("first usb frame arrives!\n");
         }
 
-        printf("mPreviewFrames=%d,", mPreviewFrames);
+        ////printf("mPreviewFrames=%d,", mPreviewFrames);
 
         if(0 == mFPSCount)
         {
@@ -81,8 +83,8 @@ int usbGrab::grab()
 #ifdef USE_MUTIPLE_THREAD
         mScanImgData.ret = 9;
         mScanImgData.framecnt = mPreviewFrames;
-        cvtColor(frame,mScanImgData.USBimageGray,CV_RGB2GRAY);
-        imshow("usb camera",mScanImgData.USBimageGray);
+        cvtColor(frame,mScanImgData.imageGray,CV_RGB2GRAY);
+        imshow("usb camera",mScanImgData.imageGray);
 
         /////关注为什么ASSERT失败
         //assert(threadpool_add(pool, m_scancode->scanimagefunc, (void*)&mScanImgData, 0) == 0);
@@ -90,8 +92,8 @@ int usbGrab::grab()
         //assert(threadpool_destroy(pool, threadpool_graceful) == 0);
 
 #else
-        cvtColor(frame,mScanImgData.USBimageGray,CV_RGB2GRAY);
-        imshow("usb camera",mScanImgData.USBimageGray);
+        cvtColor(frame,mScanImgData.imageGray,CV_RGB2GRAY);
+        imshow("usb camera",mScanImgData.imageGray);
         waitKey(1);
 
         //added by flq

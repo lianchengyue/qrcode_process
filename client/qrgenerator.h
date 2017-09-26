@@ -56,7 +56,8 @@ public:
     void StartTimer();
 private:
     void draw(QPainter &painter, int width, int height);
-    /////////////////////////////////////////////////void readFragment(char* filepath);
+    int CompleteSrcPath();
+
     QString string;
     QRcode *qr;
     QTimer *timer;

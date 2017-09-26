@@ -71,7 +71,7 @@ void ScanCode::scanimagefunc(/*const*/ void *raw/*, char *result*/)
 
     /* scan the image for barcodes */
     int n = zbar_scan_image(scanner, image);
-    printf("n=%d\n",n);
+    //printf("n=%d\n",n);
 
     /* extract results */
     const zbar_symbol_t *symbol = zbar_image_first_symbol(image);
@@ -87,7 +87,7 @@ void ScanCode::scanimagefunc(/*const*/ void *raw/*, char *result*/)
 
         delete(data);//added for flq
     }
-    //printf("The %d Frame processing\n", raw1->framecnt);
+    printf("n=%d,The %d Frame processing\n", n, raw1->framecnt);
 
     //对二维码的处理放入线程中
     //very important

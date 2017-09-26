@@ -3,7 +3,7 @@
 
 //打开为发送端，屏蔽为接收端
 #ifndef DISPLAY_QRCODE
-//#define DISPLAY_QRCODE  //grab pic
+#define DISPLAY_QRCODE  //grab pic
 #endif
 
 //是否使用LZO压缩算法
@@ -33,13 +33,13 @@
 
 //选择相机类型BASLER
 #ifndef BASLER_GRAB_FUNC
-#define BASLER_GRAB_FUNC
+//#define BASLER_GRAB_FUNC
 #endif
 
 //选择相机类型Normal USB
 #ifndef USB_GRAB_FUNC
-//#define USB_GRAB_FUNC
+#define USB_GRAB_FUNC
 #endif
 
-
+//#define INI_ACCESS_MODE
 #endif // MACROS_H

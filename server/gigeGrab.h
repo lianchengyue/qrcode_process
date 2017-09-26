@@ -13,6 +13,9 @@
 #include "qrcodezbar.h"
 #include <QApplication>
 
+#include "include/fileParameters.h"
+
+//pylon
 #include <pylon/PylonIncludes.h>
 #include <pylon/usb/BaslerUsbInstantCamera.h>
 //pthread
@@ -24,12 +27,6 @@
 #include "include/macros.h"
 #ifdef USE_MUTIPLE_THREAD
 #include "instructions/threadpool.h"
-#endif
-
-#ifdef USE_MUTIPLE_THREAD
-#define THREAD_NUM 8
-//#define SIZE   8192
-#define QUEUES 64
 #endif
 
 typedef Pylon::CBaslerUsbInstantCamera Camera_t;

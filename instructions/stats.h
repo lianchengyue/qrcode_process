@@ -37,4 +37,10 @@ int cutQRdata(char *instr, char *pureQRdata, char *relative_path,char *filename)
 int cutDirName(char *instr, char *filename);
 int getUpperTotalDir(char *instr);
 int cutFileName(char *instr, char *filename);
+
+int CompletePath();
+int CompleteSrcPath();
+int CompleteDesPath();
+
+
 #endif // STATS_H
