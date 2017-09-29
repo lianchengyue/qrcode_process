@@ -1,3 +1,6 @@
+//queue方式的信号槽是通过 postEvent()
+//if(m_NormalTh->isRunning() && m_NormalTh->is_pause)
+
 #include "qrgenerator.h"
 #include "qrencode.h"
 
@@ -44,28 +47,40 @@ generatorThread::~generatorThread()
 
 void generatorThread::run()
 {
-    sleep(1);//temp add, a.execute后再启动线程
+    //sleep(1);//temp add, a.execute后再启动线程
     //emit UpdateSignal(number);
-//QtConcurrent
-//start
-    for(int i = 0; i<5; i++)
+    //number++;
+
+//https://stackoverflow.com/questions/9075837/pause-and-resume-a-qthread
+    //while(someCondition) // gues it's your loop
+    for(int i = 0; i<50; i++)
     {
-        sleep(1);
-        printf("Normal,Running%d\n", i);
+         sync.lock();
+         if(is_pause)
+             pauseCond.wait(&sync); // in this place, your thread will stop to execute until someone calls resume
+         sync.unlock();
 
-        if(2 ==i)
-        {
-            //UDPRunning.wait(&mutex);
-            //UDPRunning.wakeOne();
-
-            //UDPRunning.quit();
-        }
+         // do your operation
+         printf("Normal,Running%d\n", i);
+         usleep(200000);
     }
-//end
-
-    number++;
 
 }
+#if 1
+void generatorThread::resume()
+{
+    sync.lock();
+    is_pause = false;
+    sync.unlock();
+    pauseCond.wakeAll();
+}
+void generatorThread::pause()
+{
+    sync.lock();
+    is_pause = true;
+    sync.unlock();
+}
+#endif
 
 void generatorThread::ResetSlot()
 {
@@ -103,6 +118,20 @@ void UDPThread::run()
         }
     }
 //end
+}
+
+void UDPThread::resume()
+{
+    sync.lock();
+    is_pause = false;
+    sync.unlock();
+    pauseCond.wakeAll();
+}
+void UDPThread::pause()
+{
+    sync.lock();
+    is_pause = true;
+    sync.unlock();
 }
 
 
@@ -224,21 +253,26 @@ QRGenerator::QRGenerator(QWidget *parent)
     //setWindowTitle("Thread Test");
     //resize(200, 200);
     ///==============================start Thread=====================================/
+    bool flagg1 = m_NormalTh->isRunning();
     //myThread->start();    ///后续改为在收到传输完成消息后调用 added by flq
     printf("1111111111\n");
-    m_UDPTh->start();
+    //m_UDPTh->start();
     printf("2222222222\n");
     m_NormalTh->start();
     printf("3333333333\n");
 
-    printf("m_UDPTh->wait\n");
-    m_UDPTh->wait();
-    printf("m_NormalTh->wait\n");
-    m_NormalTh->wait();
+    //sleep(3);
+    m_NormalTh->pause();
+    //sleep(3);
+    //m_NormalTh->resume();
 
-    //如果想唤醒某个指定的线程，一般的办法是定义不同的等待条件QWaitCondition，让不同的线程等待不同的等待条件
-    // UDPRunning.wait(&mutex);
-    // UDPRunning.wakeOne();
+
+    //printf("m_UDPTh->wait\n");
+    //m_UDPTh->wait();
+    printf("m_NormalTh->wait\n");
+    //m_NormalTh->wait();
+
+    qDebug() << QString("main thread id:") << QThread::currentThreadId();
 
     ///sleep(5);
     //UDPRunning.wait(&mutex);

@@ -27,11 +27,16 @@ class generatorThread : public QThread
     Q_OBJECT
 private:
     int number;
+    QMutex sync;
+    QWaitCondition pauseCond;
+    bool is_pause;
 protected:
     void run();
 public:
     generatorThread(QObject *parent=0);
     ~generatorThread();
+    void resume();
+    void pause();
 
 signals:
     void UpdateSignal(int num);
@@ -47,11 +52,16 @@ class UDPThread : public QThread
     Q_OBJECT
 private:
     int number;
+    QMutex sync;
+    QWaitCondition pauseCond;
+    bool is_pause;
 protected:
     void run();
 public:
     UDPThread(QObject *parent=0);
     ~UDPThread();
+    void resume();
+    void pause();
 
 signals:
     void UDPSignal();
@@ -69,7 +79,6 @@ public:
     void setString(QString str);
     int getQRWidth() const;
     bool saveImage(QString name, int size);
-    /////void StartTimer();
 private:
     void draw(QPainter &painter, int width, int height);
     int CompleteSrcPath();
