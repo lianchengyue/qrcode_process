@@ -36,7 +36,7 @@ int src_init_topology()
 {
     CompletePath();
 
-    chdir("/home/montafan/");
+    chdir(ROOT_DIR);
     mkdir("QRcodeGrab", S_IRWXU|S_IRWXG|S_IRWXO);
     chdir("QRcodeGrab");
 
@@ -58,7 +58,7 @@ int des_init_topology()
 {
     CompletePath();
 
-    chdir("/home/montafan/");
+    chdir(ROOT_DIR);
     mkdir("QRcodeGrab", S_IRWXU|S_IRWXG|S_IRWXO);
     chdir("QRcodeGrab");
 

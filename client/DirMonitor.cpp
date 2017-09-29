@@ -160,47 +160,6 @@ int DirMonitor::bindWithInotify(char *dir,int fd)
 
 int DirMonitor::watchingFiles(int fd)
 {
-#if 0
-    char buffer[1024] = {0};
-    char * offset = NULL;
-    struct inotify_event *event;
-    char strbuf[16];
-    int len, tmp_len;
-    int i;
-
-    while(len = read(fd, buffer, sizeof(buffer))) {
-        offset = buffer;
-        printf("Some event happens, len = %d.\n", len);
-        event = (struct inotify_event *)buffer;
-        while (((char *)event - buffer) < len) {
-            if (event->mask & IN_ISDIR) {
-                memcpy(strbuf, "Direcotory", 11);
-            }
-            else {
-                memcpy(strbuf, "File", 5);
-            }
-            printf("Object type: %s\n", strbuf);
-            for (i=0; i<signIndex; i++) {
-                if (event->wd != sign[signIndex].dir_wd) continue;   //sign[signIndex].dir_wd
-                printf("Object name: %s\n", sign[signIndex].dir_fullPath);
-                break;
-            }
-            printf("Event mask: %08X\n", event->mask);
-            for (i=0; i<signIndex; i++) {
-                if (event_array[i][0] == '\0') continue;
-                if (event->mask & (1<<i)) {
-                    printf("Event: %s\n", event_array[i]);
-                }
-            }
-            inotifyEventHandler(event,fd);
-            tmp_len = sizeof(struct inotify_event) + event->len;
-            event = (struct inotify_event *)(offset + tmp_len);
-            offset += tmp_len;
-        }
-    }
-#endif
-
-#if 1
     unsigned char buf[1024] = {0};
     struct inotify_event *event = {0};
     for (;;)
@@ -229,7 +188,6 @@ int DirMonitor::watchingFiles(int fd)
         }
     }
     return NO_ERROR;
-#endif
 }
 
 int DirMonitor::inotifyEventHandler(struct inotify_event *event,int fd)

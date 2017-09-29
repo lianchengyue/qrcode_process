@@ -1,6 +1,8 @@
 #include "include/fileParameters.h"
 #include "include/macros.h"
 #if 1
+static char ROOT_DIR[] = "/home/montafan/";
+
 static char SRC_BASE_LOCATION[] = "/home/montafan/QRcodeGrab";
 static char DES_BASE_LOCATION[] = "/home/montafan/QRcodeGrab";
 

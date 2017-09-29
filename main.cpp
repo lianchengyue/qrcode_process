@@ -120,43 +120,24 @@ int main(int argc, char* argv[])
     src_init_topology();
     //文件遍历
     file_traversal();//stats.cpp
-    #if 0
-    //文件压缩
-    const char* in_name = "/home/montafan/QRcodeGrab/source/1_location/nocolor.png";
-    const char* out_name = "/home/montafan/QRcodeGrab/source/2_lzo_location/nocolor.png.lzo";
-    processLZO(argc, argv, in_name, out_name, LZO_COMPRESS);//后续需要做遍历, 2K大小判断
-    //system("md5sum /home/montafan/Qt5.6.2/project/zbar_gige/testFile/nocolor.PNG");
-    //裁剪
-    ///system("cd /home/montafan/Qt5.6.2/project/zbar_gige/testFile && split -b 2k /home/montafan/Qt5.6.2/project/zbar_gige/testFile/1.lzo -d X");
-    system("cd /home/montafan/QRcodeGrab/source/2_lzo_location && split -b 2k /home/montafan/QRcodeGrab/source/2_lzo_location/nocolor.png.lzo -d X");
-    #endif
+
     //报头遍历
     ini_traversal();
     //遍历片段
     fragment_traversal();
 
-    //合并
-    //system("cat /home/montafan/Qt5.6.2/project/zbar_gige/testFile/X* >>/home/montafan/Qt5.6.2/project/zbar_gige/testFile/2.lzo");
-    //检查md5sum并匹配，改在stats文件中
-    //system("md5sum /home/montafan/Qt5.6.2/project/zbar_gige/testFile/2.lzo");
-    //解压
-    //processLZO(argc, argv, LZO_DECOMPRESS);
-
-
     //二维码显示
     QApplication a(argc, argv);
     QRGenerator w;
-    ///w.StartTimer();
-
 
     //w.showFullScreen();
     //w.show();
 
-    //w.showMaximized();
-    w.resize(800,800);
+    w.showMaximized();
+    //w.resize(800,800);
     w.show();
 
-    //w.setString("1234567890");
+    printf("a.exec()\n");
     return a.exec();
 
 #else //#ifdef DISPLAY_QRCODE

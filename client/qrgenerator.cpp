@@ -9,7 +9,7 @@
 #include<sys/stat.h>
 #include <unistd.h>
 
-#include "include/DirPath.h"//dir
+#include "include/DirPath.h" //dir
 //接收端文件生成
 #include "include/fileParameters.h"
 #include "instructions/stats.h"
@@ -17,18 +17,24 @@
 #include <string>
 using namespace std;
 
-#define WAIT_FRAME_COUNT 20
-#define DISPLAY_INTERVAL 100000  //unit: us
+//#define WAIT_FRAME_COUNT 20
+//#define DISPLAY_INTERVAL 100000  //unit: us
 
 char *pdesBuf;  //定义文件指针
 vector<string> vecINIString;
 vector<string> vecString;
+
+//与信号量不同的程序
+QWaitCondition UDPRunning; //QWaitCondition允许在一定条件下触发其它多个线程
+QWaitCondition NormalRunning;
+QMutex mutex;
 
 //QThread
 //Thread用来控制文件的开始与结束
 generatorThread::generatorThread(QObject *parent)
 {
     number = 0;
+    ///m_cbNotifier = new ClientCbNotifier();
 }
 
 generatorThread::~generatorThread()
@@ -39,17 +45,26 @@ generatorThread::~generatorThread()
 void generatorThread::run()
 {
     sleep(1);//temp add, a.execute后再启动线程
-    emit UpdateSignal(number);
-
-
-    #if 0
-    while(1)
+    //emit UpdateSignal(number);
+//QtConcurrent
+//start
+    for(int i = 0; i<5; i++)
     {
-        emit UpdateSignal(number);
-        number++;
         sleep(1);
+        printf("Normal,Running%d\n", i);
+
+        if(2 ==i)
+        {
+            //UDPRunning.wait(&mutex);
+            //UDPRunning.wakeOne();
+
+            //UDPRunning.quit();
+        }
     }
-    #endif
+//end
+
+    number++;
+
 }
 
 void generatorThread::ResetSlot()
@@ -58,53 +73,36 @@ void generatorThread::ResetSlot()
     emit UpdateSignal(number);
 }
 
-void readFragment(char* pdesBuf)
+
+//UDP Thread
+UDPThread::UDPThread(QObject *parent)
 {
-#if 0
-    for(vector<std::string>::iterator it = vecString.begin(); it != vecString.end(); ++it) {  //const_iterator
-        //process file
-        //added by flq
-        std::string s = *it;
-        //FILE *pFile=fopen("/home/montafan/Qt5.6.2/project/zbar_gige/testFile/111/X00png.txt","rb"); //获取二进制文件的指针,rb二进制, rt文本文件
-        FILE *pFile=fopen(s.c_str(),"rb"); //获取二进制文件的指针,rb二进制, rt文本文件
-        ///char *pdesBuf;  //定义文件指针
-        fseek(pFile,0,SEEK_END); //把指针移动到文件的结尾 ，获取文件长度
-        int len=ftell(pFile); //获取文件长度
-        pdesBuf=new char[len+1];
-        rewind(pFile); //把指针移动到文件开头
-        fread(pdesBuf,1,len,pFile); //读文件
-        pdesBuf[len]=0;
 
-        fclose(pFile); // 关闭文件
-        //added end
+}
 
-        //显示二维码
-        setString(pdesBuf);
-        free(pdesBuf);
+UDPThread::~UDPThread()
+{
+
+}
+
+void UDPThread::run()
+{
+    sleep(1);//temp add, a.execute后再启动线程
+    //emit UDPSignal();
+
+
+    for(int i = 0; i<5; i++)
+    {
+        sleep(1);
+        printf("UDP,Running%d\n", i);
+
+        if(2 ==i)
+        {
+            //UDPRunning.wait(&mutex);
+            //UDPRunning.wakeOne();
+        }
     }
-#else
-    //提高效率，选择该种遍历方式
-    for (size_t i =0; i < vecString.size(); i ++) {
-
-        std::string s = vecString[i];
-        FILE *pFile=fopen(s.c_str(),"rb"); //获取二进制文件的指针,rb二进制, rt文本文件
-        ///char *pdesBuf;  //定义文件指针
-        fseek(pFile,0,SEEK_END); //把指针移动到文件的结尾 ，获取文件长度
-        int len=ftell(pFile); //获取文件长度
-        pdesBuf=new char[len+1];
-        rewind(pFile); //把指针移动到文件开头
-        fread(pdesBuf,1,len,pFile); //读文件
-        pdesBuf[len]=0;
-
-        fclose(pFile); // 关闭文件
-        //added end
-
-        //显示二维码
-        //setString(pdesBuf);
-        //free(pdesBuf);
-
-    }
-#endif
+//end
 }
 
 
@@ -156,7 +154,7 @@ void src_fragment_traversal(string dir, bool is_ini, int depth) //get_file_to_ge
             //added by flq, get absolute path
             total_dir = dir + enty->d_name;
 
-            //输出当前目录名
+            //输icvUnDistort_8u_CnR_first_thread出当前目录名
             //printf("%*s%s/\n",depth," ",enty->d_name);
             //get文件名
             if(is_ini)
@@ -195,64 +193,65 @@ QRGenerator::QRGenerator(QWidget *parent)
 
     qr = NULL;
 
-    //setString("The comet’s tail spread across the dawn, a red slash that bled above the crags of Dragonstone like a wound in the pink and purple sky.The maester stood on the windswept balcony outside his chambers. It was here the ravens came, after long flight. Their droppings speckled the gargoyles that rose twelve feet tall on either side of him, a hellhound and a wyvern, two of the thousand that brooded over the walls of the ancient fortress. When first he came to Dragonstone, the army of stone grotesques had made him uneasy, but as the years passed he had grown used to them. Now he thought of them as old friends. The three of them watched the sky together with foreboding. The maester did not believe in omens. And yet... old as he was, Cressen had never seen a comet half so bright, nor yet that color, that terrible color, the color of blood and flame and sunsets. He wondered if his gargoyles had ever seen its like. They had been here so much longer than he had, and would still be here long after he was gone. If stone tongues could speak...Such folly. He leaned against the battlement, the sea crashing beneath him, the black stone rough beneath his fingers. Talking gargoyles and prophecies in the sky. I am an old done man, grown giddy as a child again. Had a lifetime’s hard-won wisdom fled him along with his health and strength? He was a maester, trained and chained in the great Citadel of Oldtown. What had he come to, when superstition filled his head as if he were an ignorant fieldhand? And yet...and yet...the comet burned even by day now, while pale grey steam rose from the hot");
+    //thread
+    m_UDPTh = new UDPThread;
+    m_NormalTh = new generatorThread;
+    m_RecvPTh = new generatorThread;
+
     //empty
     setString(TRANSMIT_IDLE);
 
     CompleteSrcPath();
 
-
-    //startButton = new QPushButton("start");
-    //stopButton = new QPushButton("stop");
-    //resetButton = new QPushButton("reset");
-    //label = new QLabel("empty");
-
-    ///后续改为在收到传输完成消息后调用 added by flq
-    //首先遍历文件,路径保存到vector
-    //文件夹信息
-    char *folderdir = SRC_INI_FOLD_FRAG_LOCATION;
-    std::string folder_str =  folderdir;
-    src_fragment_traversal(folder_str, true, 0);  //isINI=true
-
-    //文件属性信息
-    char *configdir = SRC_INI_FILE_FRAG_LOCATION;
-    std::string config_str =  configdir;
-    src_fragment_traversal(config_str, true, 0);
-
-    //内容碎片信息
-    char *topdir = SRC_BASE64_ENCODE_LOCATION;
-    std::string topdir_str =  topdir;
-    src_fragment_traversal(topdir_str, false, 0);
-    ///added end
-
-    //定时器
-    //Timer用来做连续显示
-    #if 0
-    timer = new QTimer(this);
-    timer->setInterval(1000);//float,  ms
-    connect(timer,SIGNAL(timeout()),this,SLOT(updateUI()));
-    ///===============================start timer=====================================/
-    timer->start();
-    #endif
-
     //thread
     myThread = new generatorThread;
 
-    //connect(stopButton, SIGNAL(clicked()), this, SLOT(StopSlot()));
-    //connect(startButton, SIGNAL(clicked()), this, SLOT(StartSlot()));
-    //connect(resetButton, SIGNAL(clicked()),  this, SLOT(ClearSlot()));
     connect(myThread, SIGNAL(UpdateSignal(int)), this, SLOT(UpdateSlot(int)));
     connect(this, SIGNAL(ResetSignal()), myThread, SLOT(ResetSlot()));
+
+    ////UDP与Normal两个线程
+    connect(m_UDPTh, SIGNAL(UDPSignal()), this, SLOT(processUDPEventSlot()));
+    //connect(this, SIGNAL(ResetSignal()), m_UDPTh, SLOT(ResetSlot()));
+
+    connect(m_NormalTh, SIGNAL(UpdateSignal(int)), this, SLOT(processNormalEventSlot()));
+    connect(this, SIGNAL(ResetSignal()), m_NormalTh, SLOT(ResetSlot()));
+
+    //接收器，收到消息后，操作UDP与Normal线程
+    //connect(m_RecvPTh, SIGNAL(UDPTaskIncomingSignal()), this, SLOT(EventRevevier()));
+    //connect(m_RecvPTh, SIGNAL(NormalTaskIncomingSignal()), this, SLOT(EventRevevier()));
 
     //启动线程
     //setWindowTitle("Thread Test");
     //resize(200, 200);
     ///==============================start Thread=====================================/
-    myThread->start();    ///后续改为在收到传输完成消息后调用 added by flq
+    //myThread->start();    ///后续改为在收到传输完成消息后调用 added by flq
+    printf("1111111111\n");
+    m_UDPTh->start();
+    printf("2222222222\n");
+    m_NormalTh->start();
+    printf("3333333333\n");
+
+    printf("m_UDPTh->wait\n");
+    m_UDPTh->wait();
+    printf("m_NormalTh->wait\n");
+    m_NormalTh->wait();
+
+    //如果想唤醒某个指定的线程，一般的办法是定义不同的等待条件QWaitCondition，让不同的线程等待不同的等待条件
+    // UDPRunning.wait(&mutex);
+    // UDPRunning.wakeOne();
+
+    ///sleep(5);
+    //UDPRunning.wait(&mutex);
 }
 
 QRGenerator::~QRGenerator()
 {
+    //m_UDPTh->stopImmediately();
+    m_UDPTh->quit();
+
+    //m_NormalTh->stopImmediately();
+    m_NormalTh->quit();
+
     if(qr != NULL)
     {
         QRcode_free(qr);
@@ -285,17 +284,10 @@ void QRGenerator::setString(QString str)
         QR_ECLEVEL_L,
         QR_MODE_8,
         1);
-    #if 1
+
     usleep(DISPLAY_INTERVAL);
     repaint();
-    #else
-    //repaint();
-    setUpdatesEnabled(false);
-    //bigVisualChanges();
 
-    setUpdatesEnabled(true);
-    repaint();
-    #endif
 }
 QSize QRGenerator::sizeHint()  const
 {
@@ -383,67 +375,7 @@ void QRGenerator::paintEvent(QPaintEvent *)
     }
 }
 
-void QRGenerator::StartTimer() // timer
-{
-    timer->start();
-}
-
-void QRGenerator::updateUI() // timer
-{
-    static int i=0;
-    QString str = QString::number(i++);
-    printf("updateUI():%d\n", i);
-    //ui->textEdit->append("update!" + str);
-
-    //ADDED BY FLQ, 遍历目标文件夹的内容,  //循环readFragment(pdesBuf);
-#if 0
-    for(vector<std::string>::iterator it = vecString.begin(); it != vecString.end(); ++it) {  //const_iterator
-        //process file
-        //added by flq
-        std::string s = *it;
-        //FILE *pFile=fopen("/home/montafan/Qt5.6.2/project/zbar_gige/testFile/111/X00png.txt","rb"); //获取二进制文件的指针,rb二进制, rt文本文件
-        FILE *pFile=fopen(s.c_str(),"rb"); //获取二进制文件的指针,rb二进制, rt文本文件
-        ///char *pdesBuf;  //定义文件指针
-        fseek(pFile,0,SEEK_END); //把指针移动到文件的结尾 ，获取文件长度
-        int len=ftell(pFile); //获取文件长度
-        pdesBuf=new char[len+1];
-        rewind(pFile); //把指针移动到文件开头
-        fread(pdesBuf,1,len,pFile); //读文件
-        pdesBuf[len]=0;
-
-        fclose(pFile); // 关闭文件
-        //added end
-
-        //显示二维码
-        setString(pdesBuf);
-        free(pdesBuf);
-    }
-#else
-    //提高效率，选择该种遍历方式
-    for (size_t i =0; i < vecString.size(); i ++) {
-
-        std::string s = vecString[i];
-        FILE *pFile=fopen(s.c_str(),"rb"); //获取二进制文件的指针,rb二进制, rt文本文件
-        ///char *pdesBuf;  //定义文件指针
-        fseek(pFile,0,SEEK_END); //把指针移动到文件的结尾 ，获取文件长度
-        int len=ftell(pFile); //获取文件长度
-        pdesBuf=new char[len+1];
-        rewind(pFile); //把指针移动到文件开头
-        fread(pdesBuf,1,len,pFile); //读文件
-        pdesBuf[len]=0;
-
-        fclose(pFile); // 关闭文件
-        //added end
-
-        //显示二维码
-        setString(pdesBuf);
-        free(pdesBuf);
-
-    }
-#endif
-
-}
-
+/////////////////////////////thread////////////////////////////////
 //thread
 void QRGenerator::StartSlot()
 {
@@ -459,8 +391,30 @@ void QRGenerator::UpdateSlot(int num)
 {
     int is;
     int ie;
-    //label->setText(QString::number(num));
     printf("UpdateSlot,Thread\n");
+
+    mutex.lock();
+#if 1
+    //处理待发送文件
+#if 1
+    ///后续改为在收到传输完成消息后调用 added by flq
+    //文件夹信息
+    char *folderdir = SRC_INI_FOLD_FRAG_LOCATION;
+    std::string folder_str =  folderdir;
+    src_fragment_traversal(folder_str, true, 0);  //isINI=true
+
+    //文件属性信息
+    char *configdir = SRC_INI_FILE_FRAG_LOCATION;
+    std::string config_str =  configdir;
+    src_fragment_traversal(config_str, true, 0);
+
+    //内容碎片信息
+    //直接遍历4_base64_encode_location/文件,路径保存到vector
+    char *topdir = SRC_BASE64_ENCODE_LOCATION;
+    std::string topdir_str =  topdir;
+    src_fragment_traversal(topdir_str, false, 0);
+    ///added end
+ #endif
 
     printf("TRANSMIT_PRESTART\n");
     ///播放报头二维码
@@ -509,8 +463,8 @@ void QRGenerator::UpdateSlot(int num)
         setString(TRANSMIT_START);
     }
 
-#if 1
     printf("TRANSMIT content\n");
+
     for (size_t i = 0; i < vecString.size(); i++) {
 
         std::string s = vecString[i];
@@ -531,7 +485,6 @@ void QRGenerator::UpdateSlot(int num)
         ///usleep(100);
         free(pdesBuf);
     }
-#endif
 
     ///播放结束二维码
     printf("TRANSMIT_END\n");
@@ -541,6 +494,8 @@ void QRGenerator::UpdateSlot(int num)
 
     printf("TRANSMIT_IDLE\n");
     setString(TRANSMIT_IDLE);
+#endif
+    mutex.unlock();
 }
 
 void QRGenerator::ClearSlot()
@@ -564,5 +519,85 @@ int QRGenerator::CompleteSrcPath()
     sprintf(SRC_INI_FOLD_FRAG_LOCATION, "%s%s", SRC_BASE_LOCATION ,SRC_INI_FOLD_FRAG_LOCATION_REL);
 
     return 0;
+}
+
+//接收发送请求
+int QRGenerator::EventRecevier()
+{
+    //switch(1)
+    {
+        emit UDPTaskIncomingSignal();
+        emit NormalTaskIncomingSignal();
+    }
+#if 0
+    for(; ;)
+    {
+        ///改为在收到传输完成消息后调用 added by flq
+
+        //thread
+        generatorThread myThread = new generatorThread;
+
+        connect(myThread, SIGNAL(UpdateSignal(int)), this, SLOT(UpdateSlot(int)));
+        connect(this, SIGNAL(ResetSignal()), myThread, SLOT(ResetSlot()));
+
+        //启动线程
+        ///==============================start Thread=====================================/
+        myThread->start();    ///后续改为在收到传输完成消息后调用 added by flq
+    }
+#endif
+    return 0;
+}
+
+void QRGenerator::processUDPEventSlot()
+{
+    printf("processUDPEventSlot,Thread\n");
+
+    ///mutex.lock();
+
+
+    for(int i = 0; i<5; i++)
+    {
+        sleep(1);
+        printf("UDP,Running%d\n", i);
+
+        if(2 ==i)
+        {
+            //UDPRunning.wait(&mutex);
+            //UDPRunning.wakeOne();
+
+            //UDPRunning.quit();
+        }
+    }
+
+    printf("processUDPEventSlot,Thread End\n");
+
+
+
+    ///mutex.unlock();
+}
+
+void QRGenerator::processNormalEventSlot()
+{
+    printf("processNormalEventSlot,Thread\n");
+
+    ///mutex.lock();
+
+
+    for(int i = 0; i<5; i++)
+    {
+        sleep(1);
+        printf("Normal,Running%d\n", i);
+
+        if(2 ==i)
+        {
+            //UDPRunning.wait(&mutex);
+            UDPRunning.wakeOne();
+        }
+    }
+    printf("processNormalEventSlot,Thread End\n");
+
+
+
+    ///mutex.unlock();
 }
 

@@ -11,23 +11,17 @@
 #include <vector>
 
 #include "qrencode.h"
+#include "ClientCbNotifier.h"
+
+//宏控
+#include "include/fileParameters.h"
 
 using namespace std;
 
-/*
-#define MD5SUM_MAX_C 64
-#define NAME_MAX_C 255
-#define PATH_MAX_C 255
 
-typedef struct{
-    unsigned char* md5sum;  //64
-    int size;
-    char* path; //512  /should be 255
-    char name [NAME_MAX+1];
-} fragment_client_metadata;  //Or in stats.h
-*/
+class ThreadObject;
 
-
+////////////////////////generatorThread/////////////////////////
 class generatorThread : public QThread
 {
     Q_OBJECT
@@ -38,10 +32,32 @@ protected:
 public:
     generatorThread(QObject *parent=0);
     ~generatorThread();
+
 signals:
     void UpdateSignal(int num);
+    ////
+
     public slots:
         void ResetSlot();
+};
+
+///////////////////////////UDPThread///////////////////////
+class UDPThread : public QThread
+{
+    Q_OBJECT
+private:
+    int number;
+protected:
+    void run();
+public:
+    UDPThread(QObject *parent=0);
+    ~UDPThread();
+
+signals:
+    void UDPSignal();
+
+    //public slots:
+    //    void ResetSlot();
 };
 
 class QRGenerator : public QWidget
@@ -53,38 +69,56 @@ public:
     void setString(QString str);
     int getQRWidth() const;
     bool saveImage(QString name, int size);
-    void StartTimer();
+    /////void StartTimer();
 private:
     void draw(QPainter &painter, int width, int height);
     int CompleteSrcPath();
+    ///更新事件，不再有新的碎片开始显示，让优先级更高的先跑
+    //processXXUpdate(int /*int a*/)   flq
 
     QString string;
     QRcode *qr;
-    QTimer *timer;
+
     generatorThread *myThread;
-//    QLabel *label;
-//    QPushButton *startButton;
-//    QPushButton *stopButton;
-//    QPushButton *resetButton;
+    ////UDP与Normal两个线程
+    UDPThread *m_UDPTh;
+    generatorThread *m_NormalTh;
+
+    generatorThread *m_RecvPTh;
+
+    ThreadObject* m_obj;
+
     ///vector<char*> vecString;
     ///vector<std::array<char,255>>* vecString;
 
+    ClientCbNotifier *m_cbNotifier; //flq
+
 signals:
     void ResetSignal(); //thread
+    //新任务到来
+    void UDPTaskIncomingSignal();
+    void NormalTaskIncomingSignal();
 
 protected:
     void paintEvent(QPaintEvent *);
     QSize sizeHint() const;
     QSize minimumSizeHint() const;
 
-private slots:
-    //void buttonClicked();
-    void updateUI(); //QTimer
+//private slots:
+//    void updateUI(); //QTimer
 
 public slots:
     void StartSlot();
     void StopSlot();
     void UpdateSlot(int num);
     void ClearSlot();
+
+    //处理线程的循环
+    int EventRecevier();
+
+    //一般事件
+    void processNormalEventSlot();
+    //优先级更高的UDP事件
+    void processUDPEventSlot();
 };
 #endif // QRGENERATOR_H

@@ -42,7 +42,10 @@ SOURCES += main.cpp \
     client/DirMonitor.cpp \
     instructions/threadpool.cpp \
     server/ProcessInThread.cpp \
-    server/usbGrab.cpp
+    server/usbGrab.cpp \
+    client/ClientCbNotifier.cpp \
+    client/ThreadObject.cpp \
+    client/TCPMonitor.cpp
 
 HEADERS += \
     server/ScanCode.h \
@@ -69,7 +72,10 @@ HEADERS += \
     client/DirMonitor.h \
     instructions/threadpool.h \
     server/ProcessInThread.h \
-    server/usbGrab.h
+    server/usbGrab.h \
+    client/ClientCbNotifier.h \
+    client/ThreadObject.h \
+    client/TCPMonitor.h
 
 
 INCLUDEPATH += \
