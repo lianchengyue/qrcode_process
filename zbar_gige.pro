@@ -1,6 +1,17 @@
 QT += core
 QT += gui
 
+#RC_ICONS += Image/ICON.ico
+DISTFILES += \
+    Image/ICON.ico \
+    Image/icon.rc
+
+RC_FILE += Image/icon.rc
+
+RESOURCES += \
+    icon.qrc
+
+
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 CONFIG += c++11
