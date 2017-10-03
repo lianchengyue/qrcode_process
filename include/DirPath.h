@@ -1,10 +1,10 @@
 #include "include/fileParameters.h"
 #include "include/macros.h"
 #if 1
-static char ROOT_DIR[] = "/home/montafan/";
+static char ROOT_DIR[256];
 
-static char SRC_BASE_LOCATION[] = "/home/montafan/QRcodeGrab";
-static char DES_BASE_LOCATION[] = "/home/montafan/QRcodeGrab";
+static char SRC_BASE_LOCATION[256];  //"/home/montafan/QRcodeGrab";
+static char DES_BASE_LOCATION[256];  //"/home/montafan/QRcodeGrab";
 
 //SRC
 static char SRC_LOCATION[PATH_MAX];
@@ -23,7 +23,7 @@ static char SRC_INI_FOLD_FRAG_LOCATION[PATH_MAX];
 
 
 //DES
-static char* DES_LOCATION111;
+//static char* DES_LOCATION111;
 static char DES_LOCATION[PATH_MAX];
 static char DES_RECEIVE_LOCATION[PATH_MAX];
 static char DES_BASE64_DECODE_LOCATION[PATH_MAX];
@@ -38,6 +38,11 @@ static char DES_INI_FILE[PATH_MAX];
 static char DES_INI_FOLD[PATH_MAX];
 
 ///========================================///
+static char ROOT_DIR_REL[256];
+
+static char SRC_BASE_LOCATION_REL[] = "/QRcodeGrab";
+static char DES_BASE_LOCATION_REL[] = "/QRcodeGrab";
+
 //SRC
 static char SRC_LOCATION_REL[] = "/source/1_location/";
 static char SRC_LZO_LOCATION_REL[] = "/source/2_lzo_location/";

@@ -9,6 +9,7 @@
 ///#include <QLabel.h>
 
 #include <vector>
+#include <queue>
 
 #include "qrencode.h"
 #include "ClientCbNotifier.h"
@@ -21,8 +22,8 @@ using namespace std;
 
 class ThreadObject;
 
-////////////////////////generatorThread/////////////////////////
-class generatorThread : public QThread
+////////////////////////NormalThread/////////////////////////
+class NormalThread : public QThread
 {
     Q_OBJECT
 private:
@@ -33,8 +34,8 @@ private:
 protected:
     void run();
 public:
-    generatorThread(QObject *parent=0);
-    ~generatorThread();
+    NormalThread(QObject *parent=0);
+    ~NormalThread();
     void resume();
     void pause();
 
@@ -88,12 +89,12 @@ private:
     QString string;
     QRcode *qr;
 
-    generatorThread *myThread;
+    NormalThread *myThread;
     ////UDP与Normal两个线程
     UDPThread *m_UDPTh;
-    generatorThread *m_NormalTh;
+    NormalThread *m_NormalTh;
 
-    generatorThread *m_RecvPTh;
+    NormalThread *m_RecvPTh;
 
     ThreadObject* m_obj;
 
@@ -101,6 +102,7 @@ private:
     ///vector<std::array<char,255>>* vecString;
 
     ClientCbNotifier *m_cbNotifier; //flq
+    //queue<int> evt_UDP_queue;
 
 signals:
     void ResetSignal(); //thread
@@ -112,9 +114,6 @@ protected:
     void paintEvent(QPaintEvent *);
     QSize sizeHint() const;
     QSize minimumSizeHint() const;
-
-//private slots:
-//    void updateUI(); //QTimer
 
 public slots:
     void StartSlot();

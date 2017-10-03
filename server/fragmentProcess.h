@@ -5,6 +5,7 @@
 #include "include/macros.h"
 #include "RecvStateMachine.h"
 
+#if 0
 #define CONFIG_FUNC_DEBUG
 #ifdef CONFIG_FUNC_DEBUG
 #define LOG_ERR(fmt,args...) printf(fmt,##args)
@@ -12,6 +13,7 @@
 #else
 #define LOG_ERR(fmt,args...) printf(fmt,##args)
 #define LOG_DBG(fmt,args...)
+#endif
 #endif
 
 class RecvStateMachine;

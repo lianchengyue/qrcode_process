@@ -11,7 +11,7 @@ using namespace std;
 //param1:待拆分文件
 //param2:目标目录
 //param3:待拆分文件的大小
-int spilt(char *file, char*outpath, int blocksize)
+int split(char *file, char*outpath, int blocksize)
 {
     FILE *InFile=fopen(file,"rb"); //获取二进制文件的指针,rb二进制, rt文本文件
 
@@ -19,9 +19,11 @@ int spilt(char *file, char*outpath, int blocksize)
     fseek(InFile,0,SEEK_END); //把指针移动到文件的结尾 ，获取文件长度
     uint32_t len=ftell(InFile); //获取文件长度
 
+    LOG_DBG("%s In,\n", __func__);
+
     if(0 == len)
     {
-        printf("spilt(), empty fold,outpath=%s\n",outpath);
+        LOG_ERR("split(), empty fold,outpath=%s\n",outpath);
         return -1;
     }
 
@@ -30,6 +32,9 @@ int spilt(char *file, char*outpath, int blocksize)
     rewind(InFile); //把指针移动到文件开头
 
     uint32_t count= len/blocksize + 1;
+
+    LOG_DBG("%s count=%d,\n", __func__, count);
+
     for(int i=0; i < count; i++)
     {
         char *str = new char[PATH_MAX];
@@ -65,13 +70,15 @@ int spilt(char *file, char*outpath, int blocksize)
 
     free(pdesBuf);
     fclose(InFile); // 关闭文件
+
+    LOG_DBG("%s Out,\n", __func__);
 }
 
 /*拆分ini文件*/
 //param1:待拆分文件
 //param2:目标目录
 //param3:待拆分文件的大小
-int spilt_ini(char *file, char*outpath, char *dir,int blocksize)
+int split_ini(char *file, char*outpath, char *dir,int blocksize)
 {
     FILE *InFile=fopen(file,"rb"); //获取二进制文件的指针,rb二进制, rt文本文件
 

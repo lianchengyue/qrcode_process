@@ -1,6 +1,14 @@
 //queue方式的信号槽是通过 postEvent()
 //if(m_NormalTh->isRunning() && m_NormalTh->is_pause)
-
+/*
+定义一个queue的变量     queue<Type> M
+查看是否为空范例        M.empty()    是的话返回1，不是返回0;
+从已有元素后面增加元素   M.push()
+输出现有元素的个数      M.size()
+显示第一个元素          M.front()
+显示最后一个元素        M.back()
+清除第一个元素          M.pop()
+*/
 #include "qrgenerator.h"
 #include "qrencode.h"
 
@@ -32,23 +40,30 @@ QWaitCondition UDPRunning; //QWaitCondition允许在一定条件下触发其它�
 QWaitCondition NormalRunning;
 QMutex mutex;
 
+queue<int> evt_UDP_queue;
+queue<int> evt_Normal_queue;
+
+bool isUDP;
+bool isNormal;
+
+
 //QThread
 //Thread用来控制文件的开始与结束
-generatorThread::generatorThread(QObject *parent)
+NormalThread::NormalThread(QObject *parent)
 {
     number = 0;
     ///m_cbNotifier = new ClientCbNotifier();
 }
 
-generatorThread::~generatorThread()
+NormalThread::~NormalThread()
 {
 
 }
 
-void generatorThread::run()
+void NormalThread::run()
 {
-    //sleep(1);//temp add, a.execute后再启动线程
-    //emit UpdateSignal(number);
+    sleep(1);//temp add, a.execute后再启动线程
+    emit UpdateSignal(number);
     //number++;
 
 //https://stackoverflow.com/questions/9075837/pause-and-resume-a-qthread
@@ -65,16 +80,33 @@ void generatorThread::run()
          usleep(200000);
     }
 
+    //线程执行完毕，发送通知
+    //全局queue
+    sync.lock();
+    if(!evt_UDP_queue.empty())
+    {
+        int k = evt_UDP_queue.front();//拿到queue的值
+        evt_UDP_queue.pop();
+        //开始处理
+
+        //处理完毕
+        evt_UDP_queue.pop();
+    }
+    sync.unlock();
+
+
+    //收到高优先级的抢占消息
+
 }
 #if 1
-void generatorThread::resume()
+void NormalThread::resume()
 {
     sync.lock();
     is_pause = false;
     sync.unlock();
     pauseCond.wakeAll();
 }
-void generatorThread::pause()
+void NormalThread::pause()
 {
     sync.lock();
     is_pause = true;
@@ -82,7 +114,7 @@ void generatorThread::pause()
 }
 #endif
 
-void generatorThread::ResetSlot()
+void NormalThread::ResetSlot()
 {
     number = 0;
     emit UpdateSignal(number);
@@ -103,21 +135,18 @@ UDPThread::~UDPThread()
 void UDPThread::run()
 {
     sleep(1);//temp add, a.execute后再启动线程
-    //emit UDPSignal();
+    emit UDPSignal();
 
 
-    for(int i = 0; i<5; i++)
+    for(int i = 0; i<50; i++)
     {
-        sleep(1);
+        usleep(200000);
         printf("UDP,Running%d\n", i);
 
         if(2 ==i)
         {
-            //UDPRunning.wait(&mutex);
-            //UDPRunning.wakeOne();
         }
     }
-//end
 }
 
 void UDPThread::resume()
@@ -224,8 +253,8 @@ QRGenerator::QRGenerator(QWidget *parent)
 
     //thread
     m_UDPTh = new UDPThread;
-    m_NormalTh = new generatorThread;
-    m_RecvPTh = new generatorThread;
+    m_NormalTh = new NormalThread;
+    //m_RecvPTh = new NormalThread;
 
     //empty
     setString(TRANSMIT_IDLE);
@@ -233,15 +262,16 @@ QRGenerator::QRGenerator(QWidget *parent)
     CompleteSrcPath();
 
     //thread
-    myThread = new generatorThread;
+    myThread = new NormalThread;
 
-    connect(myThread, SIGNAL(UpdateSignal(int)), this, SLOT(UpdateSlot(int)));
+    connect(myThread, SIGNAL(UpdateSignal(int)), this, SLOT((int)));
     connect(this, SIGNAL(ResetSignal()), myThread, SLOT(ResetSlot()));
 
     ////UDP与Normal两个线程
     connect(m_UDPTh, SIGNAL(UDPSignal()), this, SLOT(processUDPEventSlot()));
     //connect(this, SIGNAL(ResetSignal()), m_UDPTh, SLOT(ResetSlot()));
 
+    connect(m_NormalTh, SIGNAL(UpdateSignal(int)), this, SLOT(UpdateSlot(int)));//显示二维码 UpdateSlot(int)
     connect(m_NormalTh, SIGNAL(UpdateSignal(int)), this, SLOT(processNormalEventSlot()));
     connect(this, SIGNAL(ResetSignal()), m_NormalTh, SLOT(ResetSlot()));
 
@@ -254,23 +284,22 @@ QRGenerator::QRGenerator(QWidget *parent)
     //resize(200, 200);
     ///==============================start Thread=====================================/
     bool flagg1 = m_NormalTh->isRunning();
-    //myThread->start();    ///后续改为在收到传输完成消息后调用 added by flq
+#if 0
+    ///后续改为在收到传输完成消息后调用 added by flq
     printf("1111111111\n");
-    //m_UDPTh->start();
+    m_UDPTh->start();
     printf("2222222222\n");
     m_NormalTh->start();
     printf("3333333333\n");
 
-    //sleep(3);
+    sleep(3);
     m_NormalTh->pause();
-    //sleep(3);
-    //m_NormalTh->resume();
+    sleep(3);
+    m_NormalTh->resume();
+#else
+    m_NormalTh->start();
+#endif
 
-
-    //printf("m_UDPTh->wait\n");
-    //m_UDPTh->wait();
-    printf("m_NormalTh->wait\n");
-    //m_NormalTh->wait();
 
     qDebug() << QString("main thread id:") << QThread::currentThreadId();
 
@@ -450,14 +479,14 @@ void QRGenerator::UpdateSlot(int num)
     ///added end
  #endif
 
-    printf("TRANSMIT_PRESTART\n");
+    printf("NEW TRANSMIT_PRESTART\n");
     ///播放报头二维码
     for (is = 0; is < WAIT_FRAME_COUNT; is++)
     {
         setString(TRANSMIT_PRESTART);
     }
 
-    printf("TRANSMIT ini\n");
+    printf("NEW TRANSMIT ini\n");
     ///播放报头
     //here to add content
     //...
@@ -483,14 +512,14 @@ void QRGenerator::UpdateSlot(int num)
     }
     //added end
 
-    printf("TRANSMIT_PREEND\n");
+    printf("NEW TRANSMIT_PREEND\n");
     ///播放报头二维码
     for (is = 0; is < WAIT_FRAME_COUNT; is++)
     {
         setString(TRANSMIT_PREEND);
     }
 
-    printf("TRANSMIT_START\n");
+    printf("NEW TRANSMIT_START\n");
     ///播放开始二维码
     for (is = 0; is < WAIT_FRAME_COUNT; is++)
     {
@@ -539,6 +568,9 @@ void QRGenerator::ClearSlot()
 
 int QRGenerator::CompleteSrcPath()
 {
+    sprintf(ROOT_DIR, "%s", getenv("HOME"));
+    sprintf(SRC_BASE_LOCATION, "%s%s", ROOT_DIR ,SRC_BASE_LOCATION_REL);
+
     //SRC
     sprintf(SRC_LOCATION, "%s%s", SRC_BASE_LOCATION ,SRC_LOCATION_REL);
     sprintf(SRC_LZO_LOCATION, "%s%s", SRC_BASE_LOCATION ,SRC_LZO_LOCATION_REL);
@@ -558,27 +590,39 @@ int QRGenerator::CompleteSrcPath()
 //接收发送请求
 int QRGenerator::EventRecevier()
 {
-    //switch(1)
-    {
-        emit UDPTaskIncomingSignal();
-        emit NormalTaskIncomingSignal();
-    }
 #if 0
-    for(; ;)
+    while (is_active)
     {
-        ///改为在收到传输完成消息后调用 added by flq
 
-        //thread
-        generatorThread myThread = new generatorThread;
+        while (!event_queue_is_empty)
+            dispatch_next_event();
 
-        connect(myThread, SIGNAL(UpdateSignal(int)), this, SLOT(UpdateSlot(int)));
-        connect(this, SIGNAL(ResetSignal()), myThread, SLOT(ResetSlot()));
+        wait_for_more_events();
 
-        //启动线程
-        ///==============================start Thread=====================================/
-        myThread->start();    ///后续改为在收到传输完成消息后调用 added by flq
     }
 #endif
+    bool is_active = true;
+    while(is_active)
+    {
+        while((!evt_UDP_queue.empty()) || (!evt_Normal_queue.empty()))
+        {
+            //dispatch
+            //if()
+
+
+            if(isUDP)
+            {
+                //开始UDP，暂停Normal
+                m_NormalTh->pause();
+                m_UDPTh->start();
+            }
+            else if(isNormal)
+            {
+                evt_UDP_queue.push(1);
+            }
+
+        }
+    }
     return 0;
 }
 

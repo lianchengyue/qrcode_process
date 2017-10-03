@@ -116,15 +116,22 @@ int main(int argc, char* argv[])
 
 
 
+//==================
+  //printf("argv[0]:%s\n",argv[0]);//全路径
+  const char *home =getenv("HOME"); //HOMEDRIVE
+  printf("the home path is %s\n", home);
+#if 1 //temp
     //生成拓扑
     src_init_topology();
     //文件遍历
+    //2:LZO压缩，3:split操作
     file_traversal();//stats.cpp
 
     //报头遍历
     ini_traversal();
     //遍历片段
     fragment_traversal();
+#endif
 
     //二维码显示
     QApplication a(argc, argv);
@@ -133,8 +140,8 @@ int main(int argc, char* argv[])
     //w.showFullScreen();
     //w.show();
 
-    w.showMaximized();
-    //w.resize(800,800);
+    //w.showMaximized();
+    w.resize(800,800);
     w.show();
 
     printf("a.exec()\n");

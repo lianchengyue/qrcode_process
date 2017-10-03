@@ -30,6 +30,15 @@
 #define QUEUES 64
 #endif
 
+#define CONFIG_FUNC_DEBUG
+#ifdef CONFIG_FUNC_DEBUG
+#define LOG_ERR(fmt,args...) printf(fmt,##args)
+#define LOG_DBG(fmt,args...) printf(fmt,##args)
+#else
+#define LOG_ERR(fmt,args...) printf(fmt,##args)
+#define LOG_DBG(fmt,args...)
+#endif
+
 //二维码的生成,显示速度参数
 #define WAIT_FRAME_COUNT 20
 #define DISPLAY_INTERVAL 100000  //unit: us

@@ -778,6 +778,9 @@ TransmitStatus fragmentProcess::getTransmitStatus()
 
 void fragmentProcess::CompleteDesPath()
 {
+    sprintf(ROOT_DIR, "%s", getenv("HOME"));
+    sprintf(DES_BASE_LOCATION, "%s%s", ROOT_DIR ,DES_BASE_LOCATION_REL);
+
     //DES
     sprintf(DES_LOCATION, "%s%s", DES_BASE_LOCATION ,DES_LOCATION_REL);
     sprintf(DES_RECEIVE_LOCATION, "%s%s", DES_BASE_LOCATION ,DES_RECEIVE_LOCATION_REL);

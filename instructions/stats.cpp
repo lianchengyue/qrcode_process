@@ -49,7 +49,7 @@ int src_init_topology()
     mkdir("4_base64_encode_location", S_IRWXU|S_IRWXG|S_IRWXO);
 
     mkdir("INI", S_IRWXU|S_IRWXG|S_IRWXO);
-    mkdir("FRAG_INI", S_IRWXU|S_IRWXG|S_IRWXO);
+    ///mkdir("FRAG_INI", S_IRWXU|S_IRWXG|S_IRWXO);
 
     return 0;
 }
@@ -257,12 +257,15 @@ void src_file_traversal_imp(char *dir, char* _short_dir, char *_2_dir, char *_3_
                 memset(lzo_dir, 0, PATH_MAX);
                     strcpy(lzo_dir,_2_lzo_dir);
                     strcat(lzo_dir,LZO_SUFFIX);  //LZO_SUFFIX = ".lzo"
+
+                LOG_DBG("%s, processLZO start\n", __func__);
                 processLZO(total_dir, lzo_dir, LZO_COMPRESS);
+                LOG_DBG("%s, processLZO end\n", __func__);
 #endif
                 //3_split_location,切割文件
                 //memset(des_buf, 0, statbuf.st_size);
                 //fwrite(des_buf, 1, statbuf.st_size, out_3_file);
-                if(0 != access(_3_split_dir, F_OK))
+///////flq temp/////////                if(0 != access(_3_split_dir, F_OK))    // _3_split_dir=/home/montafan/QRcodeGrab/source/3_split_location/zbar_gige
                 {
                     mkdir(_3_split_dir, S_IRWXU|S_IRWXG|S_IRWXO);///这里的_3_split_dir是目录，不是文件，存放切割后的碎片
                     //在最后会添加一个额外的过程来显示碎片路径的ini,
@@ -277,13 +280,15 @@ void src_file_traversal_imp(char *dir, char* _short_dir, char *_2_dir, char *_3_
                 memset(outputDir, 0, PATH_MAX);
                 sprintf(outputDir, "%s%s%s%s", SRC_LZO_LOCATION, _short_dir, enty->d_name, LZO_SUFFIX);
 
-                spilt(outputDir, _3_split_dir, BLOCK_SIZE); ///这里的_3_split_dir是目录，不是文件，存放切割后的碎片
+                LOG_DBG("%s, split start\n", __func__);
+                split(outputDir, _3_split_dir, BLOCK_SIZE); ///这里的_3_split_dir是目录，不是文件，存放切割后的碎片
+                LOG_DBG("%s, split end\n", __func__);
 
                 free(outputDir);
                 free(lzo_dir);
 
 #else
-                spilt(total_dir, _3_split_dir, BLOCK_SIZE); ///这里的_3_split_dir是目录，不是文件，存放切割后的碎片
+                split(total_dir, _3_split_dir, BLOCK_SIZE); ///这里的_3_split_dir是目录，不是文件，存放切割后的碎片
 #endif
                 if(0 != access(_4_base64_encode_dir, F_OK))
                 {
@@ -355,18 +360,18 @@ void src_ini_traversal_imp(/*char *dir*/)
         mkdir(config_dir, S_IRWXU|S_IRWXG|S_IRWXO);///这里的_3_split_dir是目录，不是文件，存放切割后的碎片
     }
     #ifdef INI_FRAGMENT_WITHOUT_MASTHEAD
-    spilt(SRC_INI_FILE_LOCATION, config_dir, BLOCK_SIZE); ///这里的_3_split_dir是目录，不是文件，存放切割后的碎片
+    split(SRC_INI_FILE_LOCATION, config_dir, BLOCK_SIZE); ///这里的_3_split_dir是目录，不是文件，存放切割后的碎片
     #else
-    spilt_ini(SRC_INI_FILE_LOCATION, config_dir, "config/", BLOCK_SIZE); ///这里的_3_split_dir是目录，不是文件，存放切割后的碎片
+    split_ini(SRC_INI_FILE_LOCATION, config_dir, "config/", BLOCK_SIZE); ///这里的_3_split_dir是目录，不是文件，存放切割后的碎片
     #endif
     if(0 != access(folder_dir, F_OK))
     {
         mkdir(folder_dir, S_IRWXU|S_IRWXG|S_IRWXO);///这里的_3_split_dir是目录，不是文件，存放切割后的碎片
     }
     #ifdef INI_FRAGMENT_WITHOUT_MASTHEAD
-    spilt(SRC_INI_FOLD_LOCATION, folder_dir, BLOCK_SIZE); ///这里的_3_split_dir是目录，不是文件，存放切割后的碎片
+    split(SRC_INI_FOLD_LOCATION, folder_dir, BLOCK_SIZE); ///这里的_3_split_dir是目录，不是文件，存放切割后的碎片
     #else
-    spilt_ini(SRC_INI_FOLD_LOCATION, folder_dir, "folder/", BLOCK_SIZE); ///这里的_3_split_dir是目录，不是文件，存放切割后的碎片
+    split_ini(SRC_INI_FOLD_LOCATION, folder_dir, "folder/", BLOCK_SIZE); ///这里的_3_split_dir是目录，不是文件，存放切割后的碎片
     #endif
 
 }
@@ -576,7 +581,6 @@ void print_INI_Info(char *dir, int depth)
             strcat(total_dir,"/");
 
             //继续递归调用
-            /////////src_fragment_traversal_imp(enty->d_name,depth+4);
             print_INI_Info(total_dir,depth+4);//绝对路径递归调用错误 modify by flq
         }
         else
@@ -1256,6 +1260,10 @@ int cutFileName(char *instr, char *filename)
 
 int CompletePath()
 {
+    sprintf(ROOT_DIR, "%s", getenv("HOME"));
+    sprintf(SRC_BASE_LOCATION, "%s%s", ROOT_DIR ,SRC_BASE_LOCATION_REL);
+    sprintf(DES_BASE_LOCATION, "%s%s", ROOT_DIR ,DES_BASE_LOCATION_REL);
+
     //SRC
     sprintf(SRC_LOCATION, "%s%s", SRC_BASE_LOCATION ,SRC_LOCATION_REL);
     sprintf(SRC_LZO_LOCATION, "%s%s", SRC_BASE_LOCATION ,SRC_LZO_LOCATION_REL);
@@ -1283,8 +1291,10 @@ int CompletePath()
     sprintf(DES_INI_FOLD, "%s%s", DES_BASE_LOCATION ,DES_INI_FOLD_LOCATION_REL);
 }
 
+#if 0
 int CompleteSrcPath()
 {
+    sprintf(ROOT_DIR, "%s", getenv("HOME"));
     //SRC
     sprintf(SRC_LOCATION, "%s%s", SRC_BASE_LOCATION ,SRC_LOCATION_REL);
     sprintf(SRC_LZO_LOCATION, "%s%s", SRC_BASE_LOCATION ,SRC_LZO_LOCATION_REL);
@@ -1302,6 +1312,7 @@ int CompleteSrcPath()
 
 int CompleteDesPath()
 {
+    sprintf(ROOT_DIR, "%s", getenv("HOME"));
     //DES
     sprintf(DES_LOCATION, "%s%s", DES_BASE_LOCATION ,DES_LOCATION_REL);
     sprintf(DES_RECEIVE_LOCATION, "%s%s", DES_BASE_LOCATION ,DES_RECEIVE_LOCATION_REL);
@@ -1315,4 +1326,4 @@ int CompleteDesPath()
     sprintf(DES_INI_FILE, "%s%s", DES_BASE_LOCATION ,DES_INI_FILE_REL);
     sprintf(DES_INI_FOLD, "%s%s", DES_BASE_LOCATION ,DES_INI_FOLD_LOCATION_REL);
 }
-
+#endif
