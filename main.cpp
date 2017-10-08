@@ -125,23 +125,29 @@ int main(int argc, char* argv[])
     src_init_topology();
     //文件遍历
     //2:LZO压缩，3:split操作
+    printf("file_traversal()\n");
     file_traversal();//stats.cpp
 
     //报头遍历
+    printf("ini_traversal()\n");
     ini_traversal();
     //遍历片段
+    printf("fragment_traversal()\n");
     fragment_traversal();
+    printf("fragment_traversal end()\n");
 #endif
 
     //二维码显示
     QApplication a(argc, argv);
     QRGenerator w;
 
-    //w.showFullScreen();
+    w.showFullScreen();
+    //同时禁止最大化最小化按钮 & 禁止关闭
+    w.setWindowFlags(w.windowFlags() &~ (Qt::WindowMinMaxButtonsHint | Qt::WindowCloseButtonHint));
     //w.show();
 
     //w.showMaximized();
-    w.resize(800,800);
+    //w.resize(800,800);
     w.show();
 
     printf("a.exec()\n");

@@ -20,6 +20,7 @@ int split(char *file, char*outpath, int blocksize)
     uint32_t len=ftell(InFile); //获取文件长度
 
     LOG_DBG("%s In,\n", __func__);
+    LOG_DBG("file=%s,outpath=%s\n", file, outpath);  //tmp
 
     if(0 == len)
     {
@@ -39,8 +40,11 @@ int split(char *file, char*outpath, int blocksize)
     {
         char *str = new char[PATH_MAX];
         memset(str, 0, PATH_MAX);
-        strcpy(str, outpath);
-        sprintf(str,"%s/X%d",str,i);
+        //strcpy(str, outpath);
+        //printf("1,str=%s\n", str);  //tmp
+//        sprintf(str,"%s/X%d",str,i);/////////////////////////different gcc will lead different result
+        sprintf(str,"%s/X%d",outpath,i);
+        printf("2,str=%s\n", str);  //tmp
 
         FILE *OutFile=fopen(str,"wb"); //获取二进制文件的指针,rb二进制, rt文本文件
 
@@ -109,8 +113,8 @@ int split_ini(char *file, char*outpath, char *dir,int blocksize)
     {
         char *str = new char[PATH_MAX];
         memset(str, 0, PATH_MAX);
-        strcpy(str, outpath);
-        sprintf(str,"%s/X%d",str,i);
+        //strcpy(str, outpath);
+        sprintf(str,"%s/X%d",outpath,i);
 
         sprintf(filename, "X%d", i);
 

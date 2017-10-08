@@ -265,8 +265,9 @@ void src_file_traversal_imp(char *dir, char* _short_dir, char *_2_dir, char *_3_
                 //3_split_location,切割文件
                 //memset(des_buf, 0, statbuf.st_size);
                 //fwrite(des_buf, 1, statbuf.st_size, out_3_file);
-///////flq temp/////////                if(0 != access(_3_split_dir, F_OK))    // _3_split_dir=/home/montafan/QRcodeGrab/source/3_split_location/zbar_gige
+                if(0 != access(_3_split_dir, F_OK))    // _3_split_dir=/home/montafan/QRcodeGrab/source/3_split_location/zbar_gige
                 {
+                    LOG_DBG("mkdir _3_split_dir\n");
                     mkdir(_3_split_dir, S_IRWXU|S_IRWXG|S_IRWXO);///这里的_3_split_dir是目录，不是文件，存放切割后的碎片
                     //在最后会添加一个额外的过程来显示碎片路径的ini,
                     //在此添加虽然代码显得麻烦，但会在接收端的每次接收都减少一次判断
@@ -274,13 +275,15 @@ void src_file_traversal_imp(char *dir, char* _short_dir, char *_2_dir, char *_3_
                     //...
                     //...
                     //...
+                } else{
+                    LOG_DBG("exist, need not mkdir _3_split_dir\n");
                 }
 #ifdef USE_LZO_COMPRESSION
                 char *outputDir = new char[PATH_MAX];
                 memset(outputDir, 0, PATH_MAX);
                 sprintf(outputDir, "%s%s%s%s", SRC_LZO_LOCATION, _short_dir, enty->d_name, LZO_SUFFIX);
 
-                LOG_DBG("%s, split start\n", __func__);
+                LOG_DBG("%s, split start, outputDir=%s, _3_split_dir=%s, blocksize=%d\n", __func__, outputDir, _3_split_dir ,BLOCK_SIZE);
                 split(outputDir, _3_split_dir, BLOCK_SIZE); ///这里的_3_split_dir是目录，不是文件，存放切割后的碎片
                 LOG_DBG("%s, split end\n", __func__);
 

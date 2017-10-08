@@ -28,7 +28,7 @@ signals:
 
 
 
-class TCPMonitor //: public QWidget
+class TCPMonitor
 {
     //Q_OBJECT //要使用信号/槽功能
 public:

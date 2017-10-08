@@ -94,7 +94,6 @@ void NormalThread::run()
     }
     sync.unlock();
 
-
     //收到高优先级的抢占消息
 
 }
@@ -132,12 +131,17 @@ UDPThread::~UDPThread()
 
 }
 
+//UDP使用signal/slot机制，顺序播放,不需要休眠唤醒
 void UDPThread::run()
 {
-    sleep(1);//temp add, a.execute后再启动线程
+
+    sync.lock();
+    evt_UDP_queue.push(1);
+    sync.unlock();
+
     emit UDPSignal();
 
-
+#if 0
     for(int i = 0; i<50; i++)
     {
         usleep(200000);
@@ -147,6 +151,7 @@ void UDPThread::run()
         {
         }
     }
+#endif
 }
 
 void UDPThread::resume()
@@ -268,6 +273,7 @@ QRGenerator::QRGenerator(QWidget *parent)
     connect(this, SIGNAL(ResetSignal()), myThread, SLOT(ResetSlot()));
 
     ////UDP与Normal两个线程
+    //connect(m_UDPTh, SIGNAL(UDPSignal(int)), this, SLOT(UpdateSlot(int)));//显示二维码 UpdateSlot(int)
     connect(m_UDPTh, SIGNAL(UDPSignal()), this, SLOT(processUDPEventSlot()));
     //connect(this, SIGNAL(ResetSignal()), m_UDPTh, SLOT(ResetSlot()));
 
@@ -284,17 +290,17 @@ QRGenerator::QRGenerator(QWidget *parent)
     //resize(200, 200);
     ///==============================start Thread=====================================/
     bool flagg1 = m_NormalTh->isRunning();
-#if 0
+#if 1
     ///后续改为在收到传输完成消息后调用 added by flq
     printf("1111111111\n");
-    m_UDPTh->start();
+    //m_UDPTh->start();
     printf("2222222222\n");
     m_NormalTh->start();
     printf("3333333333\n");
 
-    sleep(3);
+    //sleep(3);
     m_NormalTh->pause();
-    sleep(3);
+    //sleep(3);
     m_NormalTh->resume();
 #else
     m_NormalTh->start();
@@ -408,7 +414,8 @@ void QRGenerator::draw(QPainter &painter, int width, int height)
     QColor foreground(Qt::black);
     painter.setBrush(foreground);
     const int qr_width = qr->width > 0 ? qr->width : 1;
-    double scale_x = width / qr_width;
+    //避免拉伸
+    double scale_x = height / qr_width;   //width
     double scale_y = height / qr_width;
     for( int y = 0; y < qr_width; y ++)
     {
@@ -628,30 +635,119 @@ int QRGenerator::EventRecevier()
 
 void QRGenerator::processUDPEventSlot()
 {
-    printf("processUDPEventSlot,Thread\n");
+    printf("processUDPEventSlot In,Thread\n");
 
-    ///mutex.lock();
+    int is;
+    int ie;
+    printf("UpdateSlot,Thread\n");
 
+    mutex.lock();
+#if 1
+    //处理待发送文件
+#if 1
+    ///后续改为在收到传输完成消息后调用 added by flq
+    //文件夹信息
+    char *folderdir = SRC_INI_FOLD_FRAG_LOCATION;
+    std::string folder_str =  folderdir;
+    src_fragment_traversal(folder_str, true, 0);  //isINI=true
 
-    for(int i = 0; i<5; i++)
+    //文件属性信息
+    char *configdir = SRC_INI_FILE_FRAG_LOCATION;
+    std::string config_str =  configdir;
+    src_fragment_traversal(config_str, true, 0);
+
+    //内容碎片信息
+    //直接遍历4_base64_encode_location/文件,路径保存到vector
+    char *topdir = SRC_BASE64_ENCODE_LOCATION;
+    std::string topdir_str =  topdir;
+    src_fragment_traversal(topdir_str, false, 0);
+    ///added end
+ #endif
+
+    printf("NEW TRANSMIT_PRESTART\n");
+    ///播放报头二维码
+    for (is = 0; is < WAIT_FRAME_COUNT; is++)
     {
-        sleep(1);
-        printf("UDP,Running%d\n", i);
-
-        if(2 ==i)
-        {
-            //UDPRunning.wait(&mutex);
-            //UDPRunning.wakeOne();
-
-            //UDPRunning.quit();
-        }
+        setString(TRANSMIT_PRESTART);
     }
 
-    printf("processUDPEventSlot,Thread End\n");
+    printf("NEW TRANSMIT ini\n");
+    ///播放报头
+    //here to add content
+    //...
+    for (size_t i = 0; i < vecINIString.size(); i++) {
 
+        std::string s = vecINIString[i];
+        FILE *pFile=fopen(s.c_str(),"rb"); //rb二进制, rt文本文件
 
+        fseek(pFile,0,SEEK_END); //把指针移动到文件的结尾 ，获取文件长度
+        int len=ftell(pFile); //获取文件长度
+        pdesBuf=new char[len+1];
+        rewind(pFile); //把指针移动到文件开头
+        fread(pdesBuf,1,len,pFile);
+        pdesBuf[len]=0;
 
-    ///mutex.unlock();
+        fclose(pFile);
+        //added end
+
+        //显示二维码
+        setString(pdesBuf);
+        ///usleep(100);
+        free(pdesBuf);
+    }
+    //added end
+
+    printf("NEW TRANSMIT_PREEND\n");
+    ///播放报头二维码
+    for (is = 0; is < WAIT_FRAME_COUNT; is++)
+    {
+        setString(TRANSMIT_PREEND);
+    }
+
+    printf("NEW TRANSMIT_START\n");
+    ///播放开始二维码
+    for (is = 0; is < WAIT_FRAME_COUNT; is++)
+    {
+        setString(TRANSMIT_START);
+    }
+
+    printf("TRANSMIT content\n");
+
+    for (size_t i = 0; i < vecString.size(); i++) {
+
+        std::string s = vecString[i];
+        FILE *pFile=fopen(s.c_str(),"rb"); //rb二进制, rt文本文件
+
+        fseek(pFile,0,SEEK_END); //把指针移动到文件的结尾 ，获取文件长度
+        int len=ftell(pFile); //获取文件长度
+        pdesBuf=new char[len+1];
+        rewind(pFile); //把指针移动到文件开头
+        fread(pdesBuf,1,len,pFile);
+        pdesBuf[len]=0;
+
+        fclose(pFile);
+        //added end
+
+        //显示二维码
+        setString(pdesBuf);
+        ///usleep(100);
+        free(pdesBuf);
+    }
+
+    ///播放结束二维码
+    printf("TRANSMIT_END\n");
+    for (ie = 0; ie < WAIT_FRAME_COUNT; ie++) {
+        setString(TRANSMIT_END);
+    }
+
+    printf("TRANSMIT_IDLE\n");
+    setString(TRANSMIT_IDLE);
+#endif
+
+    //完后UDP队列pop(push入队列在发信号时)
+    //evt_UDP_queue.pop();
+
+    mutex.unlock();
 }
 
 void QRGenerator::processNormalEventSlot()

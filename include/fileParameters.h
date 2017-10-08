@@ -10,23 +10,31 @@
 #define NAME_MAX 255
 #define PATH_MAX 255
 
-#define BLOCK_SIZE 2048  //split_size suggest smaller than 2048, 1792
+#define BLOCK_SIZE 1408  //split_size suggest smaller than 2048, 1792, 1536
 
 #define QRDATA_SIZE 3072  //3072,  2076
 
 //#define INPUT_WIDTH 320
 //#define INPUT_HEIGHT 240
-#define INPUT_WIDTH 640
-#define INPUT_HEIGHT 480
+
+//#define INPUT_WIDTH 640
+//#define INPUT_HEIGHT 480
+
 //#define INPUT_WIDTH 1280
 //#define INPUT_HEIGHT 960
+
+//#define INPUT_WIDTH 960
+//#define INPUT_HEIGHT 640
+
+#define INPUT_WIDTH 960
+#define INPUT_HEIGHT 640
 
 #define CV_WAITKEY_INTERVAL 3//3
 
 #define LZO_SUFFIX ".lzo"
 
 #ifdef USE_MUTIPLE_THREAD
-#define THREAD_NUM 8
+#define THREAD_NUM 16
 #define QUEUES 64
 #endif
 
