@@ -49,7 +49,7 @@
 
 //二维码的生成,显示速度参数
 #define WAIT_FRAME_COUNT 20
-#define DISPLAY_INTERVAL 100000  //unit: us
+#define DISPLAY_INTERVAL 300000//100000  //unit: us     30fps:33000
 
 
 typedef enum{

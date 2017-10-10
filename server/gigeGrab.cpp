@@ -77,6 +77,9 @@ int gigeGrab::grab()
         cout << "Using device " << camera.GetDeviceInfo().GetModelName() << endl;
          camera.Open();
 
+        //set Parameters
+        CFeaturePersistence::Load("/home/montafan/flq.pfs", &camera.GetNodeMap(), true );
+
         INodeMap& nodemap = camera.GetNodeMap();
         GenApi::CIntegerPtr width(nodemap.GetNode("Width"));
         GenApi::CIntegerPtr height(nodemap.GetNode("Height"));
@@ -84,8 +87,8 @@ int gigeGrab::grab()
         //GenApi::CIntegerPtr height(camera.GetNodeMap().GetNode("Height"));
 
         //手动设置分辨率
-        width->SetValue(INPUT_WIDTH);    //设置水平分辨率640，可根据自己需要修改
-        height->SetValue(INPUT_HEIGHT);  //设置水平分辨率480，可根据自己需要修改
+        //width->SetValue(INPUT_WIDTH);    //设置水平分辨率640，可根据自己需要修改
+        //height->SetValue(INPUT_HEIGHT);  //设置水平分辨率480，可根据自己需要修改
 
         //设置Gain与曝光模式
         // Set the the Gain Auto auto function to its minimum lower limit
