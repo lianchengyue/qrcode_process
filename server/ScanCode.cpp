@@ -54,6 +54,7 @@ int ScanCode::initZbar(){
 void ScanCode::scanimagefunc(/*const*/ void *raw/*, char *result*/)
 {
     int width = INPUT_WIDTH, height = INPUT_HEIGHT;
+    //printf("width=%d, height=%d\n", width, height);
     scanimageData *raw1 = reinterpret_cast<scanimageData *>(raw);
 
 #ifdef USE_MUTIPLE_THREAD
@@ -66,8 +67,11 @@ void ScanCode::scanimagefunc(/*const*/ void *raw/*, char *result*/)
     image = zbar_image_create();
     zbar_image_set_format(image, *(int*)"Y800");
     zbar_image_set_size(image, width, height);
-    //zbar_image_set_data(image, raw, width * height, zbar_image_free_data);
+#ifdef IMAGEGRAY_DEBUG_FUNC
+    zbar_image_set_data(image, raw, width * height, zbar_image_free_data);
+#else
     zbar_image_set_data(image, raw1->imageGray.data, width * height, zbar_image_free_data);
+#endif
 
     /* scan the image for barcodes */
     int n = zbar_scan_image(scanner, image);
@@ -109,15 +113,18 @@ void ScanCode::scanimage(/*const*/ void *raw/*, char *result*/)
 #ifdef USE_MUTIPLE_THREAD
     pthread_mutex_lock(&raw1->lock);
 #endif
-    usleep(10);
+    ///usleep(10);
     /* wrap image data */
     //zbar_image_t *image = zbar_image_create();
 
     image = zbar_image_create();
     zbar_image_set_format(image, *(int*)"Y800");
     zbar_image_set_size(image, width, height);
-    //zbar_image_set_data(image, raw, width * height, zbar_image_free_data);
+#ifdef IMAGEGRAY_DEBUG_FUNC
+    zbar_image_set_data(image, raw, width * height, zbar_image_free_data);
+#else
     zbar_image_set_data(image, raw1->imageGray.data, width * height, zbar_image_free_data);
+#endif
 
     /* scan the image for barcodes */
     int n = zbar_scan_image(scanner, image);

@@ -81,6 +81,13 @@ int usbGrab::grab()
 
 
 #ifdef USE_MUTIPLE_THREAD
+        #ifdef IMAGEGRAY_DEBUG_FUNC
+        Mat imageGray;
+        cvtColor(frame,imageGray,CV_RGB2GRAY);
+        imshow("usb camera",imageGray);
+        threadpool_add(pool, m_scancode->scanimagefunc, (void*)imageGray.data, 0);
+
+        #else
         mScanImgData.ret = 9;
         mScanImgData.framecnt = mPreviewFrames;
         cvtColor(frame,mScanImgData.imageGray,CV_RGB2GRAY);
@@ -90,20 +97,21 @@ int usbGrab::grab()
         //assert(threadpool_add(pool, m_scancode->scanimagefunc, (void*)&mScanImgData, 0) == 0);
         threadpool_add(pool, m_scancode->scanimagefunc, (void*)&mScanImgData, 0);
         //assert(threadpool_destroy(pool, threadpool_graceful) == 0);
-
+        #endif
 #else
+
+        #ifdef IMAGEGRAY_DEBUG_FUNC
+        Mat imageGray;
+        cvtColor(frame,imageGray,CV_RGB2GRAY);
+        imshow("usb camera",imageGray);
+        m_scancode->scanimage((void*)imageGray.data);
+
+        #else
         cvtColor(frame,mScanImgData.imageGray,CV_RGB2GRAY);
         imshow("usb camera",mScanImgData.imageGray);
-        waitKey(1);
-
-        //added by flq
-        //char *result = new char[QRDATA_SIZE];
-        //memset(result, 0 , QRDATA_SIZE);
-        //int *res = m_scancode->scanimage((void*)USBimageGray.data, result);   //if single process, delete
-
-        //int *res =0;
-        //        m_scancode->scanimage((void*)USBimageGray.data);   //if single process, delete
         m_scancode->scanimage((void*)&mScanImgData);   //if single process, delete
+        #endif
+
 #endif
         mPreviewFrames++;
 

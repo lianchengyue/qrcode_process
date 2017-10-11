@@ -26,8 +26,11 @@
 //#define INPUT_WIDTH 960
 //#define INPUT_HEIGHT 640
 
-#define INPUT_WIDTH 960
-#define INPUT_HEIGHT 640
+//#define INPUT_WIDTH 960
+//#define INPUT_HEIGHT 640
+
+#define INPUT_WIDTH 480
+#define INPUT_HEIGHT 480
 
 #define CV_WAITKEY_INTERVAL 3//3
 

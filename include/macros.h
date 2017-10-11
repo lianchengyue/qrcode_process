@@ -41,5 +41,11 @@
 //#define USB_GRAB_FUNC
 #endif
 
+//调试开关,Mat或结构体ScanImage_Data，正常使用时关闭
+#ifndef IMAGEGRAY_DEBUG_FUNC
+//#define IMAGEGRAY_DEBUG_FUNC
+#endif
+
+
 //#define INI_ACCESS_MODE
 #endif // MACROS_H
