@@ -111,8 +111,12 @@ int base64_decode(unsigned char *out, const char *in, int inlen, int maxlen) {
 
     // there cannt have tail-fragment except after '='
     if (!over && inlen > 0) {
+//delete by flq
+#if 0
+        //如果恰好match，是不会有==的。正常流程不应该识别为错误
         *out_org = '\0';
         return WRONG_FORMAT;
+#endif
     }
 
     // terminate the output string
@@ -258,7 +262,7 @@ void encode(FILE * fp_in, FILE * fp_out)
     fread(bindata,1,len,fp_in); //读文件
     bindata[len]=0;
 
-    out_len = base64_encode(base64, bindata, len, 0);
+    out_len = base64_encode(base64, bindata, len/*+3*/, 0);  //flq,for test +3
 
     int size = fwrite(base64, sizeof(char), out_len, fp_out);
 

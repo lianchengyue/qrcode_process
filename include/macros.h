@@ -46,6 +46,15 @@
 //#define IMAGEGRAY_DEBUG_FUNC
 #endif
 
+//使用activeMQ
+#ifndef USE_ACTIVEMQ
+#define USE_ACTIVEMQ
+#endif
+
+//打印识别内容
+#ifndef PRINT_CONTENT
+#define PRINT_CONTENT
+#endif
 
 //#define INI_ACCESS_MODE
 #endif // MACROS_H

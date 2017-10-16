@@ -86,21 +86,21 @@ int main(int argc, char* argv[])
     //使用base64二次封装接口
     #if 0
     //encode
-    char *des_str = "/home/montafan/Qt5.6.2/project/zbar_gige/testFile/111/X00png.txt";
-    char *src_str = "/home/montafan/Qt5.6.2/project/zbar_gige/testFile/111/X00";
+    char *src_str = "/home/montafan/X403";
+    char *des_str = "/home/montafan/Y403";
 
     FILE *infile = fopen(src_str, "rb");
-    FILE *outfile = fopen(des_str, "w");
+    FILE *outfile = fopen(des_str, "wb");
     encode(infile, outfile);
 
     fclose(infile); // 关闭文件
     fclose(outfile); // 关闭文件
     #elif 0
     //decode
-    char *des_str = "/home/montafan/Qt5.6.2/project/zbar_gige/testFile/111/X11.png";
-    char *src_str = "/home/montafan/Qt5.6.2/project/zbar_gige/testFile/111/X00png.txt";
+    char *src_str = "/home/montafan/Y403";
+    char *des_str = "/home/montafan/Z403";
 
-    FILE *infile = fopen(src_str, "r");
+    FILE *infile = fopen(src_str, "rb");
     FILE *outfile = fopen(des_str, "wb");
     decode(infile, outfile);
 
@@ -118,7 +118,7 @@ int main(int argc, char* argv[])
 
 //==================
   //printf("argv[0]:%s\n",argv[0]);//全路径
-  const char *home =getenv("HOME"); //HOMEDRIVE
+  const char *home =getenv("HOME"); //HOMEDRIVE ///home/montafan
   printf("the home path is %s\n", home);
 #if 1 //temp
     //生成拓扑

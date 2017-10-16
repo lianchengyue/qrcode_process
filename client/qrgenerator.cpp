@@ -424,7 +424,7 @@ void QRGenerator::draw(QPainter &painter, int width, int height)
             unsigned char b = qr->data[y * qr_width + x];
             if(b & 0x01)
             {
-                QRectF r(x * scale_x, y * scale_y, scale_x, scale_y);
+                QRectF r(100+x * scale_x, 10+y * scale_y, scale_x, scale_y);
                 painter.drawRects(&r, 1);
             }
         }
@@ -512,6 +512,15 @@ void QRGenerator::UpdateSlot(int num)
         fclose(pFile);
         //added end
 
+        //added by flq
+        //第一帧图像多播放两次，防止高速下第一帧切换时候掉帧
+        if(0 == i)
+        {
+            setString(pdesBuf);
+            setString(pdesBuf);
+        }
+        //added end
+
         //显示二维码
         setString(pdesBuf);
         ///usleep(100);
@@ -548,6 +557,15 @@ void QRGenerator::UpdateSlot(int num)
         pdesBuf[len]=0;
 
         fclose(pFile);
+        //added end
+
+        //added by flq
+        //第一帧图像多播放两次，防止高速下第一帧切换时候掉帧
+        if(0 == i)
+        {
+            setString(pdesBuf);
+            setString(pdesBuf);
+        }
         //added end
 
         //显示二维码
@@ -690,6 +708,15 @@ void QRGenerator::processUDPEventSlot()
         fclose(pFile);
         //added end
 
+        //added by flq
+        //第一帧图像多播放两次，防止高速下第一帧切换时候掉帧
+        if(0 == i)
+        {
+            setString(pdesBuf);
+            setString(pdesBuf);
+        }
+        //added end
+
         //显示二维码
         setString(pdesBuf);
         ///usleep(100);
@@ -726,6 +753,15 @@ void QRGenerator::processUDPEventSlot()
         pdesBuf[len]=0;
 
         fclose(pFile);
+        //added end
+
+        //added by flq
+        //第一帧图像多播放两次，防止高速下第一帧切换时候掉帧
+        if(0 == i)
+        {
+            setString(pdesBuf);
+            setString(pdesBuf);
+        }
         //added end
 
         //显示二维码

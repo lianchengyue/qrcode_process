@@ -49,7 +49,6 @@ int gigeGrab::grab()
 {
     int exitCode = 0;
 
-
     // Before using any pylon methods, the pylon runtime must be initialized.
     PylonInitialize();
 
@@ -78,7 +77,13 @@ int gigeGrab::grab()
          camera.Open();
 
         //set Parameters
-        CFeaturePersistence::Load("/home/montafan/flq.pfs", &camera.GetNodeMap(), true );
+        char path[256];
+        memset(path, 0, 256);
+        sprintf(path, "%s/flq.pfs", getenv("HOME"));
+        printf("pfs PATH:%s\n",path);
+        CFeaturePersistence::Load(path, &camera.GetNodeMap(), true );
+        //CFeaturePersistence::Load("/home/montafan/flq.pfs", &camera.GetNodeMap(), true );
+
 
         INodeMap& nodemap = camera.GetNodeMap();
         GenApi::CIntegerPtr width(nodemap.GetNode("Width"));
@@ -143,7 +148,7 @@ int gigeGrab::grab()
                     cvtColor(frame,mScanImgData.imageGray,CV_RGB2GRAY);
                     #ifdef OPENCV_WIN
                     imshow("basler camera",mScanImgData.imageGray);
-                    waitKey(1);
+                    //waitKey(1);
                     #endif
 
                     /////关注为什么ASSERT失败

@@ -30,6 +30,7 @@ private:
     int processEvt(recv_sm_evt_enum_t evt, void *evt_payload);
     TransmitStatus getTransmitStatus();
     int setTransmitStatus(TransmitStatus status);
+    void CompleteDesPath();
 
     TransmitStatus mTransStatus;
     RecvStateMachine *m_stateMachine;

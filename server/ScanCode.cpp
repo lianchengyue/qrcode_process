@@ -60,7 +60,6 @@ void ScanCode::scanimagefunc(/*const*/ void *raw/*, char *result*/)
 #ifdef USE_MUTIPLE_THREAD
     pthread_mutex_lock(&raw1->lock);
 #endif
-    usleep(10);
     /* wrap image data */
     //zbar_image_t *image = zbar_image_create();
 
@@ -75,7 +74,6 @@ void ScanCode::scanimagefunc(/*const*/ void *raw/*, char *result*/)
 
     /* scan the image for barcodes */
     int n = zbar_scan_image(scanner, image);
-    //printf("n=%d\n",n);
 
     /* extract results */
     const zbar_symbol_t *symbol = zbar_image_first_symbol(image);
@@ -84,15 +82,18 @@ void ScanCode::scanimagefunc(/*const*/ void *raw/*, char *result*/)
         /* do something useful with results */
         zbar_symbol_type_t typ = zbar_symbol_get_type(symbol);
         const char *data = zbar_symbol_get_data(symbol);
+        #ifdef PRINT_CONTENT
         printf("decoded: %s symbol:%s\n", zbar_get_symbol_name(typ), data);
+        #endif
         ///传值
         strcpy(raw1->result, data);
         raw1->ret = n;
 
         delete(data);//added for flq
     }
+    #ifdef PRINT_CONTENT
     printf("n=%d,The %d Frame processing\n", n, raw1->framecnt);
-
+    #endif
     //对二维码的处理放入线程中
     //very important
     if(1 == n)
@@ -113,7 +114,6 @@ void ScanCode::scanimage(/*const*/ void *raw/*, char *result*/)
 #ifdef USE_MUTIPLE_THREAD
     pthread_mutex_lock(&raw1->lock);
 #endif
-    ///usleep(10);
     /* wrap image data */
     //zbar_image_t *image = zbar_image_create();
 
@@ -144,7 +144,7 @@ void ScanCode::scanimage(/*const*/ void *raw/*, char *result*/)
 
         delete(data);//added for flq
     }
-    //printf("The %d Frame processing\n", raw1->framecnt);
+    printf("The %d Frame processing\n", raw1->framecnt);
 
 #ifdef USE_MUTIPLE_THREAD
     pthread_mutex_unlock(&raw1->lock);

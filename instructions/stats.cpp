@@ -365,7 +365,8 @@ void src_ini_traversal_imp(/*char *dir*/)
     #ifdef INI_FRAGMENT_WITHOUT_MASTHEAD
     split(SRC_INI_FILE_LOCATION, config_dir, BLOCK_SIZE); ///这里的_3_split_dir是目录，不是文件，存放切割后的碎片
     #else
-    split_ini(SRC_INI_FILE_LOCATION, config_dir, "config/", BLOCK_SIZE); ///这里的_3_split_dir是目录，不是文件，存放切割后的碎片
+    //split_ini(SRC_INI_FILE_LOCATION, config_dir, "config/", BLOCK_SIZE); ///这里的_3_split_dir是目录，不是文件，存放切割后的碎片
+    split_ini(SRC_INI_FILE_LOCATION, config_dir, "config.ini/", BLOCK_SIZE); ///这里的_3_split_dir是目录，不是文件，存放切割后的碎片
     #endif
     if(0 != access(folder_dir, F_OK))
     {
@@ -374,7 +375,8 @@ void src_ini_traversal_imp(/*char *dir*/)
     #ifdef INI_FRAGMENT_WITHOUT_MASTHEAD
     split(SRC_INI_FOLD_LOCATION, folder_dir, BLOCK_SIZE); ///这里的_3_split_dir是目录，不是文件，存放切割后的碎片
     #else
-    split_ini(SRC_INI_FOLD_LOCATION, folder_dir, "folder/", BLOCK_SIZE); ///这里的_3_split_dir是目录，不是文件，存放切割后的碎片
+    //split_ini(SRC_INI_FOLD_LOCATION, folder_dir, "folder/", BLOCK_SIZE); ///这里的_3_split_dir是目录，不是文件，存放切割后的碎片
+    split_ini(SRC_INI_FOLD_LOCATION, folder_dir, "folder/.ini", BLOCK_SIZE); ///这里的_3_split_dir是目录，不是文件，存放切割后的碎片
     #endif
 
 }

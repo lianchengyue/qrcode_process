@@ -44,10 +44,31 @@ int split(char *file, char*outpath, int blocksize)
         //printf("1,str=%s\n", str);  //tmp
 //        sprintf(str,"%s/X%d",str,i);/////////////////////////different gcc will lead different result
         sprintf(str,"%s/X%d",outpath,i);
-        printf("2,str=%s\n", str);  //tmp
+        //LOG_DBG("2,str=%s\n", str);  //tmp
 
         FILE *OutFile=fopen(str,"wb"); //获取二进制文件的指针,rb二进制, rt文本文件
 
+#if 0
+        //0<len<blocksize, 目前<blocksize不做压缩，不会进入这里
+        if (count = 1)
+        {
+            //<blocksize, only XO
+            printf("flq1, only X0,%s\n", file);
+            fread(pdesBuf,1,len%blocksize,InFile); //读文件
+            fwrite(pdesBuf, 1, len%blocksize, OutFile);
+        }
+        else{
+            if(i < count-1){
+                fread(pdesBuf,1,blocksize,InFile);
+                fwrite(pdesBuf, 1, blocksize, OutFile);
+            }
+            else if (i = count-1)
+            {
+                fread(pdesBuf,1,len%blocksize,InFile); //读文件
+                fwrite(pdesBuf, 1, len%blocksize, OutFile);
+            }
+        }
+#else
         if(i < count-1){
             fread(pdesBuf,1,blocksize,InFile);
             fwrite(pdesBuf, 1, blocksize, OutFile);
@@ -57,7 +78,7 @@ int split(char *file, char*outpath, int blocksize)
             fread(pdesBuf,1,len%blocksize,InFile); //读文件
             fwrite(pdesBuf, 1, len%blocksize, OutFile);
         }
-        //0<len<blocksize
+        //0<len<blocksize, 目前<blocksize不做压缩，不会进入这里
         else
         {
             //<blocksize, only XO
@@ -65,6 +86,7 @@ int split(char *file, char*outpath, int blocksize)
             fread(pdesBuf,1,len%blocksize,InFile); //读文件
             fwrite(pdesBuf, 1, len%blocksize, OutFile);
         }
+#endif
 
         free(str);
         fclose(OutFile); // 关闭文件
