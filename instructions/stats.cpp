@@ -40,8 +40,11 @@ int src_init_topology()
     mkdir("QRcodeGrab", S_IRWXU|S_IRWXG|S_IRWXO);
     chdir("QRcodeGrab");
 
+    //normal
     mkdir("source", S_IRWXU|S_IRWXG|S_IRWXO);
     chdir("source");
+    mkdir("normal", S_IRWXU|S_IRWXG|S_IRWXO);
+    chdir("normal");
 
     mkdir("1_location", S_IRWXU|S_IRWXG|S_IRWXO);
     mkdir("2_lzo_location", S_IRWXU|S_IRWXG|S_IRWXO);
@@ -51,6 +54,18 @@ int src_init_topology()
     mkdir("INI", S_IRWXU|S_IRWXG|S_IRWXO);
     ///mkdir("FRAG_INI", S_IRWXU|S_IRWXG|S_IRWXO);
 
+    //UDP
+    chdir("..");
+
+    mkdir("UDP", S_IRWXU|S_IRWXG|S_IRWXO);
+    chdir("UDP");
+
+    mkdir("1_location", S_IRWXU|S_IRWXG|S_IRWXO);
+    mkdir("2_lzo_location", S_IRWXU|S_IRWXG|S_IRWXO);
+    mkdir("3_split_location", S_IRWXU|S_IRWXG|S_IRWXO);
+    mkdir("4_base64_encode_location", S_IRWXU|S_IRWXG|S_IRWXO);
+
+    mkdir("INI", S_IRWXU|S_IRWXG|S_IRWXO);
     return 0;
 }
 
@@ -62,8 +77,28 @@ int des_init_topology()
     mkdir("QRcodeGrab", S_IRWXU|S_IRWXG|S_IRWXO);
     chdir("QRcodeGrab");
 
+    //normal
     mkdir("destination", S_IRWXU|S_IRWXG|S_IRWXO);
     chdir("destination");
+    mkdir("normal", S_IRWXU|S_IRWXG|S_IRWXO);
+    chdir("normal");
+
+    mkdir("1_receive_location", S_IRWXU|S_IRWXG|S_IRWXO);
+    mkdir("2_base64_decode_location", S_IRWXU|S_IRWXG|S_IRWXO);
+    mkdir("3_cat_location", S_IRWXU|S_IRWXG|S_IRWXO);
+    mkdir("4_location", S_IRWXU|S_IRWXG|S_IRWXO);
+    mkdir("recvINI", S_IRWXU|S_IRWXG|S_IRWXO);
+    mkdir("INI", S_IRWXU|S_IRWXG|S_IRWXO);
+    //所有完整文件的属性
+    mkdir("recvINI/config.ini", S_IRWXU|S_IRWXG|S_IRWXO);
+    mkdir("recvINI/folder.ini", S_IRWXU|S_IRWXG|S_IRWXO);
+
+    //UDP
+    //normal
+    chdir("..");
+
+    mkdir("UDP", S_IRWXU|S_IRWXG|S_IRWXO);
+    chdir("UDP");
 
     mkdir("1_receive_location", S_IRWXU|S_IRWXG|S_IRWXO);
     mkdir("2_base64_decode_location", S_IRWXU|S_IRWXG|S_IRWXO);
@@ -792,9 +827,16 @@ int file_traversal()
     //iniFileLoad(folderHead);
 
     ///遍历源文件夹并生成所有的文件夹,处理完后，在3中生成碎片
+    ///如果不遍历文件，改为解析JSON中的文件名  flq
+
+#if 0 //#ifdef USE_ACTIVEMQ
+    //拆分待传输的文件
+    processTheFile();
+#else
     src_file_traversal_imp(topDir, relativeDir,_2_dir, _3_dir, _4_dir, 0);
 
     printf("src_file_traversal_imp(), Done\n");
+#endif
     return 0;
 }
 

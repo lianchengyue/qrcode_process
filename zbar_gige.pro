@@ -45,7 +45,9 @@ SOURCES += main.cpp \
     server/usbGrab.cpp \
     client/ClientCbNotifier.cpp \
     client/ThreadObject.cpp \
-    client/TCPMonitor.cpp
+    client/TCPMonitor.cpp \
+    instructions/ActiveMQProducer.cpp \
+    instructions/ActiveMQConsumer.cpp
 
 HEADERS += \
     server/ScanCode.h \
@@ -75,7 +77,9 @@ HEADERS += \
     server/usbGrab.h \
     client/ClientCbNotifier.h \
     client/ThreadObject.h \
-    client/TCPMonitor.h
+    client/TCPMonitor.h \
+    instructions/ActiveMQProducer.h \
+    instructions/ActiveMQConsumer.h
 
 
 INCLUDEPATH += \
@@ -90,6 +94,8 @@ INCLUDEPATH += \
 /usr/local/include \
 /usr/local/libqrencode/include \
 /home/montafan/3rdparty/lzo210/include \
+/usr/local/ActiveMQ-CPP/include/activemq-cpp-3.9.4 \
+/usr/local/apr/include/apr-1
 
 LIBS += \
 /usr/local/opencv2.4.13/lib/libopencv_core.so \
@@ -136,8 +142,16 @@ LIBS += \
 #/usr/local/lib/libzbar.so \
 /usr/local/libqrencode/lib/libqrencode.so \
 /home/montafan/3rdparty/lzo210/lib/liblzo2.so \
+/usr/local/ActiveMQ-CPP/lib/libactivemq-cpp.a \
+/usr/local/apr/lib/libapr-1.a \
 
-LIBS += -L/usr/local/lib -lzbar
+LIBS += -L/usr/local/lib -lzbar -lcrypto -lssl
 
+# activemq-cpp-3.9.4的头文件路径和库文件路径
+#INCLUDEPATH += /usr/local/ActiveMQ-CPP/include/activemq-cpp-3.9.4
+#INCLUDEPATH += /usr/local/apr/include/apr-1
+# apr的头文件路径和库文件路径
+#LIBS += /usr/local/ActiveMQ-CPP/lib/libactivemq-cpp.a
+#LIBS += /usr/local/apr/lib/libapr-1.a
 
 FORMS += ui/qzbar.ui
