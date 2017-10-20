@@ -7,17 +7,34 @@
 #include<string.h>
 #include<sys/stat.h>
 #include <unistd.h>
+#include "include/macros.h"
+#include "include/fileParameters.h"
 
 int src_init_topology();
 int des_init_topology();
 
 void src_file_traversal_imp(char *dir, char* _short_dir, char *_2_dir, char *_3_dir, char *_4_dir, int depth);
 void src_ini_traversal_imp(/*char *dir*/);
-void src_fragment_traversal_imp(char *dir, int depth);
+//void src_fragment_traversal_imp(char *dir, int depth);
+void src_fragment_traversal_imp(char *dir, char* _short_dir, char *des, int depth);
 
 int file_traversal();
 int ini_traversal();
 int fragment_traversal();
+
+///对消息指定待传输文件的处理
+#ifdef USE_ACTIVEMQ
+int file_select(activeMQVec msg);
+void src_file_select_imp(char *dir, char* _short_dir, char *_2_dir, char *_3_dir, char *_4_dir, /*const */char *date, /*const */char *d_name);
+
+//int ini_select();
+//void src_ini_select_imp(selectedDir, relativeDir,_2_dir, _3_dir, _4_dir);
+//遍历日期目录下的文件
+int fragment_selected_traversal(activeMQVec msg);
+void src_fragment_selected_traversal_imp(char *dir, char* _short_dir, char *des, char *date, char *d_name);
+#endif
+///对消息指定待传输文件的处理 end
+
 
 //获取文件大小
 unsigned long get_file_size(char *path);

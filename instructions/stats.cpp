@@ -16,7 +16,6 @@
 #include "LZO/lzopack.h"//temp
 #include "instructions/split.h"
 #include "include/Errors.h"
-#include "include/macros.h"
 
 //#define PRINT_MD5SUM
 
@@ -814,7 +813,7 @@ int file_traversal()
     char *_3_dir = SRC_SPLIT_LOCATION;//"/home/montafan/QRcodeGrab/source/3_split_location/";
     char *_4_dir = SRC_BASE64_ENCODE_LOCATION;//"/home/montafan/QRcodeGrab/source/4_base64_encode_location/";
 
-    printf("Directory scan of %s\n",topDir);
+    printf("file_traversal(), Directory scan of %s\n",topDir);
 
     is_base64 = false;//flag, dont neglect
 
@@ -829,17 +828,454 @@ int file_traversal()
     ///遍历源文件夹并生成所有的文件夹,处理完后，在3中生成碎片
     ///如果不遍历文件，改为解析JSON中的文件名  flq
 
-#if 0 //#ifdef USE_ACTIVEMQ
-    //拆分待传输的文件
-    processTheFile();
-#else
     src_file_traversal_imp(topDir, relativeDir,_2_dir, _3_dir, _4_dir, 0);
-
     printf("src_file_traversal_imp(), Done\n");
-#endif
+
     return 0;
 }
 
+#ifdef USE_ACTIVEMQ
+int file_select(activeMQVec msg)
+{
+    char *topDir = SRC_LOCATION;//"/home/montafan/QRcodeGrab/source/location/";
+    char relativeDir[PATH_MAX] = {0};  //tqq
+    char *_2_dir = SRC_LZO_LOCATION;//"/home/montafan/QRcodeGrab/source/2_lzo_location/";
+    char *_3_dir = SRC_SPLIT_LOCATION;//"/home/montafan/QRcodeGrab/source/3_split_location/";
+    char *_4_dir = SRC_BASE64_ENCODE_LOCATION;//"/home/montafan/QRcodeGrab/source/4_base64_encode_location/";
+    ///后续改为读解析出的JSON信息
+    //char date[PATH_MAX] = "2017-3-3";
+    //char d_name[NAME_MAX] = "hu.png";
+    char date[PATH_MAX] ={0};
+    char d_name[PATH_MAX] ={0};
+
+    //避免传const
+    strcpy(date, msg.date.c_str());
+    strcpy(d_name, msg.filename.c_str());
+
+    printf("Directory scan of %s\n",topDir);
+
+    is_base64 = false;//flag, dont neglect
+
+    FILE *ini_file = fopen(HEAD, "w");
+    fclose(ini_file);
+    //iniFileLoad(HEAD);
+
+    FILE *ini_folder = fopen(folderHead, "w");
+    fclose(ini_folder);
+    //iniFileLoad(folderHead);
+
+    ///如果不遍历文件，改为解析JSON中的文件名  flq
+    //src_file_select_imp(topDir, relativeDir,_2_dir, _3_dir, _4_dir, msg.date.c_str(), msg.filename.c_str());
+    src_file_select_imp(topDir, relativeDir,_2_dir, _3_dir, _4_dir, date, d_name);
+    printf("src_file_select_imp(), Done\n");
+    return 0;
+}
+
+void src_file_select_imp(char *dir, char* _short_dir, char *_2_dir, char *_3_dir, char *_4_dir, char *date, char *d_name)
+{
+    //文件目录结构体
+    struct dirent *enty;
+    //详细文件信息结构体
+    struct stat statbuf;
+    //文件相对或绝对路径 addded by flq
+    char *total_dir;
+    char *relative_dir;
+
+    char *_2_lzo_dir;
+    char *_3_split_dir;
+    char *_4_base64_encode_dir;
+
+    char *symbol = "/";
+
+    char value[34];
+
+    memset(value, 0, 34);
+
+
+    total_dir = new char[PATH_MAX];
+    memset(total_dir, 0, PATH_MAX);
+    relative_dir = new char[PATH_MAX];
+    memset(relative_dir, 0, PATH_MAX);
+    _2_lzo_dir = new char[PATH_MAX];
+    memset(_2_lzo_dir, 0, PATH_MAX);
+    _3_split_dir = new char[PATH_MAX];
+    memset(_3_split_dir, 0, PATH_MAX);
+    _4_base64_encode_dir = new char[PATH_MAX];
+    memset(_4_base64_encode_dir, 0, PATH_MAX);
+
+    memset(md5sum_str, 0, MD5SUM_MAX);
+    memset(md5sum_str_hex, 0, MD5SUM_MAX);
+
+    //切换到这个目录
+    chdir(dir);
+    mkdir(date, S_IRWXU|S_IRWXG|S_IRWXO);//日期目录
+    chdir(_2_dir);
+    mkdir(date, S_IRWXU|S_IRWXG|S_IRWXO);//日期目录
+    chdir(_3_dir);
+    mkdir(date, S_IRWXU|S_IRWXG|S_IRWXO);//日期目录
+    chdir(_4_dir);
+    mkdir(date, S_IRWXU|S_IRWXG|S_IRWXO);//日期目录
+
+    chdir(dir);
+
+    //处理待发送的文件
+    {
+        //added by flq, get absolute path
+        ///获取其他文件夹下的文件绝对路径
+        //1的绝对路径
+        strcpy(total_dir,dir);
+        strcat(total_dir,date);
+        strcat(total_dir,symbol);
+        strcat(total_dir,d_name);
+        printf("%s\n", total_dir);
+
+        //通过文件名，得到详细文件信息
+        lstat(total_dir,&statbuf);
+
+        //generate_md5sum(total_dir);
+        //1的相对路径
+        sprintf(relative_dir, "%s%s/%s", _short_dir, date, d_name);
+
+        //2,3,4的绝对路径
+        strcpy(_2_lzo_dir,_2_dir);
+        mkdir(_2_lzo_dir, S_IRWXU|S_IRWXG|S_IRWXO);
+        strcat(_2_lzo_dir,date);
+        strcat(_2_lzo_dir,symbol);
+        strcat(_2_lzo_dir,d_name);
+
+        strcpy(_3_split_dir,_3_dir);
+        mkdir(_3_split_dir, S_IRWXU|S_IRWXG|S_IRWXO);
+        strcat(_3_split_dir,date);
+        strcat(_3_split_dir,symbol);
+        strcat(_3_split_dir,d_name);
+
+        strcpy(_4_base64_encode_dir,_4_dir);
+        mkdir(_4_base64_encode_dir, S_IRWXU|S_IRWXG|S_IRWXO);
+        strcat(_4_base64_encode_dir,date);
+        strcat(_4_base64_encode_dir,symbol);//'/'
+        strcat(_4_base64_encode_dir,d_name);
+
+        //输出文件名,后续可屏蔽
+        printf("enty->d_name:%s"," ",d_name);
+        printf(", statbuf.st_size=%d\n", statbuf.st_size);
+        //I:原文件目录的INI
+        iniFileLoad(HEAD);
+        //define INI_ACCESS_MODE
+        sprintf(value, "%d", file_cnt); //将file_cnt转为10进制表示的字符串  %x:16进制
+        //参数1为sect
+        iniSetString(value/*enty->d_name*/, "name", d_name);//name
+        iniSetString(value, "path", relative_dir);//path
+        iniSetInt(value, "size", statbuf.st_size, 0);//size
+        iniSetString(value, "md5sum", (char*)generate_md5sum(total_dir));//md5sum   or (char*)md5sum_str_hex
+        //getTimestamp();
+        file_cnt++;
+
+        //LZO压缩
+        FILE *in_file = fopen(total_dir, "rb");
+        //FILE *out_2_file = fopen(_2_lzo_dir, "wb");
+        //FILE *out_3_file = fopen(_3_split_dir, "wb");
+        //FILE *out_4_file = fopen(_4_base64_encode_dir, "wb"); //temp delete
+
+        if((statbuf.st_size > 0) && (statbuf.st_size < BLOCK_SIZE)){
+            //copy to des
+            FILE *out_2_file = fopen(_2_lzo_dir, "wb");
+            FILE *out_3_file = fopen(_3_split_dir, "wb");
+
+            char *des_buf = new char[statbuf.st_size];///statbuf.st_size+1
+            memset(des_buf, 0, statbuf.st_size);
+            fread(des_buf,1,statbuf.st_size,in_file);
+            //写小文件
+            fwrite(des_buf, 1, statbuf.st_size, out_2_file);
+
+            ///WHY CRASH???????
+            //memset(des_buf, 0, statbuf.st_size);
+            //fread(des_buf,1,statbuf.st_size,in_file);
+            fwrite(des_buf, 1, statbuf.st_size, out_3_file);
+
+            //memset(des_buf, 0, statbuf.st_size);
+            //fread(des_buf,1,statbuf.st_size,in_file);
+            //fwrite(des_buf, 1, statbuf.st_size, out_4_file);
+
+            free(des_buf);
+            fclose(out_2_file);
+            fclose(out_3_file);
+        }
+        else {
+        //else if((statbuf.st_size > BLOCK_SIZE) && (statbuf.st_size < BLOCK_SIZE*512)) {//<1M
+            //copy to des
+            char *des_buf = new char[statbuf.st_size];
+
+            //2_lzo_location中,压缩文件
+            memset(des_buf, 0, statbuf.st_size);
+            fread(des_buf,1,statbuf.st_size,in_file);
+
+            //写中等文件,有压缩包即可，实际不需要fwrite
+            //fwrite(des_buf, 1, statbuf.st_size, out_2_file);
+
+            //压缩des_buf的内容到文件夹,到3_split_location
+#ifdef USE_LZO_COMPRESSION
+            char *lzo_dir =new char[PATH_MAX];
+            memset(lzo_dir, 0, PATH_MAX);
+                strcpy(lzo_dir,_2_lzo_dir);
+                strcat(lzo_dir,LZO_SUFFIX);  //LZO_SUFFIX = ".lzo"
+
+            LOG_DBG("%s, processLZO start\n", __func__);
+            processLZO(total_dir, lzo_dir, LZO_COMPRESS);
+            LOG_DBG("%s, processLZO end\n", __func__);
+#endif
+            //3_split_location,切割文件
+            //memset(des_buf, 0, statbuf.st_size);
+            //fwrite(des_buf, 1, statbuf.st_size, out_3_file);
+            if(0 != access(_3_split_dir, F_OK))    // _3_split_dir=/home/montafan/QRcodeGrab/source/3_split_location/zbar_gige
+            {
+                LOG_DBG("mkdir _3_split_dir\n");
+                mkdir(_3_split_dir, S_IRWXU|S_IRWXG|S_IRWXO);///这里的_3_split_dir是目录，不是文件，存放切割后的碎片
+                //在最后会添加一个额外的过程来显示碎片路径的ini,
+                //在此添加虽然代码显得麻烦，但会在接收端的每次接收都减少一次判断
+                //consider whether need to add code to generate a ini of fragment for mkdir
+                //...
+                //...
+                //...
+            } else{
+                LOG_DBG("exist, need not mkdir _3_split_dir\n");
+            }
+#ifdef USE_LZO_COMPRESSION
+            char *outputDir = new char[PATH_MAX];
+            memset(outputDir, 0, PATH_MAX);
+            sprintf(outputDir, "%s%s%s/%s%s", SRC_LZO_LOCATION, _short_dir, date, d_name, LZO_SUFFIX); //moidfied by flq
+
+            LOG_DBG("%s, split start, outputDir=%s, _3_split_dir=%s, blocksize=%d\n", __func__, outputDir, _3_split_dir ,BLOCK_SIZE);
+            split(outputDir, _3_split_dir, BLOCK_SIZE); ///这里的_3_split_dir是目录，不是文件，存放切割后的碎片
+            LOG_DBG("%s, split end\n", __func__);
+
+            free(outputDir);
+            free(lzo_dir);
+
+#else
+            split(total_dir, _3_split_dir, BLOCK_SIZE); ///这里的_3_split_dir是目录，不是文件，存放切割后的碎片
+#endif
+            if(0 != access(_4_base64_encode_dir, F_OK))
+            {
+                mkdir(_4_base64_encode_dir, S_IRWXU|S_IRWXG|S_IRWXO);
+            }
+
+            //4_base64_encode_location,base64 encode文件
+            //memset(des_buf, 0, statbuf.st_size);
+            //fwrite(des_buf, 1, statbuf.st_size, out_4_file);
+
+
+            free(des_buf);
+        }/* else if(statbuf.st_size > 2048*512){ //>1M
+            ///支持对1M以上文件的传输
+
+            //split();
+            //LZO
+            //base64
+        }*/
+        fclose(in_file);
+        //fclose(out_2_file);
+        //fclose(out_3_file);
+        //fclose(out_4_file);
+        //LZO压缩 end
+    }
+
+    //free
+    free(total_dir);
+    free(_2_lzo_dir);
+    free(_3_split_dir);
+    free(_4_base64_encode_dir);
+
+
+}
+
+int fragment_selected_traversal(activeMQVec msg)
+{
+    //char fragmentDir[PATH_MAX] = {0} ;//"/home/montafan/QRcodeGrab/source/3_split_location/";
+    //char fragmentDes[PATH_MAX] = {0};
+    char *fragmentDir = SRC_SPLIT_LOCATION;
+    char *fragmentDes = SRC_BASE64_ENCODE_LOCATION;
+    char relativeDir[PATH_MAX] = {0};
+    ///后续改为读解析出的JSON信息
+    //char date[PATH_MAX] = "2017-3-3";
+    //char d_name[NAME_MAX] = "hu.png";
+    char date[PATH_MAX] = {0};
+    char d_name[NAME_MAX] = {0};
+
+    //避免传const
+    strcpy(date, msg.date.c_str());
+    strcpy(d_name, msg.filename.c_str());
+
+    is_base64 = true;
+    //待处理，寻找合适的位置
+    ////iniFileLoad(fragmentHEAD);
+
+    //sprintf(fragmentDir, "%s%s/%s/",SRC_SPLIT_LOCATION, date, d_name);
+    //sprintf(fragmentDes, "%s%s/%s/",SRC_BASE64_ENCODE_LOCATION, date, d_name);
+
+    //src_fragment_traversal_imp(fragmentDir, relativeDir, fragmentDes, 0);
+    src_fragment_selected_traversal_imp(fragmentDir, relativeDir, fragmentDes, date, d_name);
+
+    return 0;
+}
+
+void src_fragment_selected_traversal_imp(char *dir, char* _short_dir, char *des, char *date, char *d_name)
+{
+    DIR *Dp;
+    //文件目录结构体
+    struct dirent *enty;
+    //详细文件信息结构体
+    struct stat statbuf;
+    //文件相对或绝对路径 addded by flq
+    char *total_dir;
+    char *relative_dir;
+    char *des_str;
+
+    char *symbol = "/";
+
+    total_dir = new char[PATH_MAX];
+    memset(total_dir, 0, PATH_MAX);
+    relative_dir = new char[PATH_MAX];
+    memset(relative_dir, 0, PATH_MAX);
+
+    des_str = new char[PATH_MAX];
+    memset(des_str, 0, PATH_MAX);
+
+    memset(md5sum_str, 0, MD5SUM_MAX);
+    memset(md5sum_str_hex, 0, MD5SUM_MAX);
+
+    //碎片的绝对路径
+    strcpy(total_dir,dir);
+    strcat(total_dir,date);
+    strcat(total_dir,symbol);
+    strcat(total_dir,d_name);
+    printf("current dir, %s\n", total_dir);
+
+    //打开指定的目录，获得目录指针
+    if(NULL == (Dp = opendir(total_dir)))
+    {
+        fprintf(stderr,"can not open dir:%s\n",dir);
+        return;
+    }
+    memset(total_dir, 0, strlen(total_dir));
+
+    //切换到这个目录
+    chdir(dir);
+
+    //遍历这个目录下的所有文件
+    while(NULL != (enty = readdir(Dp) ))
+    {
+        //通过文件名，得到详细文件信息
+        lstat(enty->d_name,&statbuf);
+
+
+        //判断是不是目录
+        if(S_ISDIR(statbuf.st_mode))
+        {
+            //当前目录和上一目录过滤掉
+            if(0 == strcmp(".",enty->d_name) ||
+                          0 == strcmp("..",enty->d_name))
+            {
+                continue;
+            }
+        /*
+            strcpy(total_dir,dir);
+            strcat(total_dir,date);
+            strcat(total_dir,symbol);
+            strcat(total_dir,enty->d_name);
+
+            //相对路径拼接
+            sprintf(relative_dir, "%s%s/", _short_dir, enty->d_name);
+
+            strcpy(des_str,des);
+            strcat(total_dir,date);
+            strcat(total_dir,symbol);
+            strcat(des_str,enty->d_name);
+
+            //I:碎片文件目录的INI
+            iniFileLoad(fragmentHEAD);
+            //继续递归调用
+            src_fragment_selected_traversal_imp(total_dir, relative_dir, des_str, date, d_name);//绝对路径递归调用错误 modify by flq
+        */
+        }
+        else
+        {
+            //碎片的绝对路径
+            strcpy(total_dir,dir);
+            strcat(total_dir,date);
+            strcat(total_dir,symbol);
+            strcat(total_dir,d_name);
+            printf("current dir, %s\n", total_dir);
+
+            //generate_md5sum(total_dir);
+            //相对路径拼接
+            sprintf(relative_dir, "%s%s", _short_dir, enty->d_name);
+
+            //输出文件名
+            //added by flq
+            iniSetString(enty->d_name, "name", enty->d_name);//name
+            iniSetString(enty->d_name, "path", total_dir);//path
+            iniSetInt(enty->d_name, "size", statbuf.st_size, 0);//size
+            //碎片不需要MD5SUM
+            //iniSetString(enty->d_name, "md5sum", (char*)generate_md5sum(total_dir));//md5sum   or (char*)md5sum_str_hex
+            //getTimestamp();
+            //added end
+            /////////////////////////BASE64 ENCODE////////////////////////////
+            if(is_base64)
+            {
+                //3_拼接为碎片名
+                strcpy(total_dir,dir);
+                strcat(total_dir,date);
+                strcat(total_dir,symbol);
+                strcat(total_dir,d_name);
+                strcat(total_dir,symbol);
+                strcat(total_dir,enty->d_name);
+                //4_拼接为碎片名
+                strcpy(des_str,des);
+                strcat(des_str,date);
+                strcat(des_str,symbol);
+                strcat(des_str,d_name);
+                strcat(des_str,symbol);
+                strcat(des_str,enty->d_name);
+
+                char *diplay_content;
+
+                //dont forget mkdir fold, already done
+                FILE *infile = fopen(total_dir, "rb");
+                FILE *outfile = fopen(des_str, "wb");
+
+                #if 1
+                //encode(infile, outfile);//OK
+                encode(infile, outfile, _short_dir, enty->d_name);//添加路径信息
+                #else
+                //first length. then new, then
+                int length = get_length_after_base64(infile);
+                diplay_content = new char[length];
+                encode(infile, diplay_content);
+                #endif
+                ///===============后续在此生成二维码===============//
+                ///here qrgenrator
+
+                //free(des_str);
+                fclose(infile);
+                fclose(outfile);
+            }
+        }
+    }
+
+    ///***********************************通知到显示模块**********************************//
+    ////QRGenerator w;
+    ////w.StartTimer();
+
+    //切换到上一及目录
+    chdir("..");
+    //关闭文件指针
+    closedir(Dp);
+
+    //free
+    free(total_dir);
+    free(des_str);
+}
+#endif  //USE_ACTIVEMQ
 
 int ini_traversal()
 {

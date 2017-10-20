@@ -195,7 +195,7 @@ int ProcessInThread::des_start_content_receiver(char *QRdata)
     char *pureQRdata;//temp
     int *offset = (int *)malloc(sizeof(int));
 
-    printf("des_start_content_receiver\n");
+    //printf("des_start_content_receiver\n");
 
     memset(relative_dir, 0, PATH_MAX);
     memset(total_dir, 0, PATH_MAX);

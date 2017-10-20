@@ -39,7 +39,7 @@
 
 #define LZO_SUFFIX ".lzo"
 
-#if 0
+#if 1
 #ifdef USE_MUTIPLE_THREAD
 #define THREAD_NUM 16
 #define QUEUES 64
@@ -64,7 +64,7 @@
 //状态码显示的次数
 #define WAIT_FRAME_COUNT 5
 //二维码显示15帧
-#define DISPLAY_INTERVAL 33333//100000  //unit: us     30fps:33333  25fps:40000 15fps:66666  10fps:100000
+#define DISPLAY_INTERVAL 200000//100000  //unit: us     30fps:33333  25fps:40000 15fps:66666  10fps:100000  8fps:125000
 
 
 typedef enum{
@@ -83,13 +83,32 @@ typedef enum{
     END,
 } TransmitStatus;
 
+#ifdef USE_ACTIVEMQ
+typedef struct ActiveMQVec {
+    std::string filename;
+    std::string date;
+    int size;
+    std::string md5sum;
+    int type;// 1: UDP 2:tcp
+
+/*    void operator=(ActiveMQVec& other)
+    {
+        filename = other.filename;
+        date = other.date;
+        size =other.size;
+        md5sum = other.md5sum;
+        type = other.type;
+    }
+*/
+} activeMQVec;
+#endif
+
 const char TRANSMIT_PRESTART[] = "1010101010"; //传输报头
 const char TRANSMIT_PREEND[] = "2020202020"; //传输报头
 //const char TRANSMIT_START[] = "http://baike.baidu.com";//传输开始
 const char TRANSMIT_START[] = "s0s0s0s0s0";//传输开始
 //const char TRANSMIT_END[] = "http://baike.baidu.com";//传输结束
-const char TRANSMIT_END[] = "3030303030";//传输结束
-//const char TRANSMIT_END[] = "e0e0e0e0e0";//传输结束
+const char TRANSMIT_END[] = "e0e0e0e0e0";//传输结束
 const char TRANSMIT_IDLE[] = "3030303030";//空闲状态
 //const char TRANSMIT_INI[] = "3030303030"; //传输配置文件
 

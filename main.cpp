@@ -183,19 +183,19 @@ int main(int argc, char* argv[]) {
 activemq::library::ActiveMQCPP::initializeLibrary();
 
 std::cout << "=====================================================\n";
-std::cout << "Starting the example:" << std::endl;
+std::cout << "fff Starting the example:" << std::endl;
 std::cout << "-----------------------------------------------------\n";
 
 std::string brokerURI = "failover:(tcp://114.55.4.189:61616)";
 
-std::string destURI = "my1.queue";
+std::string destURI = "my.queue";
 bool useTopics = false;
 bool clientAck = false;
 ActiveMQAsyncConsumer consumer( brokerURI, destURI, useTopics, clientAck );
 consumer.runConsumer();
 std::cout << "Press 'q' to quit" << std::endl;
-//while( std::cin.get() != 'q') {}
-sleep(1);
+while( std::cin.get() != 'q') {}
+//sleep(1);
 consumer.close();
 
 std::cout << "-----------------------------------------------------\n";
@@ -328,7 +328,7 @@ int main(int argc, char* argv[])
   //printf("argv[0]:%s\n",argv[0]);//全路径
   const char *home =getenv("HOME"); //HOMEDRIVE ///home/montafan
   printf("the home path is %s\n", home);
-#if 1//ndef USE_ACTIVEMQ //temp
+#ifndef USE_ACTIVEMQ //temp
     //生成拓扑
     src_init_topology();
     //文件遍历
@@ -343,6 +343,9 @@ int main(int argc, char* argv[])
     printf("fragment_traversal()\n");
     fragment_traversal();
     printf("fragment_traversal end()\n");
+#else
+  //生成拓扑
+  src_init_topology();
 #endif
 
     //二维码显示
@@ -360,8 +363,12 @@ int main(int argc, char* argv[])
 
     printf("a.exec()\n");
 
-    a.exec();
-    return 0;
+    return a.exec();
+
+    //std::cout << "Tail! Press 'q' to quit" << std::endl;
+    //while( std::cin.get() != 'q') {}
+
+    //return 0;
     //return a.exec();
 
 #else //#ifdef DISPLAY_QRCODE

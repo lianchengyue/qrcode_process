@@ -3,7 +3,7 @@
 
 //打开为发送端，屏蔽为接收端
 #ifndef DISPLAY_QRCODE
-//#define DISPLAY_QRCODE  //grab pic
+#define DISPLAY_QRCODE  //grab pic
 #endif
 
 //是否使用LZO压缩算法
@@ -53,7 +53,7 @@
 
 //打印识别内容
 #ifndef PRINT_CONTENT
-#define PRINT_CONTENT
+//#define PRINT_CONTENT
 #endif
 
 //#define INI_ACCESS_MODE

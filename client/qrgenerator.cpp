@@ -26,6 +26,10 @@
 #include "instructions/stats.h"
 
 #include <string>
+
+#include "instructions/ActiveMQConsumer.h"
+#include <json/json.h>
+
 using namespace std;
 
 //#define WAIT_FRAME_COUNT 20
@@ -34,6 +38,14 @@ using namespace std;
 char *pdesBuf;  //定义文件指针
 vector<string> vecINIString;
 vector<string> vecString;
+#ifdef USE_ACTIVEMQ
+vector<activeMQVec> UDPVec;
+vector<activeMQVec> NormalVec;
+vector<string> UDPrawVec;
+vector<string> NormalrawVec;
+#endif
+int taskcnt;//记录待处理的任务数
+bool taskrunning;
 
 //与信号量不同的程序
 QWaitCondition UDPRunning; //QWaitCondition允许在一定条件下触发其它多个线程
@@ -52,7 +64,8 @@ bool isNormal;
 NormalThread::NormalThread(QObject *parent)
 {
     number = 0;
-    ///m_cbNotifier = new ClientCbNotifier();
+
+    qRegisterMetaType<activeMQVec>("activeMQVec>");
 }
 
 NormalThread::~NormalThread()
@@ -62,13 +75,15 @@ NormalThread::~NormalThread()
 
 void NormalThread::run()
 {
+///断点续传
+#if 0
     sleep(1);//temp add, a.execute后再启动线程
     emit UpdateSignal(number);
     //number++;
 
 //https://stackoverflow.com/questions/9075837/pause-and-resume-a-qthread
     //while(someCondition) // gues it's your loop
-    for(int i = 0; i<50; i++)
+    for(int i = 0; i<2; i++)  //50
     {
          sync.lock();
          if(is_pause)
@@ -95,6 +110,59 @@ void NormalThread::run()
     sync.unlock();
 
     //收到高优先级的抢占消息
+#elif 0
+    sleep(1);//temp add, a.execute后再启动线程
+    emit UpdateSignal(number);
+#else
+    #ifdef USE_ACTIVEMQ
+    sleep(1);//temp add, a.execute后再启动线程
+
+    while(1)
+    {
+        //处理所有的UDP消息
+        auto udpIter = UDPrawVec.begin();
+        while (UDPrawVec.size()>0)
+        {
+            if(taskrunning)
+            {
+                sleep(5);
+                continue;
+            }
+
+            printf("=========start process UDP Signal=========\n");
+            //emit ProcessMsgSignal((activeMQVec)*udpIter);
+            //emit ProcessMsgSignal(UDPrawVec[0]);
+            QString transmitUDP = QString::fromStdString(UDPrawVec[0]);
+            emit ProcessMsgSignal(transmitUDP);
+            udpIter = UDPrawVec.erase(udpIter);
+
+            continue;//优先处理高优先级
+        }
+
+        //处理一个normal消息
+        auto normalIter = NormalrawVec.begin();
+        if(NormalrawVec.size()>0)
+        {
+            if(taskrunning)
+            {
+                sleep(5);
+                continue;
+            }
+
+            printf("=========start process Nomal Signal=========\n");
+            ///emit ProcessMsgSignal((activeMQVec)*normalIter);
+            //emit ProcessMsgSignal(NormalrawVec[0]);
+            QString transmitNormal = QString::fromStdString(NormalrawVec[0]);
+            emit ProcessMsgSignal(transmitNormal);
+            normalIter = NormalrawVec.erase(normalIter);
+        }
+
+        ///给接收段留处理时间,后续根据文件size做成动态
+        sleep(8);
+    }
+    #endif
+
+#endif
 
 }
 #if 1
@@ -223,6 +291,7 @@ void src_fragment_traversal(string dir, bool is_ini, int depth) //get_file_to_ge
             if(is_ini)
             {
                 vecINIString.push_back(total_dir);
+                ///std::vector<std::array<char,255>>* vecString = reinterpret_cast<std::vector<std::array<char,255>>*>(total_dir);
             }
             else
             {
@@ -249,6 +318,13 @@ QRGenerator::QRGenerator(QWidget *parent)
     , ui(new Ui::MainWindow)
 #endif
 {
+    //将不识别的参数结构进行注册，让QT能够识别
+    #ifdef USE_ACTIVEMQ
+    qRegisterMetaType<activeMQVec>("activeMQVec>");
+    qRegisterMetaType<activeMQVec>("activeMQVec&>");
+    qRegisterMetaType<ActiveMQVec>("ActiveMQVec>");
+    #endif
+
     ///ui->setupUi(this);
     setWindowTitle("传输二维码");
     setWindowIcon(QIcon(":/new/prefix1/Image/ICON.ico"));
@@ -258,18 +334,15 @@ QRGenerator::QRGenerator(QWidget *parent)
     //thread
     m_UDPTh = new UDPThread;
     m_NormalTh = new NormalThread;
-    //m_RecvPTh = new NormalThread;
+    m_activeMQTh = new activeMQThread;
+
+    taskrunning = false;
+    taskcnt = 0;
 
     //empty
     setString(TRANSMIT_IDLE);
 
     CompleteSrcPath();
-
-    //thread
-    myThread = new NormalThread;
-
-    connect(myThread, SIGNAL(UpdateSignal(int)), this, SLOT((int)));
-    connect(this, SIGNAL(ResetSignal()), myThread, SLOT(ResetSlot()));
 
     ////UDP与Normal两个线程
     //connect(m_UDPTh, SIGNAL(UDPSignal(int)), this, SLOT(UpdateSlot(int)));//显示二维码 UpdateSlot(int)
@@ -277,19 +350,22 @@ QRGenerator::QRGenerator(QWidget *parent)
     //connect(this, SIGNAL(ResetSignal()), m_UDPTh, SLOT(ResetSlot()));
 
     connect(m_NormalTh, SIGNAL(UpdateSignal(int)), this, SLOT(UpdateSlot(int)));//显示二维码 UpdateSlot(int)
-    connect(m_NormalTh, SIGNAL(UpdateSignal(int)), this, SLOT(processNormalEventSlot()));
+///    connect(m_NormalTh, SIGNAL(UpdateSignal(int)), this, SLOT(processNormalEventSlot()));
     connect(this, SIGNAL(ResetSignal()), m_NormalTh, SLOT(ResetSlot()));
+
+    //
+    #ifdef USE_ACTIVEMQ
+    connect(m_NormalTh, SIGNAL(ProcessMsgSignal(activeMQVec)), this, SLOT(ProcessMsg(activeMQVec)));//显示二维码 UpdateSlot(int)
+    connect(m_NormalTh, SIGNAL(ProcessMsgSignal(QString)), this, SLOT(ProcessMsgQ(QString)));//显示二维码 UpdateSlot(int)
+    #endif
 
     //接收器，收到消息后，操作UDP与Normal线程
     //connect(m_RecvPTh, SIGNAL(UDPTaskIncomingSignal()), this, SLOT(EventRevevier()));
     //connect(m_RecvPTh, SIGNAL(NormalTaskIncomingSignal()), this, SLOT(EventRevevier()));
 
-    //启动线程
-    //setWindowTitle("Thread Test");
-    //resize(200, 200);
     ///==============================start Thread=====================================/
     bool flagg1 = m_NormalTh->isRunning();
-#if 1
+#if 0
     ///后续改为在收到传输完成消息后调用 added by flq
     printf("1111111111\n");
     //m_UDPTh->start();
@@ -305,10 +381,14 @@ QRGenerator::QRGenerator(QWidget *parent)
     m_NormalTh->start();
 #endif
 
+#ifdef USE_ACTIVEMQ
+    m_activeMQTh->start();
+    //m_activeMQTh->RegisterRecvActiveMQ();
+#endif
+
 
     qDebug() << QString("main thread id:") << QThread::currentThreadId();
 
-    ///sleep(5);
     //UDPRunning.wait(&mutex);
 }
 
@@ -448,12 +528,12 @@ void QRGenerator::paintEvent(QPaintEvent *)
 //thread
 void QRGenerator::StartSlot()
 {
-    myThread->start();
+    m_NormalTh->start();
 }
 
 void QRGenerator::StopSlot()
 {
-    myThread->terminate();
+    m_NormalTh->terminate();
 }
 
 void QRGenerator::UpdateSlot(int num)
@@ -463,8 +543,23 @@ void QRGenerator::UpdateSlot(int num)
     printf("UpdateSlot,Thread\n");
 
     mutex.lock();
-#if 1
+
     //处理待发送文件
+    #ifdef USE_ACTIVEMQ
+    //文件遍历
+    //2:LZO压缩，3:split操作
+    printf("file_select()\n");
+    ////file_select(msg);
+
+    //报头遍历
+    printf("ini_traversal()\n");
+    ini_traversal();
+    //遍历片段
+    printf("fragment_traversal()\n");
+    //fragment_traversal();
+    //fragment_selected_traversal();
+    printf("fragment_traversal end()\n");
+    #endif
 #if 1
     ///后续改为在收到传输完成消息后调用 added by flq
     //文件夹信息
@@ -575,15 +670,199 @@ void QRGenerator::UpdateSlot(int num)
 
     ///播放结束二维码
     printf("TRANSMIT_END\n");
-    for (ie = 0; ie < WAIT_FRAME_COUNT; ie++) {
+    for (ie = 0; ie < WAIT_FRAME_COUNT+3; ie++) {
         setString(TRANSMIT_END);
     }
 
     printf("TRANSMIT_IDLE\n");
     setString(TRANSMIT_IDLE);
-#endif
+
     mutex.unlock();
 }
+
+#ifdef USE_ACTIVEMQ
+void QRGenerator::ProcessMsg(activeMQVec msg)
+{
+    printf("SSSSSSSSSSSSSSSSSSSSSSSS\n");
+    int i =1;
+}
+
+void QRGenerator::ProcessMsgQ(QString msg)
+{
+    printf("ttttttttttttt\n");
+
+    int is;
+    int ie;
+    printf("ProcessMsgQ,Thread\n");
+
+    mutex.lock();
+
+    taskrunning = true;
+
+    //格式转换
+    ActiveMQVec receivedMessage;
+    //str = qstr.toStdString();
+    //qstr = QString::fromStdString(str);
+    std::string ssmg = msg.toStdString();
+
+    Json::Reader reader(Json::Features::strictMode());
+    Json::Value parseData;
+
+    if (reader.parse(ssmg.c_str(), parseData))
+    {
+       std::string filename = parseData.get("filename", 0).asString();
+       std::string date = parseData.get("date", 0).asString();
+       int size = parseData.get("size", 0).asInt();
+       std::string md5sum = parseData.get("md5sum", 0).asString();
+       int type = parseData.get("type", 0).asInt();
+       printf("parseJSON(): filename:%s, date:%s, size:%d, md5sum:%s, type=%d\n", filename.c_str(), date.c_str(), size, md5sum.c_str(), type);
+
+       //将读取到的消息写到本地vector中
+       receivedMessage.filename = filename;
+       receivedMessage.size = size;
+       receivedMessage.date = date;
+       receivedMessage.md5sum = md5sum;
+       receivedMessage.type =type;
+    }
+
+    //处理待发送文件
+    #ifdef USE_ACTIVEMQ
+    //文件遍历
+    //2:LZO压缩，3:split操作
+    printf("file_select()\n");
+    file_select(receivedMessage);
+
+    //报头遍历
+    printf("ini_traversal()\n");
+    ini_traversal();
+    //遍历片段
+    printf("fragment_selected_traversal()\n");
+    fragment_selected_traversal(receivedMessage);
+    printf("fragment_selected_traversal end()\n");
+    #endif
+    #if 1
+    ///后续改为在收到传输完成消息后调用 added by flq
+    //文件夹信息
+    char *folderdir = SRC_INI_FOLD_FRAG_LOCATION;
+    std::string folder_str =  folderdir;
+    src_fragment_traversal(folder_str, true, 0);  //isINI=true
+
+    //文件属性信息
+    char *configdir = SRC_INI_FILE_FRAG_LOCATION;
+    std::string config_str =  configdir;
+    src_fragment_traversal(config_str, true, 0);
+
+    //内容碎片信息
+    //直接遍历4_base64_encode_location/文件,路径保存到vector
+    char *topdir = SRC_BASE64_ENCODE_LOCATION;
+    std::string topdir_str =  topdir;
+    src_fragment_traversal(topdir_str, false, 0);
+    ///added end
+    #endif
+
+    printf("NEW TRANSMIT_PRESTART\n");
+    ///播放报头二维码
+    for (is = 0; is < WAIT_FRAME_COUNT; is++)
+    {
+       setString(TRANSMIT_PRESTART);
+    }
+
+    printf("NEW TRANSMIT ini\n");
+    ///播放报头
+    //here to add content
+    //...
+    for (size_t i = 0; i < vecINIString.size(); i++) {
+
+       std::string s = vecINIString[i];
+       FILE *pFile=fopen(s.c_str(),"rb"); //rb二进制, rt文本文件
+
+       fseek(pFile,0,SEEK_END); //把指针移动到文件的结尾 ，获取文件长度
+       int len=ftell(pFile); //获取文件长度
+       pdesBuf=new char[len+1];
+       rewind(pFile); //把指针移动到文件开头
+       fread(pdesBuf,1,len,pFile);
+       pdesBuf[len]=0;
+
+       fclose(pFile);
+       //added end
+
+       //added by flq
+       //第一帧图像多播放两次，防止高速下第一帧切换时候掉帧
+       if(0 == i)
+       {
+           setString(pdesBuf);
+           setString(pdesBuf);
+       }
+       //added end
+
+       //显示二维码
+       setString(pdesBuf);
+       ///usleep(100);
+       free(pdesBuf);
+    }
+    //added end
+
+    printf("NEW TRANSMIT_PREEND\n");
+    ///播放报头二维码
+    for (is = 0; is < WAIT_FRAME_COUNT; is++)
+    {
+       setString(TRANSMIT_PREEND);
+    }
+
+    printf("NEW TRANSMIT_START\n");
+    ///播放开始二维码
+    for (is = 0; is < WAIT_FRAME_COUNT; is++)
+    {
+       setString(TRANSMIT_START);
+    }
+
+    printf("TRANSMIT content\n");
+
+    for (size_t i = 0; i < vecString.size(); i++) {
+
+       std::string s = vecString[i];
+       FILE *pFile=fopen(s.c_str(),"rb"); //rb二进制, rt文本文件
+
+       fseek(pFile,0,SEEK_END); //把指针移动到文件的结尾 ，获取文件长度
+       int len=ftell(pFile); //获取文件长度
+       pdesBuf=new char[len+1];
+       rewind(pFile); //把指针移动到文件开头
+       fread(pdesBuf,1,len,pFile);
+       pdesBuf[len]=0;
+
+       fclose(pFile);
+       //added end
+
+       //added by flq
+       //第一帧图像多播放两次，防止高速下第一帧切换时候掉帧
+       if(0 == i)
+       {
+           setString(pdesBuf);
+           setString(pdesBuf);
+       }
+       //added end
+
+       //显示二维码
+       setString(pdesBuf);
+       ///usleep(100);
+       free(pdesBuf);
+    }
+
+    ///播放结束二维码
+    printf("TRANSMIT_END\n");
+    for (ie = 0; ie < WAIT_FRAME_COUNT+3; ie++) {
+       setString(TRANSMIT_END);
+    }
+
+    printf("TRANSMIT_IDLE\n");
+    setString(TRANSMIT_IDLE);
+
+    taskrunning = false;
+    mutex.unlock();
+
+    //taskcnt--;
+}
+#endif
 
 void QRGenerator::ClearSlot()
 {
@@ -659,125 +938,6 @@ void QRGenerator::processUDPEventSlot()
     printf("UpdateSlot,Thread\n");
 
     mutex.lock();
-#if 1
-    //处理待发送文件
-#if 1
-    ///后续改为在收到传输完成消息后调用 added by flq
-    //文件夹信息
-    char *folderdir = SRC_INI_FOLD_FRAG_LOCATION;
-    std::string folder_str =  folderdir;
-    src_fragment_traversal(folder_str, true, 0);  //isINI=true
-
-    //文件属性信息
-    char *configdir = SRC_INI_FILE_FRAG_LOCATION;
-    std::string config_str =  configdir;
-    src_fragment_traversal(config_str, true, 0);
-
-    //内容碎片信息
-    //直接遍历4_base64_encode_location/文件,路径保存到vector
-    char *topdir = SRC_BASE64_ENCODE_LOCATION;
-    std::string topdir_str =  topdir;
-    src_fragment_traversal(topdir_str, false, 0);
-    ///added end
- #endif
-
-    printf("NEW TRANSMIT_PRESTART\n");
-    ///播放报头二维码
-    for (is = 0; is < WAIT_FRAME_COUNT; is++)
-    {
-        setString(TRANSMIT_PRESTART);
-    }
-
-    printf("NEW TRANSMIT ini\n");
-    ///播放报头
-    //here to add content
-    //...
-    for (size_t i = 0; i < vecINIString.size(); i++) {
-
-        std::string s = vecINIString[i];
-        FILE *pFile=fopen(s.c_str(),"rb"); //rb二进制, rt文本文件
-
-        fseek(pFile,0,SEEK_END); //把指针移动到文件的结尾 ，获取文件长度
-        int len=ftell(pFile); //获取文件长度
-        pdesBuf=new char[len+1];
-        rewind(pFile); //把指针移动到文件开头
-        fread(pdesBuf,1,len,pFile);
-        pdesBuf[len]=0;
-
-        fclose(pFile);
-        //added end
-
-        //added by flq
-        //第一帧图像多播放两次，防止高速下第一帧切换时候掉帧
-        if(0 == i)
-        {
-            setString(pdesBuf);
-            setString(pdesBuf);
-        }
-        //added end
-
-        //显示二维码
-        setString(pdesBuf);
-        ///usleep(100);
-        free(pdesBuf);
-    }
-    //added end
-
-    printf("NEW TRANSMIT_PREEND\n");
-    ///播放报头二维码
-    for (is = 0; is < WAIT_FRAME_COUNT; is++)
-    {
-        setString(TRANSMIT_PREEND);
-    }
-
-    printf("NEW TRANSMIT_START\n");
-    ///播放开始二维码
-    for (is = 0; is < WAIT_FRAME_COUNT; is++)
-    {
-        setString(TRANSMIT_START);
-    }
-
-    printf("TRANSMIT content\n");
-
-    for (size_t i = 0; i < vecString.size(); i++) {
-
-        std::string s = vecString[i];
-        FILE *pFile=fopen(s.c_str(),"rb"); //rb二进制, rt文本文件
-
-        fseek(pFile,0,SEEK_END); //把指针移动到文件的结尾 ，获取文件长度
-        int len=ftell(pFile); //获取文件长度
-        pdesBuf=new char[len+1];
-        rewind(pFile); //把指针移动到文件开头
-        fread(pdesBuf,1,len,pFile);
-        pdesBuf[len]=0;
-
-        fclose(pFile);
-        //added end
-
-        //added by flq
-        //第一帧图像多播放两次，防止高速下第一帧切换时候掉帧
-        if(0 == i)
-        {
-            setString(pdesBuf);
-            setString(pdesBuf);
-        }
-        //added end
-
-        //显示二维码
-        setString(pdesBuf);
-        ///usleep(100);
-        free(pdesBuf);
-    }
-
-    ///播放结束二维码
-    printf("TRANSMIT_END\n");
-    for (ie = 0; ie < WAIT_FRAME_COUNT; ie++) {
-        setString(TRANSMIT_END);
-    }
-
-    printf("TRANSMIT_IDLE\n");
-    setString(TRANSMIT_IDLE);
-#endif
 
     //完后UDP队列pop(push入队列在发信号时)
     //evt_UDP_queue.pop();
@@ -810,3 +970,49 @@ void QRGenerator::processNormalEventSlot()
     ///mutex.unlock();
 }
 
+///activeMQThread定义
+void activeMQThread::run()
+{
+    printf("activeMQThread: run()\n");
+    RegisterRecvActiveMQ();
+}
+
+void activeMQThread::RegisterRecvActiveMQ()
+{
+    activemq::library::ActiveMQCPP::initializeLibrary();
+
+    std::cout << "=====================================================\n";
+    std::cout << "Starting the example:" << std::endl;
+    std::cout << "-----------------------------------------------------\n";
+
+    std::string brokerURI = "failover:(tcp://114.55.4.189:61616)";
+
+    std::string NormaldestURI = "normal.queue";
+    std::string UDPdestURI = "udp.queue";
+    bool useTopics = false;
+    bool clientAck = false;
+
+    ActiveMQAsyncConsumer UDPConsumer;
+    ActiveMQAsyncConsumer NormalConsumer;
+
+    UDPConsumer.start(brokerURI, UDPdestURI, useTopics, clientAck);
+    UDPConsumer.runConsumer();
+
+    NormalConsumer.start(brokerURI, NormaldestURI, useTopics, clientAck);
+    NormalConsumer.runConsumer();
+    std::cout << "Press 'q' to quit" << std::endl;
+    while( std::cin.get() != 'q') {}
+
+    UDPConsumer.close();
+    NormalConsumer.close();
+
+    std::cout << "-----------------------------------------------------\n";
+    std::cout << "Finished with the example." << std::endl;
+    std::cout << "=====================================================\n";
+
+    activemq::library::ActiveMQCPP::shutdownLibrary();
+}
+
+void activeMQThread::processActiveMQVecMsg(activeMQVec msg)
+{
+}

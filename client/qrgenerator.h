@@ -17,10 +17,43 @@
 //宏控
 #include "include/fileParameters.h"
 
+
+//activeMQ队列
+#ifdef USE_ACTIVEMQ
+#include <QMetaType> //将不识别的参数结构进行注册，让QT能够识别
+#include "instructions/ActiveMQConsumer.h"
+#endif
+
 using namespace std;
 
+/*
+#ifdef USE_ACTIVEMQ
+typedef struct ActiveMQVec {
+    std::string filename;
+    std::string date;
+    int size;
+    std::string md5sum;
+    int type;// 1: UDP 2:tcp
+} activeMQVec;
+#endif*/
 
 class ThreadObject;
+
+////////////////////////activeMQThread/////////////////////////
+class activeMQThread : public QThread
+{
+private:
+    QMutex sync;
+    bool is_pause;
+protected:
+    void run();
+public:
+    activeMQThread(QObject *parent=0){}
+    ~activeMQThread(){}
+    void RegisterRecvActiveMQ();
+    void processActiveMQVecMsg(activeMQVec msg);
+};
+
 
 ////////////////////////NormalThread/////////////////////////
 class NormalThread : public QThread
@@ -41,7 +74,10 @@ public:
 
 signals:
     void UpdateSignal(int num);
-    ////
+    #ifdef USE_ACTIVEMQ
+    void ProcessMsgSignal(QString raw_msg);
+    void ProcessMsgSignal(activeMQVec msg);
+    #endif
 
     public slots:
         void ResetSlot();
@@ -80,6 +116,8 @@ public:
     void setString(QString str);
     int getQRWidth() const;
     bool saveImage(QString name, int size);
+
+    int RegisterRecvActiveMQ();
 private:
     void draw(QPainter &painter, int width, int height);
     int CompleteSrcPath();
@@ -95,6 +133,11 @@ private:
     NormalThread *m_NormalTh;
 
     NormalThread *m_RecvPTh;
+
+    //ActiveMQ接收线程
+    #ifdef USE_ACTIVEMQ
+    activeMQThread *m_activeMQTh;
+    #endif
 
     ThreadObject* m_obj;
 
@@ -119,6 +162,10 @@ public slots:
     void StartSlot();
     void StopSlot();
     void UpdateSlot(int num);
+    #ifdef USE_ACTIVEMQ
+    void ProcessMsgQ(QString msg);
+    void ProcessMsg(activeMQVec msg);
+    #endif
     void ClearSlot();
 
     //处理线程的循环

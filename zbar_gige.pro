@@ -47,7 +47,8 @@ SOURCES += main.cpp \
     client/ThreadObject.cpp \
     client/TCPMonitor.cpp \
     instructions/ActiveMQProducer.cpp \
-    instructions/ActiveMQConsumer.cpp
+    instructions/ActiveMQConsumer.cpp \
+    instructions/JSON.cpp
 
 HEADERS += \
     server/ScanCode.h \
@@ -79,7 +80,8 @@ HEADERS += \
     client/ThreadObject.h \
     client/TCPMonitor.h \
     instructions/ActiveMQProducer.h \
-    instructions/ActiveMQConsumer.h
+    instructions/ActiveMQConsumer.h \
+    instructions/JSON.h
 
 
 INCLUDEPATH += \
@@ -95,7 +97,8 @@ INCLUDEPATH += \
 /usr/local/libqrencode/include \
 /home/montafan/3rdparty/lzo210/include \
 /usr/local/ActiveMQ-CPP/include/activemq-cpp-3.9.4 \
-/usr/local/apr/include/apr-1
+/usr/local/apr/include/apr-1 \
+/home/montafan/software_download/jsoncpp-cmake-adjustments/include \
 
 LIBS += \
 /usr/local/opencv2.4.13/lib/libopencv_core.so \
@@ -144,6 +147,7 @@ LIBS += \
 /home/montafan/3rdparty/lzo210/lib/liblzo2.so \
 /usr/local/ActiveMQ-CPP/lib/libactivemq-cpp.a \
 /usr/local/apr/lib/libapr-1.a \
+/home/montafan/software_download/jsoncpp-cmake-adjustments/libs/linux-gcc-4.9.4/libjson_linux-gcc-4.9.4_libmt.so \
 
 LIBS += -L/usr/local/lib -lzbar -lcrypto -lssl
 

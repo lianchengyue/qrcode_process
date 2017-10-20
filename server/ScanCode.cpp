@@ -91,6 +91,7 @@ void ScanCode::scanimagefunc(/*const*/ void *raw/*, char *result*/)
 
         delete(data);//added for flq
     }
+///    printf("n=%d,The %d Frame processing\n", n, raw1->framecnt);
     #ifdef PRINT_CONTENT
     printf("n=%d,The %d Frame processing\n", n, raw1->framecnt);
     #endif
@@ -98,7 +99,7 @@ void ScanCode::scanimagefunc(/*const*/ void *raw/*, char *result*/)
     //very important
     if(1 == n)
     {
-        printf("The %d Frame processing start!\n", raw1->framecnt);
+        //printf("The %d Frame processing start!\n", raw1->framecnt);
         mPinThread->QRdataProcess(raw1->result);
     }
 

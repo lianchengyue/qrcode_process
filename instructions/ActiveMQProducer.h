@@ -1,3 +1,6 @@
+#ifndef ACTIVEMQPRODUCER_H
+#define ACTIVEMQPRODUCER_H
+
 #include <decaf/lang/Thread.h>
 #include <decaf/lang/Runnable.h>
 #include <decaf/util/concurrent/CountDownLatch.h>
@@ -58,3 +61,5 @@ private:
 void cleanup();
 
 };
+
+#endif //ACTIVEMQPRODUCER_H
