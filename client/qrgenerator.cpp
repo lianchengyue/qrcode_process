@@ -238,7 +238,7 @@ void UDPThread::pause()
 
 
 ///遍历3文件夹中，split+base64 encode完后的碎片,把读到的绝对路径保存到vector中
-void src_fragment_traversal(string dir, bool is_ini, int depth) //get_file_to_generate_qrcode
+void src_traversal_and_push_fragment_to_vector(string dir, bool is_ini, int depth) //get_file_to_generate_qrcode
 {
     DIR *Dp;
     //文件目录结构体
@@ -251,7 +251,7 @@ void src_fragment_traversal(string dir, bool is_ini, int depth) //get_file_to_ge
     //打开指定的目录，获得目录指针
     if(NULL == (Dp = opendir(dir.c_str())))
     {
-        fprintf(stderr,"src_fragment_traversal(), can not open dir:%s\n",dir.c_str());
+        fprintf(stderr,"src_traversal_and_push_fragment_to_vector(), can not open dir:%s\n",dir.c_str());
         return;
     }
 
@@ -278,7 +278,7 @@ void src_fragment_traversal(string dir, bool is_ini, int depth) //get_file_to_ge
             printf("%*s%s/\n",depth," ",enty->d_name);
 
             //继续递归调用
-            src_fragment_traversal(total_dir, is_ini, depth+4);//绝对路径递归调用错误 modify by flq
+            src_traversal_and_push_fragment_to_vector(total_dir, is_ini, depth+4);//绝对路径递归调用错误 modify by flq
         }
         else
         {
@@ -565,18 +565,18 @@ void QRGenerator::UpdateSlot(int num)
     //文件夹信息
     char *folderdir = SRC_INI_FOLD_FRAG_LOCATION;
     std::string folder_str =  folderdir;
-    src_fragment_traversal(folder_str, true, 0);  //isINI=true
+    src_traversal_and_push_fragment_to_vector(folder_str, true, 0);  //isINI=true
 
     //文件属性信息
     char *configdir = SRC_INI_FILE_FRAG_LOCATION;
     std::string config_str =  configdir;
-    src_fragment_traversal(config_str, true, 0);
+    src_traversal_and_push_fragment_to_vector(config_str, true, 0);
 
     //内容碎片信息
     //直接遍历4_base64_encode_location/文件,路径保存到vector
     char *topdir = SRC_BASE64_ENCODE_LOCATION;
     std::string topdir_str =  topdir;
-    src_fragment_traversal(topdir_str, false, 0);
+    src_traversal_and_push_fragment_to_vector(topdir_str, false, 0);
     ///added end
  #endif
 
@@ -689,8 +689,6 @@ void QRGenerator::ProcessMsg(activeMQVec msg)
 
 void QRGenerator::ProcessMsgQ(QString msg)
 {
-    printf("ttttttttttttt\n");
-
     int is;
     int ie;
     printf("ProcessMsgQ,Thread\n");
@@ -734,7 +732,9 @@ void QRGenerator::ProcessMsgQ(QString msg)
 
     //报头遍历
     printf("ini_traversal()\n");
-    ini_traversal();
+    //ini_traversal();
+    ini_select(receivedMessage);
+
     //遍历片段
     printf("fragment_selected_traversal()\n");
     fragment_selected_traversal(receivedMessage);
@@ -742,21 +742,45 @@ void QRGenerator::ProcessMsgQ(QString msg)
     #endif
     #if 1
     ///后续改为在收到传输完成消息后调用 added by flq
-    //文件夹信息
-    char *folderdir = SRC_INI_FOLD_FRAG_LOCATION;
-    std::string folder_str =  folderdir;
-    src_fragment_traversal(folder_str, true, 0);  //isINI=true
+    //文件夹信息foldler.ini
+    /*if(UDP == receivedMessage.type){
+        char *folderdir = SRC_UDP_INI_FOLD_FRAG_LOCATION;
+        std::string folder_str =  folderdir;
+        src_traversal_and_push_fragment_to_vector(folder_str, true, 0);  //isINI=true
+    }
+    else if(NORMAL == receivedMessage.type){
+        char *folderdir = SRC_INI_FOLD_FRAG_LOCATION;
+        std::string folder_str =  folderdir;
+         src_traversal_and_push_fragment_to_vector(folder_str, true, 0);  //isINI=true
+    }*/
 
-    //文件属性信息
-    char *configdir = SRC_INI_FILE_FRAG_LOCATION;
-    std::string config_str =  configdir;
-    src_fragment_traversal(config_str, true, 0);
+    //文件属性信息//config.ini
+    char configdir[PATH_MAX]={0};
+    if(UDP == receivedMessage.type){
+        sprintf(configdir,"%s%s/%s/config/", SRC_UDP_INI_LOCATION, receivedMessage.date.c_str(), receivedMessage.filename.c_str());
+        std::string config_str =  configdir;
+        src_traversal_and_push_fragment_to_vector(config_str, true, 0);
+    }
 
-    //内容碎片信息
+    else if(NORMAL == receivedMessage.type){
+        sprintf(configdir,"%s%s/%s/config/",SRC_INI_LOCATION, receivedMessage.date.c_str(), receivedMessage.filename.c_str());
+        std::string config_str =  configdir;
+        src_traversal_and_push_fragment_to_vector(config_str, true, 0);
+    }
+
+    //内容碎片信息contents
     //直接遍历4_base64_encode_location/文件,路径保存到vector
-    char *topdir = SRC_BASE64_ENCODE_LOCATION;
-    std::string topdir_str =  topdir;
-    src_fragment_traversal(topdir_str, false, 0);
+    char topdir[PATH_MAX]={0};
+    if(UDP == receivedMessage.type){
+        sprintf(topdir,"%s%s/%s/",SRC_UDP_BASE64_ENCODE_LOCATION, receivedMessage.date.c_str(), receivedMessage.filename.c_str());
+        std::string topdir_str =  topdir;
+        src_traversal_and_push_fragment_to_vector(topdir_str, false, 0);
+    }
+    else if(NORMAL == receivedMessage.type){
+        sprintf(topdir,"%s%s/%s/",SRC_BASE64_ENCODE_LOCATION, receivedMessage.date.c_str(), receivedMessage.filename.c_str());
+        std::string topdir_str =  topdir;
+        src_traversal_and_push_fragment_to_vector(topdir_str, false, 0);
+    }
     ///added end
     #endif
 
@@ -874,6 +898,7 @@ int QRGenerator::CompleteSrcPath()
     sprintf(ROOT_DIR, "%s", getenv("HOME"));
     sprintf(SRC_BASE_LOCATION, "%s%s", ROOT_DIR ,SRC_BASE_LOCATION_REL);
 
+    ///==============NORMAL path================
     //SRC
     sprintf(SRC_LOCATION, "%s%s", SRC_BASE_LOCATION ,SRC_LOCATION_REL);
     sprintf(SRC_LZO_LOCATION, "%s%s", SRC_BASE_LOCATION ,SRC_LZO_LOCATION_REL);
@@ -886,6 +911,20 @@ int QRGenerator::CompleteSrcPath()
     sprintf(SRC_INI_FRAGMENT_LOCATION, "%s%s", SRC_BASE_LOCATION ,SRC_INI_FRAGMENT_LOCATION_REL);
     sprintf(SRC_INI_FILE_FRAG_LOCATION, "%s%s", SRC_BASE_LOCATION ,SRC_INI_FILE_FRAG_LOCATION_REL);
     sprintf(SRC_INI_FOLD_FRAG_LOCATION, "%s%s", SRC_BASE_LOCATION ,SRC_INI_FOLD_FRAG_LOCATION_REL);
+
+    ///==============UDP path================
+    //SRC
+    sprintf(SRC_UDP_LOCATION, "%s%s", SRC_BASE_LOCATION ,SRC_UDP_LOCATION_REL);
+    sprintf(SRC_UDP_LZO_LOCATION, "%s%s", SRC_BASE_LOCATION ,SRC_UDP_LZO_LOCATION_REL);
+    sprintf(SRC_UDP_SPLIT_LOCATION, "%s%s", SRC_BASE_LOCATION ,SRC_UDP_SPLIT_LOCATION_REL);
+    sprintf(SRC_UDP_BASE64_ENCODE_LOCATION, "%s%s", SRC_BASE_LOCATION ,SRC_UDP_BASE64_ENCODE_LOCATION_REL);
+    //SRC INI
+    sprintf(SRC_UDP_INI_LOCATION, "%s%s", SRC_BASE_LOCATION ,SRC_UDP_INI_LOCATION_REL);
+    sprintf(SRC_UDP_INI_FILE_LOCATION, "%s%s", SRC_BASE_LOCATION ,SRC_UDP_INI_FILE_LOCATION_REL);
+    sprintf(SRC_UDP_INI_FOLD_LOCATION, "%s%s", SRC_BASE_LOCATION ,SRC_UDP_INI_FOLD_LOCATION_REL);
+    sprintf(SRC_UDP_INI_FRAGMENT_LOCATION, "%s%s", SRC_BASE_LOCATION ,SRC_UDP_INI_FRAGMENT_LOCATION_REL);
+    sprintf(SRC_UDP_INI_FILE_FRAG_LOCATION, "%s%s", SRC_BASE_LOCATION ,SRC_UDP_INI_FILE_FRAG_LOCATION_REL);
+    sprintf(SRC_UDP_INI_FOLD_FRAG_LOCATION, "%s%s", SRC_BASE_LOCATION ,SRC_UDP_INI_FOLD_FRAG_LOCATION_REL);
 
     return 0;
 }

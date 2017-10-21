@@ -21,8 +21,8 @@
 
 const char *HEAD = SRC_INI_FILE_LOCATION;//"/home/montafan/QRcodeGrab/source/INI/config.ini";
 const char *folderHead = SRC_INI_FOLD_LOCATION;//"/home/montafan/QRcodeGrab/source/INI/folder.ini";
-const char *fragmentHEAD = "/home/montafan/QRcodeGrab/source/INI/nocolor.png/ini/config.ini"; //need modify soon
-const char *iniHEAD = "/home/montafan/QRcodeGrab/source/INI/nocolor.png/ini/config.ini"; //need modify soon
+//const char *fragmentHEAD = "/home/montafan/QRcodeGrab/source/INI/nocolor.png/ini/config.ini"; //need modify soon
+//const char *iniHEAD = "/home/montafan/QRcodeGrab/source/INI/nocolor.png/ini/config.ini"; //need modify soon
 
 unsigned char md5sum_str[MD5SUM_MAX];
 unsigned char md5sum_str_hex[MD5SUM_MAX];
@@ -182,7 +182,7 @@ void src_file_traversal_imp(char *dir, char* _short_dir, char *_2_dir, char *_3_
             printf("%*s%s/\n",depth," ",enty->d_name);
 
             //ini中记录所有的文件夹路径
-            iniFileLoad(folderHead);
+/////////////////////////////////            iniFileLoad(folderHead);
 
             static int count = 0;
             char str[256]= {0};
@@ -234,7 +234,7 @@ void src_file_traversal_imp(char *dir, char* _short_dir, char *_2_dir, char *_3_
             printf(", statbuf.st_size=%d\n", statbuf.st_size);
             //I:原文件目录的INI
             iniFileLoad(HEAD);
-            //define INI_ACCESS_MODE
+
             sprintf(value, "%d", file_cnt); //将file_cnt转为10进制表示的字符串  %x:16进制
             //参数1为sect
             iniSetString(value/*enty->d_name*/, "name", enty->d_name);//name
@@ -410,9 +410,11 @@ void src_ini_traversal_imp(/*char *dir*/)
     split(SRC_INI_FOLD_LOCATION, folder_dir, BLOCK_SIZE); ///这里的_3_split_dir是目录，不是文件，存放切割后的碎片
     #else
     //split_ini(SRC_INI_FOLD_LOCATION, folder_dir, "folder/", BLOCK_SIZE); ///这里的_3_split_dir是目录，不是文件，存放切割后的碎片
-    split_ini(SRC_INI_FOLD_LOCATION, folder_dir, "folder/.ini", BLOCK_SIZE); ///这里的_3_split_dir是目录，不是文件，存放切割后的碎片
+    split_ini(SRC_INI_FOLD_LOCATION, folder_dir, "folder.ini/", BLOCK_SIZE); ///这里的_3_split_dir是目录，不是文件，存放切割后的碎片
     #endif
 
+    free(config_dir);
+    free(folder_dir);
 }
 
 
@@ -491,7 +493,7 @@ void src_fragment_traversal_imp(char *dir, char* _short_dir, char *des, int dept
             strcat(des_str,"/");
 
             //I:碎片文件目录的INI
-            iniFileLoad(fragmentHEAD);
+//////////////////            iniFileLoad(fragmentHEAD);
             //继续递归调用
             src_fragment_traversal_imp(total_dir, relative_dir, des_str, depth+4);//绝对路径递归调用错误 modify by flq
         }
@@ -817,13 +819,11 @@ int file_traversal()
 
     is_base64 = false;//flag, dont neglect
 
-    FILE *ini_file = fopen(HEAD, "w");
+    FILE *ini_file = fopen(HEAD, "wb");
     fclose(ini_file);
-    //iniFileLoad(HEAD);
 
-    FILE *ini_folder = fopen(folderHead, "w");
+    FILE *ini_folder = fopen(folderHead, "wb");
     fclose(ini_folder);
-    //iniFileLoad(folderHead);
 
     ///遍历源文件夹并生成所有的文件夹,处理完后，在3中生成碎片
     ///如果不遍历文件，改为解析JSON中的文件名  flq
@@ -837,41 +837,105 @@ int file_traversal()
 #ifdef USE_ACTIVEMQ
 int file_select(activeMQVec msg)
 {
-    char *topDir = SRC_LOCATION;//"/home/montafan/QRcodeGrab/source/location/";
-    char relativeDir[PATH_MAX] = {0};  //tqq
-    char *_2_dir = SRC_LZO_LOCATION;//"/home/montafan/QRcodeGrab/source/2_lzo_location/";
-    char *_3_dir = SRC_SPLIT_LOCATION;//"/home/montafan/QRcodeGrab/source/3_split_location/";
-    char *_4_dir = SRC_BASE64_ENCODE_LOCATION;//"/home/montafan/QRcodeGrab/source/4_base64_encode_location/";
-    ///后续改为读解析出的JSON信息
-    //char date[PATH_MAX] = "2017-3-3";
-    //char d_name[NAME_MAX] = "hu.png";
-    char date[PATH_MAX] ={0};
-    char d_name[PATH_MAX] ={0};
+    char *config_ini_dir; //生成的ini文件的绝对路径
+    char *symbol = "/";
 
-    //避免传const
-    strcpy(date, msg.date.c_str());
-    strcpy(d_name, msg.filename.c_str());
+    config_ini_dir = new char[PATH_MAX];
+    memset(config_ini_dir, 0, PATH_MAX);
 
-    printf("Directory scan of %s\n",topDir);
+    if(UDP == msg.type)
+    {
+        char *topDir = SRC_UDP_LOCATION;//"/home/montafan/QRcodeGrab/source/location/";
+        char relativeDir[PATH_MAX] = {0};  //tqq
+        char *_2_dir = SRC_UDP_LZO_LOCATION;//"/home/montafan/QRcodeGrab/source/2_lzo_location/";
+        char *_3_dir = SRC_UDP_SPLIT_LOCATION;//"/home/montafan/QRcodeGrab/source/3_split_location/";
+        char *_4_dir = SRC_UDP_BASE64_ENCODE_LOCATION;//"/home/montafan/QRcodeGrab/source/4_base64_encode_location/";
+        ///后续改为读解析出的JSON信息
+        //char date[PATH_MAX] = "2017-3-3";
+        //char d_name[NAME_MAX] = "hu.png";
+        char date[PATH_MAX] ={0};
+        char d_name[PATH_MAX] ={0};
 
-    is_base64 = false;//flag, dont neglect
+        //避免传const
+        strcpy(date, msg.date.c_str());
+        strcpy(d_name, msg.filename.c_str());
 
-    FILE *ini_file = fopen(HEAD, "w");
-    fclose(ini_file);
-    //iniFileLoad(HEAD);
+        printf("Directory scan of %s\n",topDir);
 
-    FILE *ini_folder = fopen(folderHead, "w");
-    fclose(ini_folder);
-    //iniFileLoad(folderHead);
+        is_base64 = false;//flag, dont neglect
 
-    ///如果不遍历文件，改为解析JSON中的文件名  flq
-    //src_file_select_imp(topDir, relativeDir,_2_dir, _3_dir, _4_dir, msg.date.c_str(), msg.filename.c_str());
-    src_file_select_imp(topDir, relativeDir,_2_dir, _3_dir, _4_dir, date, d_name);
-    printf("src_file_select_imp(), Done\n");
+        //创建ini相关文件夹与文件start
+        strcpy(config_ini_dir, SRC_UDP_INI_LOCATION);
+        strcat(config_ini_dir, date);
+        mkdir(config_ini_dir, S_IRWXU|S_IRWXG|S_IRWXO);  //date
+        strcat(config_ini_dir, symbol);
+        strcat(config_ini_dir, d_name);
+        mkdir(config_ini_dir, S_IRWXU|S_IRWXG|S_IRWXO);  //name
+
+        memset(config_ini_dir, 0, PATH_MAX);
+
+        sprintf(config_ini_dir,"%s%s/%s/config.ini", SRC_UDP_INI_LOCATION, date, d_name);
+        //创建ini相关文件夹与文件end
+
+        FILE *ini_file = fopen(config_ini_dir, "wb");
+        fclose(ini_file);
+
+        FILE *ini_folder = fopen(folderHead, "wb");
+        fclose(ini_folder);
+
+        ///不遍历文件，改为解析JSON中的文件名
+        src_file_select_imp(topDir, relativeDir,_2_dir, _3_dir, _4_dir, date, d_name, msg.type);
+        printf("src_file_select_imp(), Done\n");
+    }
+    else if(NORMAL == msg.type)
+    {
+        char *topDir = SRC_LOCATION;//"/home/montafan/QRcodeGrab/source/location/";
+        char relativeDir[PATH_MAX] = {0};  //tqq
+        char *_2_dir = SRC_LZO_LOCATION;//"/home/montafan/QRcodeGrab/source/2_lzo_location/";
+        char *_3_dir = SRC_SPLIT_LOCATION;//"/home/montafan/QRcodeGrab/source/3_split_location/";
+        char *_4_dir = SRC_BASE64_ENCODE_LOCATION;//"/home/montafan/QRcodeGrab/source/4_base64_encode_location/";
+        ///后续改为读解析出的JSON信息
+        //char date[PATH_MAX] = "2017-3-3";
+        //char d_name[NAME_MAX] = "hu.png";
+        char date[PATH_MAX] ={0};
+        char d_name[PATH_MAX] ={0};
+
+        //避免传const
+        strcpy(date, msg.date.c_str());
+        strcpy(d_name, msg.filename.c_str());
+
+        printf("Directory scan of %s\n",topDir);
+
+        is_base64 = false;//flag, dont neglect
+
+        //创建ini相关文件夹与文件start
+        strcpy(config_ini_dir, SRC_INI_LOCATION);
+        strcat(config_ini_dir, date);
+        mkdir(config_ini_dir, S_IRWXU|S_IRWXG|S_IRWXO);  //date
+        strcat(config_ini_dir, symbol);
+        strcat(config_ini_dir, d_name);
+        mkdir(config_ini_dir, S_IRWXU|S_IRWXG|S_IRWXO);  //name
+
+        memset(config_ini_dir, 0, PATH_MAX);
+
+        sprintf(config_ini_dir,"%s%s/%s/config.ini",SRC_INI_LOCATION, date, d_name);
+        //创建ini相关文件夹与文件end
+
+        FILE *ini_file = fopen(config_ini_dir, "wb");
+        fclose(ini_file);
+
+        FILE *ini_folder = fopen(folderHead, "wb");
+        fclose(ini_folder);
+
+        ///不遍历文件，改为解析JSON中的文件名
+        src_file_select_imp(topDir, relativeDir,_2_dir, _3_dir, _4_dir, date, d_name, msg.type);
+        printf("Nomal, src_file_select_imp(), Done\n");
+    }
+
     return 0;
 }
 
-void src_file_select_imp(char *dir, char* _short_dir, char *_2_dir, char *_3_dir, char *_4_dir, char *date, char *d_name)
+void src_file_select_imp(char *dir, char* _short_dir, char *_2_dir, char *_3_dir, char *_4_dir, char *date, char *d_name, int type)
 {
     //文件目录结构体
     struct dirent *enty;
@@ -886,6 +950,8 @@ void src_file_select_imp(char *dir, char* _short_dir, char *_2_dir, char *_3_dir
     char *_4_base64_encode_dir;
 
     char *symbol = "/";
+
+    char *config_ini_dir; //生成的ini文件的绝对路径
 
     char value[34];
 
@@ -905,6 +971,10 @@ void src_file_select_imp(char *dir, char* _short_dir, char *_2_dir, char *_3_dir
 
     memset(md5sum_str, 0, MD5SUM_MAX);
     memset(md5sum_str_hex, 0, MD5SUM_MAX);
+
+    //生成的ini文件的绝对路径
+    config_ini_dir = new char[PATH_MAX];
+    memset(config_ini_dir, 0, PATH_MAX);
 
     //切换到这个目录
     chdir(dir);
@@ -959,8 +1029,15 @@ void src_file_select_imp(char *dir, char* _short_dir, char *_2_dir, char *_3_dir
         printf("enty->d_name:%s"," ",d_name);
         printf(", statbuf.st_size=%d\n", statbuf.st_size);
         //I:原文件目录的INI
-        iniFileLoad(HEAD);
-        //define INI_ACCESS_MODE
+
+        if(UDP == type){
+            sprintf(config_ini_dir,"%s%s/%s/config.ini",SRC_UDP_INI_LOCATION,date,d_name); //whole
+        }else if(NORMAL == type){
+            sprintf(config_ini_dir,"%s%s/%s/config.ini",SRC_INI_LOCATION,date,d_name); //whole
+        }
+
+        iniFileLoad(config_ini_dir);  //iniFileLoad  //"/home/montafan/QRcodeGrab/source/INI/config.ini"
+
         sprintf(value, "%d", file_cnt); //将file_cnt转为10进制表示的字符串  %x:16进制
         //参数1为sect
         iniSetString(value/*enty->d_name*/, "name", d_name);//name
@@ -1042,7 +1119,17 @@ void src_file_select_imp(char *dir, char* _short_dir, char *_2_dir, char *_3_dir
 #ifdef USE_LZO_COMPRESSION
             char *outputDir = new char[PATH_MAX];
             memset(outputDir, 0, PATH_MAX);
-            sprintf(outputDir, "%s%s%s/%s%s", SRC_LZO_LOCATION, _short_dir, date, d_name, LZO_SUFFIX); //moidfied by flq
+            if(UDP == type)
+            {
+                sprintf(outputDir, "%s%s%s/%s%s", SRC_LZO_LOCATION, _short_dir, date, d_name, LZO_SUFFIX); //moidfied by flq
+            }
+            else if(NORMAL == type)
+            {
+                sprintf(outputDir, "%s%s%s/%s%s", SRC_LZO_LOCATION, _short_dir, date, d_name, LZO_SUFFIX); //moidfied by flq
+            }else
+            {
+                printf("ERROR, Wrong data type");
+            }
 
             LOG_DBG("%s, split start, outputDir=%s, _3_split_dir=%s, blocksize=%d\n", __func__, outputDir, _3_split_dir ,BLOCK_SIZE);
             split(outputDir, _3_split_dir, BLOCK_SIZE); ///这里的_3_split_dir是目录，不是文件，存放切割后的碎片
@@ -1088,16 +1175,8 @@ void src_file_select_imp(char *dir, char* _short_dir, char *_2_dir, char *_3_dir
 
 }
 
-int fragment_selected_traversal(activeMQVec msg)
+int ini_select(activeMQVec msg)
 {
-    //char fragmentDir[PATH_MAX] = {0} ;//"/home/montafan/QRcodeGrab/source/3_split_location/";
-    //char fragmentDes[PATH_MAX] = {0};
-    char *fragmentDir = SRC_SPLIT_LOCATION;
-    char *fragmentDes = SRC_BASE64_ENCODE_LOCATION;
-    char relativeDir[PATH_MAX] = {0};
-    ///后续改为读解析出的JSON信息
-    //char date[PATH_MAX] = "2017-3-3";
-    //char d_name[NAME_MAX] = "hu.png";
     char date[PATH_MAX] = {0};
     char d_name[NAME_MAX] = {0};
 
@@ -1105,15 +1184,123 @@ int fragment_selected_traversal(activeMQVec msg)
     strcpy(date, msg.date.c_str());
     strcpy(d_name, msg.filename.c_str());
 
-    is_base64 = true;
-    //待处理，寻找合适的位置
-    ////iniFileLoad(fragmentHEAD);
+    src_ini_select_imp(date, d_name, msg.type);
+    //printf("ini_traversalDone\n");
+    return 0;
+}
 
-    //sprintf(fragmentDir, "%s%s/%s/",SRC_SPLIT_LOCATION, date, d_name);
-    //sprintf(fragmentDes, "%s%s/%s/",SRC_BASE64_ENCODE_LOCATION, date, d_name);
+//报头文件碎片化
+void src_ini_select_imp(char *date, char *d_name, int type)
+{
+    //目录位置
+    char *config_dir;
+    char *folder_dir;
 
-    //src_fragment_traversal_imp(fragmentDir, relativeDir, fragmentDes, 0);
-    src_fragment_selected_traversal_imp(fragmentDir, relativeDir, fragmentDes, date, d_name);
+    //生成的ini文件的绝对路径
+    char *config_ini_dir;
+    char *folder_ini_dir;
+
+    //待写入碎片的相对位置
+    char *relative_path;
+
+    //目录位置
+    config_dir = new char[PATH_MAX];
+    memset(config_dir, 0, PATH_MAX);
+    folder_dir = new char[PATH_MAX];
+    memset(folder_dir, 0, PATH_MAX);
+
+    //生成的ini文件的绝对路径
+    config_ini_dir = new char[PATH_MAX];
+    memset(config_ini_dir, 0, PATH_MAX);
+    folder_ini_dir = new char[PATH_MAX];
+    memset(folder_ini_dir, 0, PATH_MAX);
+
+    //待写入碎片的相对位置
+    relative_path = new char[PATH_MAX];
+    memset(relative_path, 0, PATH_MAX);
+
+    if(UDP == type){
+        sprintf(config_dir,"%s%s/%s/config/",SRC_UDP_INI_LOCATION,date,d_name);
+        sprintf(folder_dir,"%s%s/%s/folder/",SRC_UDP_INI_LOCATION,date,d_name);
+
+        sprintf(config_ini_dir,"%s%s/%s/config.ini",SRC_UDP_INI_LOCATION,date,d_name);
+        sprintf(folder_ini_dir,"%s%s/%s/folder.ini",SRC_UDP_INI_LOCATION,date,d_name);
+
+    }else if (NORMAL == type)
+    {
+        sprintf(config_dir,"%s%s/%s/config/",SRC_INI_LOCATION,date,d_name);
+        sprintf(folder_dir,"%s%s/%s/folder/",SRC_INI_LOCATION,date,d_name);
+
+        sprintf(config_ini_dir,"%s%s/%s/config.ini",SRC_INI_LOCATION,date,d_name);
+        sprintf(folder_ini_dir,"%s%s/%s/folder.ini",SRC_INI_LOCATION,date,d_name);
+    }
+    //待写入碎片的相对位置
+    sprintf(relative_path, "%s/%s/config.ini/",date,d_name);
+
+    ///后续在此添加报头
+    //方法:遍历时读取，并添加内容
+    if(0 != access(config_dir, F_OK))
+    {
+        mkdir(config_dir, S_IRWXU|S_IRWXG|S_IRWXO);///这里的_3_split_dir是目录，不是文件，存放切割后的碎片
+    }
+
+    split_ini(config_ini_dir, config_dir, relative_path/*"config.ini/"*/, BLOCK_SIZE); ///这里的_3_split_dir是目录，不是文件，存放切割后的碎片
+
+#if 0
+    //单个文件不需要folder信息
+    if(0 != access(folder_dir, F_OK))
+    {
+        mkdir(folder_dir, S_IRWXU|S_IRWXG|S_IRWXO);///这里的_3_split_dir是目录，不是文件，存放切割后的碎片
+    }
+
+    split_ini(folder_ini_dir, folder_dir, "folder.ini/", BLOCK_SIZE); ///这里的_3_split_dir是目录，不是文件，存放切割后的碎片
+#endif
+    free(config_dir);
+    free(folder_dir);
+    free(config_ini_dir);
+    free(folder_ini_dir);
+}
+
+int fragment_selected_traversal(activeMQVec msg)
+{
+    if(UDP == msg.type)
+    {
+        char *fragmentDir = SRC_UDP_SPLIT_LOCATION;
+        char *fragmentDes = SRC_UDP_BASE64_ENCODE_LOCATION;
+        char relativeDir[PATH_MAX] = {0};
+        ///后续改为读解析出的JSON信息
+        //char date[PATH_MAX] = "2017-3-3";
+        //char d_name[NAME_MAX] = "hu.png";
+        char date[PATH_MAX] = {0};
+        char d_name[NAME_MAX] = {0};
+
+        //避免传const
+        strcpy(date, msg.date.c_str());
+        strcpy(d_name, msg.filename.c_str());
+
+        is_base64 = true;
+
+        src_fragment_selected_traversal_imp(fragmentDir, relativeDir, fragmentDes, date, d_name);
+    }
+    else if(NORMAL == msg.type)
+    {
+        char *fragmentDir = SRC_SPLIT_LOCATION;
+        char *fragmentDes = SRC_BASE64_ENCODE_LOCATION;
+        char relativeDir[PATH_MAX] = {0};
+        ///后续改为读解析出的JSON信息
+        //char date[PATH_MAX] = "2017-3-3";
+        //char d_name[NAME_MAX] = "hu.png";
+        char date[PATH_MAX] = {0};
+        char d_name[NAME_MAX] = {0};
+
+        //避免传const
+        strcpy(date, msg.date.c_str());
+        strcpy(d_name, msg.filename.c_str());
+
+        is_base64 = true;
+
+        src_fragment_selected_traversal_imp(fragmentDir, relativeDir, fragmentDes, date, d_name);
+    }
 
     return 0;
 }
@@ -1148,7 +1335,7 @@ void src_fragment_selected_traversal_imp(char *dir, char* _short_dir, char *des,
     strcat(total_dir,date);
     strcat(total_dir,symbol);
     strcat(total_dir,d_name);
-    printf("current dir, %s\n", total_dir);
+//    printf("current dir, %s\n", total_dir);
 
     //打开指定的目录，获得目录指针
     if(NULL == (Dp = opendir(total_dir)))
@@ -1156,10 +1343,12 @@ void src_fragment_selected_traversal_imp(char *dir, char* _short_dir, char *des,
         fprintf(stderr,"can not open dir:%s\n",dir);
         return;
     }
-    memset(total_dir, 0, strlen(total_dir));
 
     //切换到这个目录
-    chdir(dir);
+    chdir(total_dir);
+
+    memset(total_dir, 0, strlen(total_dir));
+    sprintf(relative_dir, "%s/%s/", date, d_name);
 
     //遍历这个目录下的所有文件
     while(NULL != (enty = readdir(Dp) ))
@@ -1204,17 +1393,19 @@ void src_fragment_selected_traversal_imp(char *dir, char* _short_dir, char *des,
             strcat(total_dir,date);
             strcat(total_dir,symbol);
             strcat(total_dir,d_name);
-            printf("current dir, %s\n", total_dir);
+            //printf("current dir, %s\n", total_dir);
 
             //generate_md5sum(total_dir);
             //相对路径拼接
-            sprintf(relative_dir, "%s%s", _short_dir, enty->d_name);
+            //sprintf(relative_dir, "%s%s", _short_dir, enty->d_name);
 
             //输出文件名
             //added by flq
+            #if 0
             iniSetString(enty->d_name, "name", enty->d_name);//name
             iniSetString(enty->d_name, "path", total_dir);//path
             iniSetInt(enty->d_name, "size", statbuf.st_size, 0);//size
+            #endif
             //碎片不需要MD5SUM
             //iniSetString(enty->d_name, "md5sum", (char*)generate_md5sum(total_dir));//md5sum   or (char*)md5sum_str_hex
             //getTimestamp();
@@ -1245,7 +1436,7 @@ void src_fragment_selected_traversal_imp(char *dir, char* _short_dir, char *des,
 
                 #if 1
                 //encode(infile, outfile);//OK
-                encode(infile, outfile, _short_dir, enty->d_name);//添加路径信息
+                encode(infile, outfile, relative_dir, enty->d_name);//添加路径信息
                 #else
                 //first length. then new, then
                 int length = get_length_after_base64(infile);
@@ -1293,8 +1484,6 @@ int fragment_traversal()
     //printf("\nDirectory fragement scan of %s\n",fragmentDir);
 
     is_base64 = true;
-    //待处理，寻找合适的位置
-    ////iniFileLoad(fragmentHEAD);
 
     src_fragment_traversal_imp(fragmentDir, relativeDir, fragmentDes, 0);
     //printf("Done\n");
@@ -1747,6 +1936,8 @@ int CompletePath()
     sprintf(SRC_BASE_LOCATION, "%s%s", ROOT_DIR ,SRC_BASE_LOCATION_REL);
     sprintf(DES_BASE_LOCATION, "%s%s", ROOT_DIR ,DES_BASE_LOCATION_REL);
 
+
+    ///==============NORMAL path================
     //SRC
     sprintf(SRC_LOCATION, "%s%s", SRC_BASE_LOCATION ,SRC_LOCATION_REL);
     sprintf(SRC_LZO_LOCATION, "%s%s", SRC_BASE_LOCATION ,SRC_LZO_LOCATION_REL);
@@ -1772,41 +1963,33 @@ int CompletePath()
     sprintf(DES_INI_FOLD_LOCATION, "%s%s", DES_BASE_LOCATION ,DES_INI_FOLD_LOCATION_REL);
     sprintf(DES_INI_FILE, "%s%s", DES_BASE_LOCATION ,DES_INI_FILE_REL);
     sprintf(DES_INI_FOLD, "%s%s", DES_BASE_LOCATION ,DES_INI_FOLD_LOCATION_REL);
-}
 
-#if 0
-int CompleteSrcPath()
-{
-    sprintf(ROOT_DIR, "%s", getenv("HOME"));
+
+    ///==============UDP path================
     //SRC
-    sprintf(SRC_LOCATION, "%s%s", SRC_BASE_LOCATION ,SRC_LOCATION_REL);
-    sprintf(SRC_LZO_LOCATION, "%s%s", SRC_BASE_LOCATION ,SRC_LZO_LOCATION_REL);
-    sprintf(SRC_SPLIT_LOCATION, "%s%s", SRC_BASE_LOCATION ,SRC_SPLIT_LOCATION_REL);
-    sprintf(SRC_BASE64_ENCODE_LOCATION, "%s%s", SRC_BASE_LOCATION ,SRC_BASE64_ENCODE_LOCATION_REL);
+    sprintf(SRC_UDP_LOCATION, "%s%s", SRC_BASE_LOCATION ,SRC_UDP_LOCATION_REL);
+    sprintf(SRC_UDP_LZO_LOCATION, "%s%s", SRC_BASE_LOCATION ,SRC_UDP_LZO_LOCATION_REL);
+    sprintf(SRC_UDP_SPLIT_LOCATION, "%s%s", SRC_BASE_LOCATION ,SRC_UDP_SPLIT_LOCATION_REL);
+    sprintf(SRC_UDP_BASE64_ENCODE_LOCATION, "%s%s", SRC_BASE_LOCATION ,SRC_UDP_BASE64_ENCODE_LOCATION_REL);
     //SRC INI
-    sprintf(SRC_INI_LOCATION, "%s%s", SRC_BASE_LOCATION ,SRC_INI_LOCATION_REL);
-    sprintf(SRC_INI_FILE_LOCATION, "%s%s", SRC_BASE_LOCATION ,SRC_INI_FILE_LOCATION_REL);
-    sprintf(SRC_INI_FOLD_LOCATION, "%s%s", SRC_BASE_LOCATION ,SRC_INI_FOLD_LOCATION_REL);
-    sprintf(SRC_INI_FRAGMENT_LOCATION, "%s%s", SRC_BASE_LOCATION ,SRC_INI_FRAGMENT_LOCATION_REL);
-    sprintf(SRC_INI_FILE_FRAG_LOCATION, "%s%s", SRC_BASE_LOCATION ,SRC_INI_FILE_FRAG_LOCATION_REL);
-    sprintf(SRC_INI_FOLD_FRAG_LOCATION, "%s%s", SRC_BASE_LOCATION ,SRC_INI_FOLD_FRAG_LOCATION_REL);
-}
+    sprintf(SRC_UDP_INI_LOCATION, "%s%s", SRC_BASE_LOCATION ,SRC_UDP_INI_LOCATION_REL);
+    sprintf(SRC_UDP_INI_FILE_LOCATION, "%s%s", SRC_BASE_LOCATION ,SRC_UDP_INI_FILE_LOCATION_REL);
+    sprintf(SRC_UDP_INI_FOLD_LOCATION, "%s%s", SRC_BASE_LOCATION ,SRC_UDP_INI_FOLD_LOCATION_REL);
+    sprintf(SRC_UDP_INI_FRAGMENT_LOCATION, "%s%s", SRC_BASE_LOCATION ,SRC_UDP_INI_FRAGMENT_LOCATION_REL);
+    sprintf(SRC_UDP_INI_FILE_FRAG_LOCATION, "%s%s", SRC_BASE_LOCATION ,SRC_UDP_INI_FILE_FRAG_LOCATION_REL);
+    sprintf(SRC_UDP_INI_FOLD_FRAG_LOCATION, "%s%s", SRC_BASE_LOCATION ,SRC_UDP_INI_FOLD_FRAG_LOCATION_REL);
 
-
-int CompleteDesPath()
-{
-    sprintf(ROOT_DIR, "%s", getenv("HOME"));
     //DES
-    sprintf(DES_LOCATION, "%s%s", DES_BASE_LOCATION ,DES_LOCATION_REL);
-    sprintf(DES_RECEIVE_LOCATION, "%s%s", DES_BASE_LOCATION ,DES_RECEIVE_LOCATION_REL);
-    sprintf(DES_BASE64_DECODE_LOCATION, "%s%s", DES_BASE_LOCATION ,DES_BASE64_DECODE_LOCATION_REL);
-    sprintf(DES_CAT_LOCATION, "%s%s", DES_BASE_LOCATION ,DES_CAT_LOCATION_REL);
+    sprintf(DES_UDP_LOCATION, "%s%s", DES_BASE_LOCATION ,DES_UDP_LOCATION_REL);
+    sprintf(DES_UDP_RECEIVE_LOCATION, "%s%s", DES_BASE_LOCATION ,DES_UDP_RECEIVE_LOCATION_REL);
+    sprintf(DES_UDP_BASE64_DECODE_LOCATION, "%s%s", DES_BASE_LOCATION ,DES_UDP_BASE64_DECODE_LOCATION_REL);
+    sprintf(DES_UDP_CAT_LOCATION, "%s%s", DES_BASE_LOCATION ,DES_UDP_CAT_LOCATION_REL);
     //DES INI
-    sprintf(DES_RECV_INI_LOCATION, "%s%s", DES_BASE_LOCATION ,DES_RECV_INI_LOCATION_REL);
-    sprintf(DES_INI_LOCATION, "%s%s", DES_BASE_LOCATION ,DES_INI_LOCATION_REL);
-    sprintf(DES_INI_FILE_LOCATION, "%s%s", DES_BASE_LOCATION ,DES_INI_FILE_LOCATION_REL);
-    sprintf(DES_INI_FOLD_LOCATION, "%s%s", DES_BASE_LOCATION ,DES_INI_FOLD_LOCATION_REL);
-    sprintf(DES_INI_FILE, "%s%s", DES_BASE_LOCATION ,DES_INI_FILE_REL);
-    sprintf(DES_INI_FOLD, "%s%s", DES_BASE_LOCATION ,DES_INI_FOLD_LOCATION_REL);
+    sprintf(DES_UDP_RECV_INI_LOCATION, "%s%s", DES_BASE_LOCATION ,DES_UDP_RECV_INI_LOCATION_REL);
+    sprintf(DES_UDP_INI_LOCATION, "%s%s", DES_BASE_LOCATION ,DES_UDP_INI_LOCATION_REL);
+    sprintf(DES_UDP_INI_FILE_LOCATION, "%s%s", DES_BASE_LOCATION ,DES_UDP_INI_FILE_LOCATION_REL);
+    sprintf(DES_UDP_INI_FOLD_LOCATION, "%s%s", DES_BASE_LOCATION ,DES_UDP_INI_FOLD_LOCATION_REL);
+    sprintf(DES_UDP_INI_FILE, "%s%s", DES_BASE_LOCATION ,DES_UDP_INI_FILE_REL);
+    sprintf(DES_UDP_INI_FOLD, "%s%s", DES_BASE_LOCATION ,DES_UDP_INI_FOLD_LOCATION_REL);
+
 }
-#endif

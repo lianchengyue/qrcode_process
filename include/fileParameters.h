@@ -101,6 +101,11 @@ typedef struct ActiveMQVec {
     }
 */
 } activeMQVec;
+
+typedef enum{
+    UDP=1,
+    NORMAL=2,
+} MESSAGE_LEVEL;
 #endif
 
 const char TRANSMIT_PRESTART[] = "1010101010"; //传输报头

@@ -22,14 +22,21 @@ int file_traversal();
 int ini_traversal();
 int fragment_traversal();
 
+
 ///对消息指定待传输文件的处理
 #ifdef USE_ACTIVEMQ
+///处理文件
+//切割activeMQ命令中待传输的文件
 int file_select(activeMQVec msg);
-void src_file_select_imp(char *dir, char* _short_dir, char *_2_dir, char *_3_dir, char *_4_dir, /*const */char *date, /*const */char *d_name);
+//遍历3文件夹中的文件，并生成4中的碎片
+void src_file_select_imp(char *dir, char* _short_dir, char *_2_dir, char *_3_dir, char *_4_dir, /*const */char *date, /*const */char *d_name, int type);
 
-//int ini_select();
-//void src_ini_select_imp(selectedDir, relativeDir,_2_dir, _3_dir, _4_dir);
-//遍历日期目录下的文件
+///处理配置文件
+int ini_select(activeMQVec msg);
+void src_ini_select_imp(char *date, char *d_name, int type);
+
+///处理碎片
+//遍历日期目录下的碎片
 int fragment_selected_traversal(activeMQVec msg);
 void src_fragment_selected_traversal_imp(char *dir, char* _short_dir, char *des, char *date, char *d_name);
 #endif
