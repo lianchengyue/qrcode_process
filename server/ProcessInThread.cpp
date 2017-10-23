@@ -137,11 +137,20 @@ int ProcessInThread::des_prestart_content_receiver(char *QRdata)
     char *name = new char[NAME_MAX];
     char *pureQRdata;//temp
     int *offset = (int *)malloc(sizeof(int));
+    //拆分relative_dir，获取日期，文件名与配置文件名
+    char *date  = new char[NAME_MAX];
+    char *d_name  = new char[NAME_MAX];
+    char *ini_name  = new char[NAME_MAX];
+    int type = NORMAL;
 
     printf("des_prestart_content_receiver\n");
     memset(relative_dir, 0, PATH_MAX);
     memset(total_dir, 0, PATH_MAX);
     memset(name, 0, NAME_MAX);
+
+    memset(date, 0, NAME_MAX);
+    memset(d_name, 0, NAME_MAX);
+    memset(ini_name, 0, NAME_MAX);
 
     *offset = 0;
     //temp
@@ -156,16 +165,41 @@ int ProcessInThread::des_prestart_content_receiver(char *QRdata)
     pureQRdata = QRdata;
     pureQRdata = pureQRdata + *offset;
 
+    //拆分relative_dir，获取日期，文件名与配置文件名
+    cutINIHeadData(relative_dir, date, d_name, ini_name);
 
-    sprintf(total_dir, "%s%s", DES_RECV_INI_LOCATION, relative_dir); ///生成到该目录 relative_dir:config/,应改为config.ini/
+    if(UDP == type)
+    {
+        sprintf(total_dir, "%s%s", DES_UDP_RECV_INI_LOCATION, date); ///生成到该目录 relative_dir:config/,应改为config.ini/
+        mkdir(total_dir, S_IRWXU|S_IRWXG|S_IRWXO);
+        sprintf(total_dir, "%s%s/%s", DES_UDP_RECV_INI_LOCATION, date, d_name);
+        mkdir(total_dir, S_IRWXU|S_IRWXG|S_IRWXO);
+        sprintf(total_dir, "%s%s/%s/%s", DES_UDP_RECV_INI_LOCATION, date, d_name, ini_name);
+        mkdir(total_dir, S_IRWXU|S_IRWXG|S_IRWXO);///生成到该目录 relative_dir:config/,应改为config.ini/
+    }else if(NORMAL == type)
+    {
+        sprintf(total_dir, "%s%s", DES_RECV_INI_LOCATION, date); ///生成到该目录 relative_dir:config/,应改为config.ini/
+        mkdir(total_dir, S_IRWXU|S_IRWXG|S_IRWXO);
+        sprintf(total_dir, "%s%s/%s", DES_RECV_INI_LOCATION, date, d_name);
+        mkdir(total_dir, S_IRWXU|S_IRWXG|S_IRWXO);
+        sprintf(total_dir, "%s%s/%s/%s", DES_RECV_INI_LOCATION, date, d_name, ini_name);
+        mkdir(total_dir, S_IRWXU|S_IRWXG|S_IRWXO);///生成到该目录 relative_dir:config/,应改为config.ini/
+    }
 
     //文件夹是否存在
+    /*
     if(0 != access(total_dir, F_OK))
     {
         mkdir(total_dir, S_IRWXU|S_IRWXG|S_IRWXO);
-    }
+    }*/
 
-    strcat(total_dir, name);
+    if (UDP == type)
+    {
+        sprintf(total_dir, "%s%s/%s/%s/%s", DES_UDP_RECV_INI_LOCATION, date, d_name, ini_name, name);
+    } else if (NORMAL == type)
+    {
+        sprintf(total_dir, "%s%s/%s/%s/%s", DES_RECV_INI_LOCATION, date, d_name, ini_name, name);
+    }
 
     FILE *INI_Destination = fopen(total_dir, "wb"); //ab+;
     //测试读取二维码并生成文件，正式版删去
@@ -194,12 +228,21 @@ int ProcessInThread::des_start_content_receiver(char *QRdata)
     char *name = new char[NAME_MAX];
     char *pureQRdata;//temp
     int *offset = (int *)malloc(sizeof(int));
+    //拆分relative_dir，获取日期，文件名与配置文件名
+    char *date  = new char[NAME_MAX];
+    char *d_name  = new char[NAME_MAX];
+    int type = NORMAL;
 
     //printf("des_start_content_receiver\n");
 
     memset(relative_dir, 0, PATH_MAX);
     memset(total_dir, 0, PATH_MAX);
     memset(name, 0, NAME_MAX);
+
+    //拆分relative_dir，获取日期，文件名与配置文件名
+    memset(date, 0, NAME_MAX);
+    memset(d_name, 0, NAME_MAX);
+
 
     *offset = 0;
     //temp
@@ -214,16 +257,105 @@ int ProcessInThread::des_start_content_receiver(char *QRdata)
     pureQRdata = QRdata;
     pureQRdata = pureQRdata + *offset;
 
+    //拆分relative_dir，获取日期，文件名与配置文件名
+    cutHeadData(relative_dir, date, d_name);
 
-    sprintf(total_dir, "%s%s", DES_RECEIVE_LOCATION, relative_dir);
-
-    //文件夹是否存在
-    if(0 != access(total_dir, F_OK))
+    if(UDP == type)
     {
-        mkdir(total_dir, S_IRWXU|S_IRWXG|S_IRWXO);
+        //1
+        //cddir(DES_UDP_RECEIVE_LOCATION);
+        sprintf(total_dir, "%s%s", DES_UDP_RECEIVE_LOCATION, date);
+        if(0 != access(total_dir, F_OK))
+        {
+            mkdir(total_dir, S_IRWXU|S_IRWXG|S_IRWXO);
+            sprintf(total_dir, "%s%s/%s", DES_UDP_RECEIVE_LOCATION, date, d_name);
+        }
+        if(0 != access(total_dir, F_OK))
+        {
+            mkdir(total_dir, S_IRWXU|S_IRWXG|S_IRWXO);
+        }
+
+        //2
+        //cddir(DES_UDP_BASE64_DECODE_LOCATION);
+        sprintf(total_dir, "%s%s", DES_UDP_BASE64_DECODE_LOCATION, date);
+        if(0 != access(total_dir, F_OK))
+        {
+            mkdir(total_dir, S_IRWXU|S_IRWXG|S_IRWXO);
+            sprintf(total_dir, "%s%s/%s", DES_UDP_BASE64_DECODE_LOCATION, date, d_name);
+        }
+        if(0 != access(total_dir, F_OK))
+        {
+            mkdir(total_dir, S_IRWXU|S_IRWXG|S_IRWXO);
+        }
+
+        //3
+        //cddir(DES_UDP_CAT_LOCATION);
+        sprintf(total_dir, "%s%s", DES_UDP_CAT_LOCATION, date);
+        if(0 != access(total_dir, F_OK))
+        {
+            mkdir(total_dir, S_IRWXU|S_IRWXG|S_IRWXO);
+        }
+
+        //4
+        //cddir(DES_UDP_LOCATION);
+        sprintf(total_dir, "%s%s", DES_UDP_LOCATION, date);
+        if(0 != access(total_dir, F_OK))
+        {
+            mkdir(total_dir, S_IRWXU|S_IRWXG|S_IRWXO);
+        }
+    }
+    else if(NORMAL == type)
+    {
+        //1
+        //cddir(DES_RECEIVE_LOCATION);
+        sprintf(total_dir, "%s%s", DES_RECEIVE_LOCATION, date);
+        if(0 != access(total_dir, F_OK))
+        {
+            mkdir(total_dir, S_IRWXU|S_IRWXG|S_IRWXO);
+            sprintf(total_dir, "%s%s/%s", DES_RECEIVE_LOCATION, date, d_name);
+        }
+        if(0 != access(total_dir, F_OK))
+        {
+            mkdir(total_dir, S_IRWXU|S_IRWXG|S_IRWXO);
+        }
+
+        //2
+        //cddir(DES_BASE64_DECODE_LOCATION);
+        sprintf(total_dir, "%s%s", DES_BASE64_DECODE_LOCATION, date);
+        if(0 != access(total_dir, F_OK))
+        {
+            mkdir(total_dir, S_IRWXU|S_IRWXG|S_IRWXO);
+            sprintf(total_dir, "%s%s/%s", DES_BASE64_DECODE_LOCATION, date, d_name);
+        }
+        if(0 != access(total_dir, F_OK))
+        {
+            mkdir(total_dir, S_IRWXU|S_IRWXG|S_IRWXO);
+        }
+
+        //3
+        //cddir(DES_CAT_LOCATION);
+        sprintf(total_dir, "%s%s", DES_CAT_LOCATION, date);
+        if(0 != access(total_dir, F_OK))
+        {
+            mkdir(total_dir, S_IRWXU|S_IRWXG|S_IRWXO);
+        }
+
+        //4
+        //cddir(DES_LOCATION);
+        sprintf(total_dir, "%s%s", DES_LOCATION, date);
+        if(0 != access(total_dir, F_OK))
+        {
+            mkdir(total_dir, S_IRWXU|S_IRWXG|S_IRWXO);
+        }
     }
 
-    strcat(total_dir, name);
+    if (UDP == type)
+    {
+        sprintf(total_dir, "%s%s/%s/%s", DES_UDP_RECEIVE_LOCATION, date, d_name, name);
+    } else if (NORMAL == type)
+    {
+        sprintf(total_dir, "%s%s/%s/%s", DES_RECEIVE_LOCATION, date, d_name, name);
+    }
 
     FILE *cut_head_Destination = fopen(total_dir, "wb"); //ab+;
 
@@ -232,22 +364,21 @@ int ProcessInThread::des_start_content_receiver(char *QRdata)
     //解码并生成文件
     memset(total_dir, 0, PATH_MAX);
 
-    #if 1
     //在2目录中创建接收传输文件的文件夹
-    sprintf(total_dir, "%s%s", DES_BASE64_DECODE_LOCATION, relative_dir);
+    if(UDP == type)
+    {
+        sprintf(total_dir, "%s%s", DES_UDP_BASE64_DECODE_LOCATION, relative_dir);
+    }
+    else if(NORMAL == type)
+    {
+        sprintf(total_dir, "%s%s", DES_BASE64_DECODE_LOCATION, relative_dir);
+    }
+
     if(0 != access(total_dir, F_OK))
     {
         mkdir(total_dir, S_IRWXU|S_IRWXG|S_IRWXO);
     }
     strcat(total_dir, name);
-
-    if(0 == strcmp(name,"X403"))//X403
-    {
-       int k = 1;
-    }
-    #else
-    //sprintf(total_dir, "%s%s%s", DES_BASE64_DECODE_LOCATION, relative_dir,name);
-    #endif
 
     FILE *base64_decode_Destination = fopen(total_dir, "w");  //home/montafan/QRcodeGrab/destination/2_base64_decode_location/hu.jpg/X0
 

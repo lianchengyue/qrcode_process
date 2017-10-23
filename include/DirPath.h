@@ -100,7 +100,6 @@ static char DES_LOCATION_REL[] = "/destination/normal/4_location/";
 static char DES_RECEIVE_LOCATION_REL[] = "/destination/normal/1_receive_location/";
 static char DES_BASE64_DECODE_LOCATION_REL[] = "/destination/normal/2_base64_decode_location/";
 static char DES_CAT_LOCATION_REL[] = "/destination/normal/3_cat_location/";
-//static char DES_BASE64_DECODE_LOCATION[] = "/destination/normal/2_base64_decode_location/";
 
 //DES INI
 static char DES_RECV_INI_LOCATION_REL[] = "/destination/normal/recvINI/";

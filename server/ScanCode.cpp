@@ -19,11 +19,21 @@ using namespace zbar;
 using namespace cv;
 
 
+/*
 static zbar_image_scanner_t *scanner;
 static zbar_image_t *image;
+*/
 
 static ProcessInThread *mPinThread;
 static RecvStateMachine *m_RecvstateMachine;
+
+#ifdef GET_TIME_CONSUMPTION
+static float timeuse;
+
+static struct timeval p_start;
+static struct timeval p_end;
+#endif
+
 
 ScanCode::ScanCode()
 {
@@ -38,14 +48,15 @@ ScanCode::~ScanCode()
 }
 
 int ScanCode::initZbar(){
+#if 0
     /* create a reader */
     scanner = zbar_image_scanner_create();
 
     /* configure the reader */
     zbar_image_scanner_set_config(scanner, ZBAR_QRCODE, ZBAR_CFG_ENABLE, 1); //0
+#endif
 
     mPinThread = new ProcessInThread();
-    //mPinThread1 = new ProcessInThread();
 
     m_RecvstateMachine = RecvStateMachine::getInstance();
 }
@@ -54,16 +65,32 @@ int ScanCode::initZbar(){
 void ScanCode::scanimagefunc(/*const*/ void *raw/*, char *result*/)
 {
     int width = INPUT_WIDTH, height = INPUT_HEIGHT;
-    //printf("width=%d, height=%d\n", width, height);
+
     scanimageData *raw1 = reinterpret_cast<scanimageData *>(raw);
 
 #ifdef USE_MUTIPLE_THREAD
-    pthread_mutex_lock(&raw1->lock);
+//    pthread_mutex_lock(&raw1->lock);
 #endif
-    /* wrap image data */
-    //zbar_image_t *image = zbar_image_create();
+#if 0//TEST
+    int framecnt = raw1->framecnt;
+    usleep(300000); //33000 30000 25000
+    printf("The %d Frame processing\n", framecnt);
+#else//TEST
+    #ifdef GET_TIME_CONSUMPTION
+    gettimeofday( &p_start, NULL );
+    #endif
 
-    image = zbar_image_create();
+    int framecnt = raw1->framecnt;
+    /* create a reader */
+    zbar_image_scanner_t *scanner = zbar_image_scanner_create();
+
+    /* configure the reader */
+    zbar_image_scanner_set_config(scanner, ZBAR_QRCODE, ZBAR_CFG_ENABLE, 1); //0
+
+    /* wrap image data */
+    zbar_image_t *image = zbar_image_create();
+
+    //image = zbar_image_create();
     zbar_image_set_format(image, *(int*)"Y800");
     zbar_image_set_size(image, width, height);
 #ifdef IMAGEGRAY_DEBUG_FUNC
@@ -83,7 +110,7 @@ void ScanCode::scanimagefunc(/*const*/ void *raw/*, char *result*/)
         zbar_symbol_type_t typ = zbar_symbol_get_type(symbol);
         const char *data = zbar_symbol_get_data(symbol);
         #ifdef PRINT_CONTENT
-        printf("decoded: %s symbol:%s\n", zbar_get_symbol_name(typ), data);
+        //printf("decoded: %s symbol:%s\n", zbar_get_symbol_name(typ), data);
         #endif
         ///传值
         strcpy(raw1->result, data);
@@ -91,22 +118,41 @@ void ScanCode::scanimagefunc(/*const*/ void *raw/*, char *result*/)
 
         delete(data);//added for flq
     }
-///    printf("n=%d,The %d Frame processing\n", n, raw1->framecnt);
+///    printf("n=%d,The %d Frame processing\n", n, framecnt);
     #ifdef PRINT_CONTENT
-    printf("n=%d,The %d Frame processing\n", n, raw1->framecnt);
+    printf("n=%d,The %d Frame processing\n", n, framecnt);
     #endif
     //对二维码的处理放入线程中
     //very important
     if(1 == n)
     {
-        //printf("The %d Frame processing start!\n", raw1->framecnt);
+        //printf("The %d Frame processing start!\n", framecnt);
         mPinThread->QRdataProcess(raw1->result);
     }
+    else if (0 == n)
+    {
+        char name[NAME_MAX] = {0};
+        sprintf(name,"/home/montafan/DUMP/%d.jpg",framecnt);
+        //sprintf(name,"/home/morecom/DUMP/%d.jpg",framecnt);
+        imwrite(name, raw1->imageGray);
+    }
+
+    #ifdef GET_TIME_CONSUMPTION
+    gettimeofday( &p_end, NULL );
+
+    timeuse = 1000000 * ( p_end.tv_sec - p_start.tv_sec ) + p_end.tv_usec - p_start.tv_usec;
+    //timeuse /= 1000;
+
+    printf("ScanCode Total time:%f s\n", timeuse);
+    #endif
+#endif //TEST
 
 #ifdef USE_MUTIPLE_THREAD
-    pthread_mutex_unlock(&raw1->lock);
+//    pthread_mutex_unlock(&raw1->lock);
 #endif
 }
+
+
 void ScanCode::scanimage(/*const*/ void *raw/*, char *result*/)
 {
     int width = INPUT_WIDTH, height = INPUT_HEIGHT;
@@ -115,10 +161,20 @@ void ScanCode::scanimage(/*const*/ void *raw/*, char *result*/)
 #ifdef USE_MUTIPLE_THREAD
     pthread_mutex_lock(&raw1->lock);
 #endif
-    /* wrap image data */
-    //zbar_image_t *image = zbar_image_create();
+    #ifdef GET_TIME_CONSUMPTION
+    gettimeofday( &p_start, NULL );
+    #endif
 
-    image = zbar_image_create();
+    /* create a reader */
+    zbar_image_scanner_t *scanner = zbar_image_scanner_create();
+
+    /* configure the reader */
+    zbar_image_scanner_set_config(scanner, ZBAR_QRCODE, ZBAR_CFG_ENABLE, 1); //0
+
+    /* wrap image data */
+    zbar_image_t *image = zbar_image_create();
+    //image = zbar_image_create();
+
     zbar_image_set_format(image, *(int*)"Y800");
     zbar_image_set_size(image, width, height);
 #ifdef IMAGEGRAY_DEBUG_FUNC
@@ -146,6 +202,15 @@ void ScanCode::scanimage(/*const*/ void *raw/*, char *result*/)
         delete(data);//added for flq
     }
     printf("The %d Frame processing\n", raw1->framecnt);
+
+    #ifdef GET_TIME_CONSUMPTION
+    gettimeofday( &p_end, NULL );
+
+    timeuse = 1000000 * ( p_end.tv_sec - p_start.tv_sec ) + p_end.tv_usec - p_start.tv_usec;
+    timeuse /= 1000;
+
+    printf("ScanCode Total time:%f ms\n", timeuse);
+    #endif
 
 #ifdef USE_MUTIPLE_THREAD
     pthread_mutex_unlock(&raw1->lock);

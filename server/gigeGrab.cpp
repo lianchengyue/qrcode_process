@@ -147,6 +147,7 @@ int gigeGrab::grab()
                     mScanImgData.framecnt = mPreviewFrames;
                     cvtColor(frame,mScanImgData.imageGray,CV_RGB2GRAY);
                     #ifdef OPENCV_WIN
+                    printf("the %d frame coming\n", mPreviewFrames);
                     imshow("basler camera",mScanImgData.imageGray);
                     //waitKey(1);
                     #endif

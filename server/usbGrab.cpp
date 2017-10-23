@@ -91,6 +91,7 @@ int usbGrab::grab()
         mScanImgData.ret = 9;
         mScanImgData.framecnt = mPreviewFrames;
         cvtColor(frame,mScanImgData.imageGray,CV_RGB2GRAY);
+///        printf("the %d frame coming\n", mPreviewFrames);
         imshow("usb camera",mScanImgData.imageGray);
 
         /////关注为什么ASSERT失败

@@ -728,7 +728,7 @@ void QRGenerator::ProcessMsgQ(QString msg)
     //文件遍历
     //2:LZO压缩，3:split操作
     printf("file_select()\n");
-    file_select(receivedMessage);
+    file_select(receivedMessage, ssmg.c_str());
 
     //报头遍历
     printf("ini_traversal()\n");

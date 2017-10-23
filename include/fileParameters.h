@@ -17,8 +17,8 @@
 //#define INPUT_WIDTH 320
 //#define INPUT_HEIGHT 240
 
-//#define INPUT_WIDTH 640
-//#define INPUT_HEIGHT 480
+#define INPUT_WIDTH 640
+#define INPUT_HEIGHT 480
 
 //#define INPUT_WIDTH 1280
 //#define INPUT_HEIGHT 960
@@ -29,23 +29,28 @@
 //#define INPUT_WIDTH 960
 //#define INPUT_HEIGHT 640
 
-#define INPUT_WIDTH 480
-#define INPUT_HEIGHT 480
+//#define INPUT_WIDTH 480
+//#define INPUT_HEIGHT 480
 
 //#define INPUT_WIDTH 600
 //#define INPUT_HEIGHT 600
+
+//#define INPUT_WIDTH 320
+//#define INPUT_HEIGHT 240
+
 
 #define CV_WAITKEY_INTERVAL 3//3
 
 #define LZO_SUFFIX ".lzo"
 
-#if 1
 #ifdef USE_MUTIPLE_THREAD
+#if 0
+#define THREAD_NUM 4
+#define QUEUES 64 //
+#elif 1
 #define THREAD_NUM 16
-#define QUEUES 64
-#endif
+#define QUEUES 256 //
 #else
-#ifdef USE_MUTIPLE_THREAD
 #define THREAD_NUM 32
 #define QUEUES 128
 #endif
@@ -64,7 +69,7 @@
 //状态码显示的次数
 #define WAIT_FRAME_COUNT 5
 //二维码显示15帧
-#define DISPLAY_INTERVAL 200000//100000  //unit: us     30fps:33333  25fps:40000 15fps:66666  10fps:100000  8fps:125000
+#define DISPLAY_INTERVAL 66666//100000  //unit: us     30fps:33333  25fps:40000  16fps:62500  15fps:66666  10fps:100000  8fps:125000  3fps:333333
 
 
 typedef enum{

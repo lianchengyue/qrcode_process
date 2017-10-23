@@ -70,8 +70,11 @@ int cat(char *input, char *outputpath, char *outfilenname)
     char *filendir;
     char *outfilendir;
     int  Totalcount = 0;
+    int maxnum = 0;
 
     int  count = 0;//连接成功个数
+
+    maxnum = CountFilenum(input);
 
     filendir = new char[PATH_MAX];
     memset(filendir, 0, PATH_MAX);
@@ -121,7 +124,10 @@ int cat(char *input, char *outputpath, char *outfilenname)
 
     }
 
-    printf("**Cat %d file**\n",count);
+    if(count < maxnum)
+        return 10;
+
+    printf("**Cat %d file**, total file:%d\n",count, maxnum);
 
     free(filendir);
     free(outfilendir);
@@ -130,6 +136,47 @@ int cat(char *input, char *outputpath, char *outfilenname)
 
 }
 
+int CountFilenum(char *dir)
+{
+    //文件目录结构体
+    struct dirent *enty;
+    //详细文件信息结构体
+    struct stat statbuf;
+    DIR *Dp;
+
+    int total_num = 0;
+
+    if(NULL == (Dp = opendir(dir)))
+    {
+        LOG_ERR("%s, can not open dir:%s\n", __func__, dir);
+        return -1;
+    }
+
+    //遍历这个目录下的所有文件
+    while(NULL != (enty = readdir(Dp) ))
+    {
+        //通过文件名，得到详细文件信息
+        lstat(enty->d_name,&statbuf);
+        //判断是不是目录
+        if(S_ISDIR(statbuf.st_mode))
+        {
+            //当前目录和上一目录过滤掉
+            if(0 == strcmp(".",enty->d_name) ||
+                          0 == strcmp("..",enty->d_name))
+            {
+                continue;
+            }
+        }
+        else
+        {
+            total_num++;
+        }
+
+    }
+
+    closedir(Dp);
+    return total_num;
+}
 
 int cat(char *input, char *output)
 {

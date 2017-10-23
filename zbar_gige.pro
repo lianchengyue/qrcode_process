@@ -98,7 +98,8 @@ INCLUDEPATH += \
 /home/montafan/3rdparty/lzo210/include \
 /usr/local/ActiveMQ-CPP/include/activemq-cpp-3.9.4 \
 /usr/local/apr/include/apr-1 \
-/home/montafan/software_download/jsoncpp-cmake-adjustments/include \
+#/home/montafan/software_download/jsoncpp-cmake-adjustments/include \
+/usr/include \
 
 LIBS += \
 /usr/local/opencv2.4.13/lib/libopencv_core.so \
@@ -147,7 +148,8 @@ LIBS += \
 /home/montafan/3rdparty/lzo210/lib/liblzo2.so \
 /usr/local/ActiveMQ-CPP/lib/libactivemq-cpp.a \
 /usr/local/apr/lib/libapr-1.a \
-/home/montafan/software_download/jsoncpp-cmake-adjustments/libs/linux-gcc-4.9.4/libjson_linux-gcc-4.9.4_libmt.so \
+#/home/montafan/software_download/jsoncpp-cmake-adjustments/libs/linux-gcc-4.9.4/libjson_linux-gcc-4.9.4_libmt.so \
+/usr/lib/libjson_linux-gcc-4.9.4_libmt.so
 
 LIBS += -L/usr/local/lib -lzbar -lcrypto -lssl
 

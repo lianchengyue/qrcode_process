@@ -53,7 +53,12 @@
 
 //打印识别内容
 #ifndef PRINT_CONTENT
-//#define PRINT_CONTENT
+#define PRINT_CONTENT
+#endif
+
+//打印耗时
+#ifndef GET_TIME_CONSUMPTION
+//#define GET_TIME_CONSUMPTION
 #endif
 
 //#define INI_ACCESS_MODE

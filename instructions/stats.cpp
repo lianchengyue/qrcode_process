@@ -835,7 +835,7 @@ int file_traversal()
 }
 
 #ifdef USE_ACTIVEMQ
-int file_select(activeMQVec msg)
+int file_select(activeMQVec msg, const char* jsonStr)
 {
     char *config_ini_dir; //生成的ini文件的绝对路径
     char *symbol = "/";
@@ -884,7 +884,7 @@ int file_select(activeMQVec msg)
         fclose(ini_folder);
 
         ///不遍历文件，改为解析JSON中的文件名
-        src_file_select_imp(topDir, relativeDir,_2_dir, _3_dir, _4_dir, date, d_name, msg.type);
+        src_file_select_imp(topDir, relativeDir,_2_dir, _3_dir, _4_dir, date, d_name, msg.type, jsonStr);
         printf("src_file_select_imp(), Done\n");
     }
     else if(NORMAL == msg.type)
@@ -928,14 +928,14 @@ int file_select(activeMQVec msg)
         fclose(ini_folder);
 
         ///不遍历文件，改为解析JSON中的文件名
-        src_file_select_imp(topDir, relativeDir,_2_dir, _3_dir, _4_dir, date, d_name, msg.type);
+        src_file_select_imp(topDir, relativeDir,_2_dir, _3_dir, _4_dir, date, d_name, msg.type, jsonStr);
         printf("Nomal, src_file_select_imp(), Done\n");
     }
 
     return 0;
 }
 
-void src_file_select_imp(char *dir, char* _short_dir, char *_2_dir, char *_3_dir, char *_4_dir, char *date, char *d_name, int type)
+void src_file_select_imp(char *dir, char* _short_dir, char *_2_dir, char *_3_dir, char *_4_dir, char *date, char *d_name, int type, const char* jsonStr)
 {
     //文件目录结构体
     struct dirent *enty;
@@ -1002,6 +1002,11 @@ void src_file_select_imp(char *dir, char* _short_dir, char *_2_dir, char *_3_dir
         //通过文件名，得到详细文件信息
         lstat(total_dir,&statbuf);
 
+        //判断文件是否存在，不存在返回
+        if(0 != access(total_dir, F_OK)) {  //待发送文件不存在
+            return;
+        }
+
         //generate_md5sum(total_dir);
         //1的相对路径
         sprintf(relative_dir, "%s%s/%s", _short_dir, date, d_name);
@@ -1044,6 +1049,9 @@ void src_file_select_imp(char *dir, char* _short_dir, char *_2_dir, char *_3_dir
         iniSetString(value, "path", relative_dir);//path
         iniSetInt(value, "size", statbuf.st_size, 0);//size
         iniSetString(value, "md5sum", (char*)generate_md5sum(total_dir));//md5sum   or (char*)md5sum_str_hex
+        ///将JSON消息通过config.ini传给接收端
+        iniSetString(value, "JSON", jsonStr);//JSON消息体
+
         //getTimestamp();
         file_cnt++;
 
@@ -1121,7 +1129,7 @@ void src_file_select_imp(char *dir, char* _short_dir, char *_2_dir, char *_3_dir
             memset(outputDir, 0, PATH_MAX);
             if(UDP == type)
             {
-                sprintf(outputDir, "%s%s%s/%s%s", SRC_LZO_LOCATION, _short_dir, date, d_name, LZO_SUFFIX); //moidfied by flq
+                sprintf(outputDir, "%s%s%s/%s%s", SRC_UDP_LZO_LOCATION, _short_dir, date, d_name, LZO_SUFFIX); //moidfied by flq
             }
             else if(NORMAL == type)
             {
@@ -1928,6 +1936,95 @@ int cutFileName(char *instr, char *filename)
         }
 
     }
+}
+
+////拆分relative_dir，获取日期，文件名与配置文件名
+int cutINIHeadData(char *relative_dir, char *date, char *name, char *ini_name)
+{
+    int cnt;
+    int len;
+    char *pp;
+    int i;
+    int j;
+
+    cnt = 0;
+    j=0;
+
+    len = strlen(relative_dir) - 1;
+
+    pp = relative_dir;
+
+    for(i=0; i < len; i++)
+    {
+        if('/' == pp[i])
+        {
+            cnt++;
+            j = 0;
+            continue;
+        }
+        else
+        {
+            if (0 == cnt)
+            {
+                date[j] = pp[i];
+                j++;
+            }
+            else if (1 == cnt)
+            {
+                name[j] = pp[i];
+                j++;
+            }
+            else if(2 == cnt)
+            {
+                ini_name[j] = pp[i];
+                j++;
+            }
+        }
+    }
+
+    return 0;
+}
+
+////拆分relative_dir，获取日期，文件名与配置文件名
+int cutHeadData(char *relative_dir, char *date, char *name)
+{
+    int cnt;
+    int len;
+    char *pp;
+    int i;
+    int j;
+
+    cnt = 0;
+    j=0;
+
+    len = strlen(relative_dir) - 1;
+
+    pp = relative_dir;
+
+    for(i=0; i < len; i++)
+    {
+        if('/' == pp[i])
+        {
+            cnt++;
+            j = 0;
+            continue;
+        }
+        else
+        {
+            if (0 == cnt)
+            {
+                date[j] = pp[i];
+                j++;
+            }
+            else if (1 == cnt)
+            {
+                name[j] = pp[i];
+                j++;
+            }
+        }
+    }
+
+    return 0;
 }
 
 int CompletePath()

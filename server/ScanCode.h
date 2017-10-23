@@ -12,6 +12,10 @@
 #include "RecvStateMachine.h"
 #include "include/macros.h"
 
+#ifdef GET_TIME_CONSUMPTION
+#include <sys/time.h>
+#endif
+
 #define CONFIG_FUNC_DEBUG
 #ifdef CONFIG_FUNC_DEBUG
 #define LOG_ERR(fmt,args...) printf(fmt,##args)//#define PR(...) printf(__VA_ARGS__)
@@ -49,7 +53,6 @@ private:
     static int initZbar();
     ///static ProcessInThread *mPinThread1;
     ///staticRecvStateMachine *m_RecvstateMachine;
-
 
 };
 #endif // SCAN_IMAGE_H

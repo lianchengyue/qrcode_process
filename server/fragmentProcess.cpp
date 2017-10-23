@@ -572,7 +572,7 @@ void fragmentProcess::des_fragment_traversal_imp(char *dir, char* _short_dir, ch
         //add .lzo
         strcpy(rename, purename);
         strcat(rename, LZO_SUFFIX);
-        cat(dir, output3Dir, rename);  //参数23拼接完成为后输出的目录（xiangdui路径
+        int cat_result = cat(dir, output3Dir, rename);  //参数23拼接完成为后输出的目录（xiangdui路径)
         strcat(output3Dir, rename);//将output3Dir作为LZO解压缩的输入
 #else
         cat(dir, output3Dir, rename);  //参数23拼接完成为后输出的目录（xiangdui路径）
@@ -580,13 +580,30 @@ void fragmentProcess::des_fragment_traversal_imp(char *dir, char* _short_dir, ch
 
         //裁剪的文件，还需要做LZO解压缩 start
 #ifdef USE_LZO_COMPRESSION
+        LOG_DBG("%s,start LZO Decompress\n",__func__);
         char *lzo_dir =new char[PATH_MAX];
         memset(lzo_dir, 0, PATH_MAX);
         sprintf(lzo_dir, "%s%s", DES_LOCATION, _short_dir);
         getUpperTotalDir(lzo_dir);//返回上一级目录路径
         strcat(lzo_dir, purename);
         //strcat(lzo_dir,LZO_SUFFIX);  //LZO_SUFFIX = ".lzo"
-        processLZO(output3Dir, lzo_dir, LZO_DECOMPRESS);  //flq
+
+        ///===========================tqq===================================//
+        if(0 == cat_result)
+        {
+            int Decompress_result = processLZO(output3Dir, lzo_dir, LZO_DECOMPRESS);  //flq
+            int l = 0;
+            if ( 0 == Decompress_result)
+            {
+                ///如果MD5SUM值匹配
+                ///发消息，接收OK
+            }
+        } else
+        {
+            ///发消息，接收失败
+
+        }
+
         free(lzo_dir);
 #endif
         //裁剪的文件，还需要做LZO解压缩 end
