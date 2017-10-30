@@ -27,7 +27,14 @@ int readJSON()
         int size = parseData.get("size", 0).asInt();
         string md5sum = parseData.get("md5sum", 0).asString();
         int type = parseData.get("type", 0).asInt();
-        printf("readJSON(): filename:%s, date:%s, size:%d, md5sum:%s, type=%d\n", filename.c_str(), date.c_str(), size, md5sum.c_str(), type);
+        printf("========content=start=======\n"
+               "readJSONMessage(),\n"
+               "filename:%s,\n"
+               "date:%s,\n"
+               "size:%d,\n"
+               "md5sum:%s,\n"
+               "type:%d\n"
+               "========content=end========\n", filename.c_str(), date.c_str(), size, md5sum.c_str(), type);
 
         //将读取到的消息写到本地vector中
         ActiveMQVec receivedMessage;
@@ -78,14 +85,14 @@ int readJSONMessage(std::string message)
         string md5sum = parseData.get("md5sum", 0).asString();
         int type = parseData.get("type", 0).asInt();
 
-        printf("========content=start=======\n"
+        printf("\n\n\n========content=start=======\n"
                "readJSONMessage(),\n"
-               "filename:%d,\n"
+               "filename:%s,\n"
                "date:%s,\n"
                "size:%d,\n"
                "md5sum:%s,\n"
                "type:%d\n"
-               "========content=end========\n", filename.c_str(), date.c_str(), size, md5sum.c_str(), type);
+               "========content=end=======\n", filename.c_str(), date.c_str(), size, md5sum.c_str(), type);
 
         //将读取到的消息写到本地vector中
         ActiveMQVec receivedMessage;
@@ -95,13 +102,13 @@ int readJSONMessage(std::string message)
         receivedMessage.date = date;
         receivedMessage.md5sum = md5sum;
         receivedMessage.type =type;
-        if(1 == type)//UDP
+        if(UDP == type)//UDP
         {
             ///UDPVec.push_back(receivedMessage);
             UDPrawVec.push_back(message);
 
         }
-        else if(2 == type)
+        else if(NORMAL == type)
         {
             ///NormalVec.push_back(receivedMessage);
             NormalrawVec.push_back(message);
@@ -111,31 +118,32 @@ int readJSONMessage(std::string message)
             printf("/*******************WRONG TYPE OF MESSAGE****************/");
         }
 
-         printf("UDPVec.size=%d,NormalVec.size=%d\n", UDPVec.size(), NormalVec.size());
+         //printf("UDPVec.size=%d,NormalVec.size=%d\n", UDPVec.size(), NormalVec.size());
+        printf("UDPrawVec.size=%d,NormalrawVec.size=%d\n", UDPrawVec.size(), NormalrawVec.size());
 
     }
     else
     {
-        printf("parse failed");
+        printf("readJSONMessage(), parse failed");
     }
 
     return 0;
 }
 
-int writeJSON()
+string writeJSON(char *date, char *d_name, int type, int Errno)
 {
     // 生成json串
-    Json::Value data;
-    Json::Value frame;
+    Json::Value parseData;
     Json::FastWriter fastWriter;
 
-    frame["type"] = 66;
-    data["username"] = "test";
-    frame["data"] = data;
+    parseData["date"] = date;
+    parseData["name"] = d_name;
+    //parseData["username"] = "test";
+    parseData["type"] = type;
+    parseData["errno"] = Errno;
 
-    string result = fastWriter.write(frame);
+    string result = fastWriter.write(parseData);
     printf("result: %s \n", result.c_str());
 
-    return 0;
-
+    return result;
 }

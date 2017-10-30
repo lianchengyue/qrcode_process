@@ -1,3 +1,5 @@
+ #include <unistd.h>  //sleep()
+
 #include "RecvStateMachine.h"
 #include "include/Errors.h"
 #include "include/DirPath.h"
@@ -95,13 +97,17 @@ int RecvStateMachine::StateMachine(recv_sm_evt_enum_t evt, void *payload)
     switch(evt){//m_state
     case RECV_SM_EVT_INI_START:
         LOG_DBG("RECV_SM_EVT_INI_START\n");
-        m_parent->des_ini_traversal();
-        //rc = m_parent->is_md5sum_match("11111111");
+        ///m_parent->des_ini_traversal();  //之前的方案
+        m_parent->des_ini_select();
         break;
     case RECV_SM_EVT_FRAG_START:
         ///遍历待拼接文件
         LOG_DBG("RECV_SM_EVT_FRAG_START\n");
-        m_parent->des_fragment_traversal();
+        ///m_parent->des_fragment_traversal(); //之前的方案
+
+        //等待线程完成
+        sleep(3);
+        m_parent->des_fragment_select();
         //rc = ;
         break;
     case RECV_SM_EVT_FRAG_INTERRUPT:

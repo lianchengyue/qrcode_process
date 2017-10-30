@@ -38,6 +38,8 @@ private:
     int ini_traversal_flag;
     int fragment_traversal_flag;
 
+    int type_whole;
+
 };
 
 #endif // PROCESSINTHREAD_H

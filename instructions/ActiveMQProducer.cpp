@@ -83,14 +83,15 @@ void ActiveMQProducer::run() {
         producer = session->createProducer( destination );
         producer->setDeliveryMode( DeliveryMode::NON_PERSISTENT );
 
-        string threadIdStr = Long::toString( Thread::currentThread()->getId() );
-        string text = (string)"Hello world! from thread " + threadIdStr;
+        //string UploadText = (string)"{\"filename\":\"hu.png\",\"date\":\"2017-3-4\",\"size\":1077,\"md5sum\":\"d54646434003246e49eac0f2abe211a4\",\"type\": 1}";
 
         for( unsigned int ix=0; ix<numMessages; ++ix )
         {
-            TextMessage* message = session->createTextMessage( text );
+            TextMessage* message = session->createTextMessage( UploadText );
             message->setIntProperty( "Integer", ix );
-            printf( "Sent message #%d from thread %s\ntest:%s\n", ix+1, threadIdStr.c_str(), text.c_str());
+
+            //printf( "Sent message #%d\UploadText:%s\n", ix+1, UploadText.c_str());
+            printf("UploadText:%s\n",UploadText.c_str());
             producer->send( message );
             delete message;
         }
@@ -126,4 +127,15 @@ void ActiveMQProducer::cleanup(){
         if( connection != NULL ) delete connection;
     }catch ( CMSException& e ) { e.printStackTrace(); }
     connection = NULL;
+}
+
+string ActiveMQProducer::getUploadText()
+{
+    return UploadText;
+}
+
+int ActiveMQProducer::setUploadText(string input_text){
+    UploadText = input_text;
+
+    return 0;
 }

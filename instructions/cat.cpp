@@ -125,7 +125,7 @@ int cat(char *input, char *outputpath, char *outfilenname)
     }
 
     if(count < maxnum)
-        return 10;
+        return 2;
 
     printf("**Cat %d file**, total file:%d\n",count, maxnum);
 

@@ -34,7 +34,6 @@ SOURCES += main.cpp \
     instructions/base64.cpp \
     server/fragmentProcess.cpp \
     fileParameters.cpp \
-    client/qrgenerator.cpp \
     server/gigeGrab.cpp \
     server/RecvStateMachine.cpp \
     instructions/split.cpp \
@@ -48,7 +47,8 @@ SOURCES += main.cpp \
     client/TCPMonitor.cpp \
     instructions/ActiveMQProducer.cpp \
     instructions/ActiveMQConsumer.cpp \
-    instructions/JSON.cpp
+    instructions/JSON.cpp \
+    client/qrgenerator.cpp
 
 HEADERS += \
     server/ScanCode.h \

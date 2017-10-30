@@ -34,31 +34,35 @@ using namespace std;
 ////////////////////////////////////////////////////////////////////////////////
 class ActiveMQProducer : public Runnable {
 
-private:
-Connection* connection;
-Session* session;
-Destination* destination;
-MessageProducer* producer;
-bool useTopic;
-bool clientAck;
-unsigned int numMessages;
-std::string brokerURI;
-std::string destURI;
+    private:
+    Connection* connection;
+    Session* session;
+    Destination* destination;
+    MessageProducer* producer;
+    bool useTopic;
+    bool clientAck;
+    unsigned int numMessages;
+    std::string brokerURI;
+    std::string destURI;
 
-private:
-ActiveMQProducer( const ActiveMQProducer& );
-ActiveMQProducer& operator= ( const ActiveMQProducer& );
+    std::string UploadText;
 
-public:
-ActiveMQProducer( const std::string& brokerURI, unsigned int numMessages,
-                const std::string& destURI, bool useTopic = false, bool clientAck = false );
+    private:
+    ActiveMQProducer( const ActiveMQProducer& );
+    ActiveMQProducer& operator= ( const ActiveMQProducer& );
 
-virtual ~ActiveMQProducer();
-void close();
-virtual void run();
+    public:
+    ActiveMQProducer( const std::string& brokerURI, unsigned int numMessages,
+                    const std::string& destURI, bool useTopic = false, bool clientAck = false );
+    string getUploadText();
+    int setUploadText(string input_text);
 
-private:
-void cleanup();
+    virtual ~ActiveMQProducer();
+    void close();
+    virtual void run();
+
+    private:
+    void cleanup();
 
 };
 

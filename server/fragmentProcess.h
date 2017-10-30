@@ -5,6 +5,11 @@
 #include "include/macros.h"
 #include "RecvStateMachine.h"
 
+#ifdef USE_ACTIVEMQ
+#include "instructions/ActiveMQProducer.h"
+#include "instructions/JSON.h"
+#endif
+
 #if 0
 #define CONFIG_FUNC_DEBUG
 #ifdef CONFIG_FUNC_DEBUG
@@ -25,8 +30,13 @@ public:
     virtual ~fragmentProcess();
 
     int QRdataProcess(char* QRdata);
-    int des_fragment_traversal();
+    //拼接并处理ini碎片
     int des_ini_traversal();
+    int des_ini_select();
+    //拼接并处理正文碎片
+    int des_fragment_traversal();
+    int des_fragment_select();
+
 
     int create_folder_tree_from_ini();
 
@@ -49,6 +59,13 @@ private:
     void des_fragment_traversal_imp(string dir, int depth);//遍历绝对目录
     void des_ini_fragment_traversal_imp(string dir, int depth);
     bool is_md5sum_match(char* QRdata);
+    int get_md5sum_from_ini(char *md5sum);
+    int clear_saved_data();
+
+    #ifdef USE_ACTIVEMQ
+    //给服务器发送传输结果
+    int SetActiveMQMessage(string JSONStr);
+    #endif
 
     TransmitStatus getTransmitStatus();
     int setTransmitStatus(TransmitStatus status);
@@ -58,8 +75,14 @@ private:
     char *iniWholePath;//发送端完整文件的遍历结果
     char *iniPath;//接收到的每个大文件的ini识别并拼接后
     bool ini_flag;
-
     bool is_folder_created;
+
+    //char *md5sumStr; //ini文件中保存的内容: md5sum
+    //char *pathStr;  //ini文件中保存的内容:path
+    //char *dateStr; //ini文件中保存的内容: date
+    //char *nameStr; //ini文件中保存的内容: name
+    //int MsgType;
+
     TransmitStatus mTransStatus;
 
     RecvStateMachine *m_stateMachine;

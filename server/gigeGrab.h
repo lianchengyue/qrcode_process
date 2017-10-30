@@ -71,7 +71,8 @@ private:
 
     fragmentProcess *mfragmentProcess;
 
-    ScanImage_Data mScanImgData;
+    ScanImage_Data mScanImgData[MAT_BUF_SIZE];
+    //ScanImage_Data mScanImgData;
 
 #ifdef USE_MUTIPLE_THREAD
     threadpool_t *pool;

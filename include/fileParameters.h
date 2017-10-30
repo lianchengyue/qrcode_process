@@ -6,6 +6,7 @@
 
 #include "include/macros.h"
 
+#define DATE_MAX 16
 #define MD5SUM_MAX 64
 #define NAME_MAX 255
 #define PATH_MAX 255
@@ -38,6 +39,8 @@
 //#define INPUT_WIDTH 320
 //#define INPUT_HEIGHT 240
 
+//in gigeGrab, num of Mat buffer
+#define MAT_BUF_SIZE 16
 
 #define CV_WAITKEY_INTERVAL 3//3
 
@@ -108,9 +111,16 @@ typedef struct ActiveMQVec {
 } activeMQVec;
 
 typedef enum{
-    UDP=1,
-    NORMAL=2,
+    UNKNOWN = 0,
+    UDP = 1,
+    NORMAL = 2,
 } MESSAGE_LEVEL;
+
+typedef enum{
+    REV_SUCCESS = 0,
+    REV_MD5SUM_NOT_MATCH = 1,
+    REV_NOT_COMPLETE = 2,
+} RECEIVE_RESULT;
 #endif
 
 const char TRANSMIT_PRESTART[] = "1010101010"; //传输报头

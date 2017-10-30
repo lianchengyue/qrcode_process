@@ -13,19 +13,21 @@
 using namespace cv;
 using namespace std;
 
-Mat USBimageGray;
-
 usbGrab::usbGrab()
 {
     mPreviewFrames = 0;
     mFPSCount = 0;
 
-    memset(&mScanImgData, 0, sizeof(mScanImgData));
-    mScanImgData.framecnt = 0;
+
+////    memset(mScanImgData, 0, MAT_BUF_SIZE * sizeof(mScanImgData));
+/*    memset(&mScanImgData[0], 0, sizeof(mScanImgData));
+    memset(&mScanImgData[1], 0, sizeof(mScanImgData));
+*/
+//    memset(&mScanImgData, 0, sizeof(mScanImgData));
     mfragmentProcess = new fragmentProcess();
 
 #ifdef USE_MUTIPLE_THREAD
-    pthread_mutex_init(&mScanImgData.lock, NULL);
+////    pthread_mutex_init(&mScanImgData.lock, NULL);
 
     assert((pool = threadpool_create(THREAD_NUM, QUEUES, 0)) != NULL);
     fprintf(stderr, "Pool started with %d threads and queue size of %d\n", THREAD_NUM, QUEUES);
@@ -37,7 +39,7 @@ usbGrab::~usbGrab()
 #ifdef USE_MUTIPLE_THREAD
     assert(threadpool_destroy(pool, 0) == 0);
 
-    pthread_mutex_destroy(&mScanImgData.lock);
+////    pthread_mutex_destroy(&mScanImgData.lock);
 #endif
 }
 
@@ -88,7 +90,7 @@ int usbGrab::grab()
         threadpool_add(pool, m_scancode->scanimagefunc, (void*)imageGray.data, 0);
 
         #else
-        mScanImgData.ret = 9;
+/*
         mScanImgData.framecnt = mPreviewFrames;
         cvtColor(frame,mScanImgData.imageGray,CV_RGB2GRAY);
 ///        printf("the %d frame coming\n", mPreviewFrames);
@@ -97,7 +99,19 @@ int usbGrab::grab()
         /////关注为什么ASSERT失败
         //assert(threadpool_add(pool, m_scancode->scanimagefunc, (void*)&mScanImgData, 0) == 0);
         threadpool_add(pool, m_scancode->scanimagefunc, (void*)&mScanImgData, 0);
-        //assert(threadpool_destroy(pool, threadpool_graceful) == 0);
+*/
+///*
+        {
+            int i = mPreviewFrames % MAT_BUF_SIZE;//MAT_BUF_SIZE
+            mScanImgData[i].framecnt = mPreviewFrames;
+            cvtColor(frame,mScanImgData[i].imageGray,CV_RGB2GRAY);
+            imshow("usb camera",mScanImgData[i].imageGray);
+
+            /////关注为什么ASSERT失败
+            //assert(threadpool_add(pool, m_scancode->scanimagefunc, (void*)&mScanImgData[i], 0) == 0);
+            threadpool_add(pool, m_scancode->scanimagefunc, (void*)&mScanImgData[i], 0);
+        }
+//*/
         #endif
 #else
 

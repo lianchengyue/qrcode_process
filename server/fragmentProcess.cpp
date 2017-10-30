@@ -13,20 +13,18 @@
 #include "include/macros.h"
 #include "ScanCode.h"
 
-#include <mutex>
-
 #include <string>
 using namespace std;
+
+extern char *md5sumStr; //ini文件中保存的内容: md5sum
+extern char *pathStr;  //ini文件中保存的内容:path
+extern char *dateStr; //ini文件中保存的内容: date
+extern char *nameStr; //ini文件中保存的内容: name
+extern int MsgType;
 
 fragmentProcess::fragmentProcess()
 {
     init();
-    ini_flag = false;
-
-    is_folder_created = false;
-
-    //m_stateMachine = new RecvStateMachine(this);  //flq
-    m_stateMachine = RecvStateMachine::getInstance();
 
     //test for单例测试，是否成功
     /*
@@ -45,7 +43,13 @@ fragmentProcess::~fragmentProcess()
 }
 
 int fragmentProcess::init(){
+    ini_flag = false;
+    is_folder_created = false;
+
     CompleteDesPath();
+
+    m_stateMachine = RecvStateMachine::getInstance();
+
 }
 
 //整个处理的入口函数，识别二维码成功后进入
@@ -350,6 +354,30 @@ int fragmentProcess::des_ini_traversal()
     return 0;
 }
 
+int fragmentProcess::des_ini_select()
+{
+    char *targetPath;
+
+    targetPath = new char[PATH_MAX];
+    memset(targetPath, 0, PATH_MAX);
+
+    if(UDP == MsgType)
+    {
+        sprintf(targetPath, "%s%s/%s/config.ini/", DES_UDP_RECV_INI_LOCATION, dateStr, nameStr);
+    }
+    else if(NORMAL == MsgType)
+    {
+        sprintf(targetPath, "%s%s/%s/config.ini/", DES_RECV_INI_LOCATION, dateStr, nameStr);
+    }
+
+    //遍历完后拼接config.ini
+    des_ini_fragment_traversal_imp(targetPath, 0);
+
+    free(targetPath);
+
+    return 0;
+}
+
 //ini fragment traversal & process
 void fragmentProcess::des_ini_fragment_traversal_imp(string dir, int depth) //decode_base64_fragment
 {
@@ -429,6 +457,46 @@ int fragmentProcess::des_fragment_traversal()
     printf("des_fragment_traversal, Directory fragement scan of %s\n",fragmentDir);
 
     des_fragment_traversal_imp(fragmentDir, relativeDir, fragmentDes, 0);
+
+    //清除缓存
+    clear_saved_data();
+    return 0;
+}
+
+int fragmentProcess::des_fragment_select()
+{
+    //char *fragmentDir = DES_BASE64_DECODE_LOCATION;//DES_RECEIVE_LOCATION,    DES_BASE64_DECODE_LOCATION
+    //char *fragmentDes = DES_CAT_LOCATION;   //gigeGrab.cpp
+    char *fragmentDir;
+    char *fragmentDes;
+    char relativeDir[PATH_MAX] = {0};
+
+    fragmentDir = new char[PATH_MAX];
+    fragmentDes = new char[PATH_MAX];
+
+    memset(fragmentDir, 0, PATH_MAX);
+    memset(fragmentDes, 0, PATH_MAX);
+
+    if(UDP == MsgType)
+    {
+        sprintf(fragmentDir, "%s%s/%s/", DES_UDP_BASE64_DECODE_LOCATION, dateStr, nameStr);
+        sprintf(fragmentDes, "%s%s/%s/", DES_UDP_CAT_LOCATION, dateStr, nameStr);
+    }
+    else if(NORMAL == MsgType)
+    {
+        sprintf(fragmentDir, "%s%s/%s/", DES_BASE64_DECODE_LOCATION, dateStr, nameStr);
+        sprintf(fragmentDes, "%s%s/%s/", DES_CAT_LOCATION, dateStr, nameStr);
+    }
+
+    printf("des_fragment_traversal, Directory fragement scan of %s\n",fragmentDir);
+
+    des_fragment_traversal_imp(fragmentDir, relativeDir, fragmentDes, 0);
+
+    //清除缓存
+    clear_saved_data();
+
+    free(fragmentDir);
+    free(fragmentDes);
     return 0;
 }
 
@@ -515,14 +583,18 @@ void fragmentProcess::des_fragment_traversal_imp(char *dir, char* _short_dir, ch
                 memset(content_buf, 0, statbuf.st_size);
                 memset(output3Dir, 0, PATH_MAX);
                 memset(output4Dir, 0, PATH_MAX);
-#if 0
-                sprintf(output3Dir, "%s%s%s%s", DES_CAT_LOCATION, _short_dir, enty->d_name, LZO_SUFFIX); //xxx.c
-                sprintf(output4Dir, "%s%s%s%s", DES_LOCATION, _short_dir, enty->d_name, LZO_SUFFIX); //xxx.c
-#else
+
                 //此处的完整文件均是小于blocksize的,所以直接拷贝
-                sprintf(output3Dir, "%s%s%s", DES_CAT_LOCATION, _short_dir, enty->d_name); //xxx.c
-                sprintf(output4Dir, "%s%s%s", DES_LOCATION, _short_dir, enty->d_name); //xxx.c
-#endif
+                if(UDP == MsgType)
+                {
+                    sprintf(output3Dir, "%s%s%s", DES_UDP_CAT_LOCATION, _short_dir, enty->d_name); //xxx.c  //or + %s,LZO_SUFFIX
+                    sprintf(output4Dir, "%s%s%s", DES_UDP_LOCATION, _short_dir, enty->d_name); //xxx.c     //or + %s,LZO_SUFFIX
+                }
+                else if (NORMAL == MsgType)
+                {
+                    sprintf(output3Dir, "%s%s%s", DES_CAT_LOCATION, _short_dir, enty->d_name); //xxx.c  //or + %s,LZO_SUFFIX
+                    sprintf(output4Dir, "%s%s%s", DES_LOCATION, _short_dir, enty->d_name); //xxx.c     //or + %s,LZO_SUFFIX
+                }
 
                 FILE *infile = fopen(total_dir, "rb");
                 FILE *outfile = fopen(output3Dir, "wb");
@@ -562,7 +634,14 @@ void fragmentProcess::des_fragment_traversal_imp(char *dir, char* _short_dir, ch
         memset(purename, 0, NAME_MAX);
         memset(rename, 0, NAME_MAX);
 
-        sprintf(output3Dir, "%s%s", DES_CAT_LOCATION, _short_dir);
+        if(UDP == MsgType)
+        {
+            sprintf(output3Dir, "%s%s", DES_UDP_CAT_LOCATION, _short_dir);
+        }
+        if(NORMAL == MsgType)
+        {
+            sprintf(output3Dir, "%s%s", DES_CAT_LOCATION, _short_dir);
+        }
         cutDirName(output3Dir, purename);//input should be a filefold
 
         //LOG_DBG("%s\n", purename);
@@ -583,26 +662,48 @@ void fragmentProcess::des_fragment_traversal_imp(char *dir, char* _short_dir, ch
         LOG_DBG("%s,start LZO Decompress\n",__func__);
         char *lzo_dir =new char[PATH_MAX];
         memset(lzo_dir, 0, PATH_MAX);
-        sprintf(lzo_dir, "%s%s", DES_LOCATION, _short_dir);
+        if(UDP == MsgType)
+        {
+            sprintf(lzo_dir, "%s%s", DES_UDP_LOCATION, _short_dir);
+        }
+        if(NORMAL == MsgType)
+        {
+            sprintf(lzo_dir, "%s%s", DES_LOCATION, _short_dir);
+        }
         getUpperTotalDir(lzo_dir);//返回上一级目录路径
         strcat(lzo_dir, purename);
         //strcat(lzo_dir,LZO_SUFFIX);  //LZO_SUFFIX = ".lzo"
 
         ///===========================tqq===================================//
+        #ifdef USE_ACTIVEMQ
+        string JSONStr;
+
         if(0 == cat_result)
         {
             int Decompress_result = processLZO(output3Dir, lzo_dir, LZO_DECOMPRESS);  //flq
-            int l = 0;
             if ( 0 == Decompress_result)
             {
                 ///如果MD5SUM值匹配
-                ///发消息，接收OK
+                //get_md5sum_from_ini(md5sumStr)
+                if(0 == strcmp(md5sumStr, (char*)generate_md5sum(lzo_dir)))  //generate_md5sum(lzo_dir),计算出来的接收完成的文件的md5sum值
+                {///发消息，接收OK
+                    JSONStr = writeJSON(dateStr, nameStr, MsgType, REV_SUCCESS);  //OK
+                    SetActiveMQMessage(JSONStr);
+
+                }
+                else
+                {
+                    JSONStr = writeJSON(dateStr, nameStr, MsgType, REV_MD5SUM_NOT_MATCH); //MD5SUM not match
+                    SetActiveMQMessage(JSONStr);
+                }
             }
         } else
         {
             ///发消息，接收失败
-
+            JSONStr = writeJSON(dateStr, nameStr, MsgType, REV_NOT_COMPLETE); //cat fail, didnot get all fragments
+            SetActiveMQMessage(JSONStr);
         }
+        #endif
 
         free(lzo_dir);
 #endif
@@ -776,11 +877,55 @@ bool fragmentProcess::is_md5sum_match(char *QRdata)
     input_str = "111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111222222222";
 
 
-    ///memset(client_md5sum, 0, MD5SUM_MAX_S);
+    //memset(client_md5sum, 0, MD5SUM_MAX_S);
     //client_md5sum = generate_md5sum_from_charstr(input_str);
 
     return NO_ERROR;
 }
+
+int fragmentProcess::get_md5sum_from_ini(char *md5sum)
+{
+
+}
+
+int fragmentProcess::clear_saved_data()
+{
+//    ini_flag = false;
+//    is_folder_created = false;
+
+    memset(md5sumStr, 0, MD5SUM_MAX);
+    memset(pathStr, 0, PATH_MAX);
+    memset(dateStr, 0, DATE_MAX);
+    memset(nameStr, 0, NAME_MAX);
+    MsgType = 0;
+}
+
+#ifdef USE_ACTIVEMQ
+//ActiveMQ Producer
+int fragmentProcess::SetActiveMQMessage(string JSONStr)
+{
+    activemq::library::ActiveMQCPP::initializeLibrary();
+    std::cout << "=====================================================\n";
+    std::cout << "Starting produce message:" << std::endl;
+    std::cout << "-----------------------------------------------------\n";
+
+    std::string brokerURI ="failover://(tcp://114.55.4.189:61616)";
+    unsigned int numMessages = 1;
+    std::string destURI = "receive.queue";
+
+    bool useTopics = false;
+    ActiveMQProducer producer( brokerURI, numMessages, destURI, useTopics );
+    producer.setUploadText(JSONStr);
+    producer.run();
+    producer.close();
+
+    std::cout << "-----------------------------------------------------\n";
+    std::cout << "Finished produce" << std::endl;
+    std::cout << "=====================================================\n";
+
+    activemq::library::ActiveMQCPP::shutdownLibrary();
+}
+#endif
 
 int fragmentProcess::setTransmitStatus(TransmitStatus status)
 {

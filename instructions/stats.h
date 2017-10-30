@@ -33,7 +33,7 @@ void src_file_select_imp(char *dir, char* _short_dir, char *_2_dir, char *_3_dir
 
 ///处理配置文件
 int ini_select(activeMQVec msg);
-void src_ini_select_imp(char *date, char *d_name, int type);
+void src_ini_select_imp(char *date, char *d_name, int type, char *md5sum);
 
 ///处理碎片
 //遍历日期目录下的碎片
@@ -62,7 +62,7 @@ int cutDirName(char *instr, char *filename);
 int getUpperTotalDir(char *instr);
 int cutFileName(char *instr, char *filename);
 
-int cutINIHeadData(char *relative_dir, char *date, char *name, char *ini_name);
+int cutINIHeadData(char *relative_dir, char *date, char *name, char *ini_name, char *typeStr, char *md5sum);
 int cutHeadData(char *relative_dir, char *date, char *name);
 
 int CompletePath();

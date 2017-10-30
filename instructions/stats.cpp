@@ -89,8 +89,8 @@ int des_init_topology()
     mkdir("recvINI", S_IRWXU|S_IRWXG|S_IRWXO);
     mkdir("INI", S_IRWXU|S_IRWXG|S_IRWXO);
     //所有完整文件的属性
-    mkdir("recvINI/config.ini", S_IRWXU|S_IRWXG|S_IRWXO);
-    mkdir("recvINI/folder.ini", S_IRWXU|S_IRWXG|S_IRWXO);
+//    mkdir("recvINI/config.ini", S_IRWXU|S_IRWXG|S_IRWXO);
+//    mkdir("recvINI/folder.ini", S_IRWXU|S_IRWXG|S_IRWXO);
 
     //UDP
     //normal
@@ -106,8 +106,8 @@ int des_init_topology()
     mkdir("recvINI", S_IRWXU|S_IRWXG|S_IRWXO);
     mkdir("INI", S_IRWXU|S_IRWXG|S_IRWXO);
     //所有完整文件的属性
-    mkdir("recvINI/config.ini", S_IRWXU|S_IRWXG|S_IRWXO);
-    mkdir("recvINI/folder.ini", S_IRWXU|S_IRWXG|S_IRWXO);
+//    mkdir("recvINI/config.ini", S_IRWXU|S_IRWXG|S_IRWXO);
+//    mkdir("recvINI/folder.ini", S_IRWXU|S_IRWXG|S_IRWXO);
 
     return 0;
 }
@@ -880,8 +880,8 @@ int file_select(activeMQVec msg, const char* jsonStr)
         FILE *ini_file = fopen(config_ini_dir, "wb");
         fclose(ini_file);
 
-        FILE *ini_folder = fopen(folderHead, "wb");
-        fclose(ini_folder);
+        //FILE *ini_folder = fopen(folderHead, "wb");
+        //fclose(ini_folder);
 
         ///不遍历文件，改为解析JSON中的文件名
         src_file_select_imp(topDir, relativeDir,_2_dir, _3_dir, _4_dir, date, d_name, msg.type, jsonStr);
@@ -924,8 +924,8 @@ int file_select(activeMQVec msg, const char* jsonStr)
         FILE *ini_file = fopen(config_ini_dir, "wb");
         fclose(ini_file);
 
-        FILE *ini_folder = fopen(folderHead, "wb");
-        fclose(ini_folder);
+        //FILE *ini_folder = fopen(folderHead, "wb");
+        //fclose(ini_folder);
 
         ///不遍历文件，改为解析JSON中的文件名
         src_file_select_imp(topDir, relativeDir,_2_dir, _3_dir, _4_dir, date, d_name, msg.type, jsonStr);
@@ -1045,7 +1045,9 @@ void src_file_select_imp(char *dir, char* _short_dir, char *_2_dir, char *_3_dir
 
         sprintf(value, "%d", file_cnt); //将file_cnt转为10进制表示的字符串  %x:16进制
         //参数1为sect
-        iniSetString(value/*enty->d_name*/, "name", d_name);//name
+        iniSetString(value, "name", d_name);//name
+        iniSetInt(value, "type", type, 0);//size
+        iniSetString(value/*enty->d_name*/, "date", date);//name
         iniSetString(value, "path", relative_dir);//path
         iniSetInt(value, "size", statbuf.st_size, 0);//size
         iniSetString(value, "md5sum", (char*)generate_md5sum(total_dir));//md5sum   or (char*)md5sum_str_hex
@@ -1187,18 +1189,22 @@ int ini_select(activeMQVec msg)
 {
     char date[PATH_MAX] = {0};
     char d_name[NAME_MAX] = {0};
+    char md5sum[MD5SUM_MAX] = {0};
 
     //避免传const
     strcpy(date, msg.date.c_str());
     strcpy(d_name, msg.filename.c_str());
+    strcpy(md5sum, msg.md5sum.c_str());
 
-    src_ini_select_imp(date, d_name, msg.type);
+
+    src_ini_select_imp(date, d_name, msg.type, md5sum);
     //printf("ini_traversalDone\n");
+
     return 0;
 }
 
 //报头文件碎片化
-void src_ini_select_imp(char *date, char *d_name, int type)
+void src_ini_select_imp(char *date, char *d_name, int type ,char *md5sum)
 {
     //目录位置
     char *config_dir;
@@ -1243,7 +1249,8 @@ void src_ini_select_imp(char *date, char *d_name, int type)
         sprintf(folder_ini_dir,"%s%s/%s/folder.ini",SRC_INI_LOCATION,date,d_name);
     }
     //待写入碎片的相对位置
-    sprintf(relative_path, "%s/%s/config.ini/",date,d_name);
+    ///sprintf(relative_path, "%s/%s/config.ini/",date,d_name);
+    sprintf(relative_path, "%s/%s/config.ini/%d/%s",date,d_name,type, md5sum); //加入type类型，1或者2
 
     ///后续在此添加报头
     //方法:遍历时读取，并添加内容
@@ -1252,7 +1259,7 @@ void src_ini_select_imp(char *date, char *d_name, int type)
         mkdir(config_dir, S_IRWXU|S_IRWXG|S_IRWXO);///这里的_3_split_dir是目录，不是文件，存放切割后的碎片
     }
 
-    split_ini(config_ini_dir, config_dir, relative_path/*"config.ini/"*/, BLOCK_SIZE); ///这里的_3_split_dir是目录，不是文件，存放切割后的碎片
+    split_ini(config_ini_dir, config_dir, relative_path/*"config.ini/2/md5sum"*/, BLOCK_SIZE); ///这里的_3_split_dir是目录，不是文件，存放切割后的碎片
 
 #if 0
     //单个文件不需要folder信息
@@ -1939,7 +1946,7 @@ int cutFileName(char *instr, char *filename)
 }
 
 ////拆分relative_dir，获取日期，文件名与配置文件名
-int cutINIHeadData(char *relative_dir, char *date, char *name, char *ini_name)
+int cutINIHeadData(char *relative_dir, char *date, char *name, char *ini_name, char *typeStr, char *md5sum)
 {
     int cnt;
     int len;
@@ -1974,9 +1981,17 @@ int cutINIHeadData(char *relative_dir, char *date, char *name, char *ini_name)
                 name[j] = pp[i];
                 j++;
             }
-            else if(2 == cnt)
+            else if (2 == cnt)
             {
                 ini_name[j] = pp[i];
+                j++;
+            }
+            else if (3 == cnt){
+                typeStr[j] = pp[i];
+                j++;
+            }
+            else if (4 == cnt){
+                md5sum[j] = pp[i];
                 j++;
             }
         }

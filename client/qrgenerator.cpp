@@ -129,7 +129,7 @@ void NormalThread::run()
                 continue;
             }
 
-            printf("=========start process UDP Signal=========\n");
+            printf("===============start process UDP Signal=========\n");
             //emit ProcessMsgSignal((activeMQVec)*udpIter);
             //emit ProcessMsgSignal(UDPrawVec[0]);
             QString transmitUDP = QString::fromStdString(UDPrawVec[0]);
@@ -149,7 +149,7 @@ void NormalThread::run()
                 continue;
             }
 
-            printf("=========start process Nomal Signal=========\n");
+            printf("===============start process Nomal Signal=========\n");
             ///emit ProcessMsgSignal((activeMQVec)*normalIter);
             //emit ProcessMsgSignal(NormalrawVec[0]);
             QString transmitNormal = QString::fromStdString(NormalrawVec[0]);
@@ -714,6 +714,10 @@ void QRGenerator::ProcessMsgQ(QString msg)
        std::string md5sum = parseData.get("md5sum", 0).asString();
        int type = parseData.get("type", 0).asInt();
        printf("parseJSON(): filename:%s, date:%s, size:%d, md5sum:%s, type=%d\n", filename.c_str(), date.c_str(), size, md5sum.c_str(), type);
+       if(UDP == type)
+           printf("\n\n------------------UDP------------------\n");
+       else if (NORMAL == type)
+           printf("\n\n--------------- -Normal----------------\n");
 
        //将读取到的消息写到本地vector中
        receivedMessage.filename = filename;
@@ -868,7 +872,6 @@ void QRGenerator::ProcessMsgQ(QString msg)
 
        //显示二维码
        setString(pdesBuf);
-       ///usleep(100);
        free(pdesBuf);
     }
 
@@ -880,6 +883,12 @@ void QRGenerator::ProcessMsgQ(QString msg)
 
     printf("TRANSMIT_IDLE\n");
     setString(TRANSMIT_IDLE);
+
+    //释放vector中的内容
+    //vecINIString.swap(vector<string>);
+    //vecString.swap(vector<string>);
+    vector<std::string>().swap(vecINIString);
+    vector<std::string>().swap(vecString);
 
     taskrunning = false;
     mutex.unlock();
@@ -1013,15 +1022,15 @@ void QRGenerator::processNormalEventSlot()
 void activeMQThread::run()
 {
     printf("activeMQThread: run()\n");
-    RegisterRecvActiveMQ();
+    RegisterActiveMQRecevier();
 }
 
-void activeMQThread::RegisterRecvActiveMQ()
+void activeMQThread::RegisterActiveMQRecevier()
 {
     activemq::library::ActiveMQCPP::initializeLibrary();
 
     std::cout << "=====================================================\n";
-    std::cout << "Starting the example:" << std::endl;
+    std::cout << "Start listerner:" << std::endl;
     std::cout << "-----------------------------------------------------\n";
 
     std::string brokerURI = "failover:(tcp://114.55.4.189:61616)";
@@ -1039,14 +1048,14 @@ void activeMQThread::RegisterRecvActiveMQ()
 
     NormalConsumer.start(brokerURI, NormaldestURI, useTopics, clientAck);
     NormalConsumer.runConsumer();
-    std::cout << "Press 'q' to quit" << std::endl;
+    std::cout << "ActiveMQ quit listening:" << std::endl;
     while( std::cin.get() != 'q') {}
 
     UDPConsumer.close();
     NormalConsumer.close();
 
     std::cout << "-----------------------------------------------------\n";
-    std::cout << "Finished with the example." << std::endl;
+    std::cout << "Finish ActiveMQRecevier." << std::endl;
     std::cout << "=====================================================\n";
 
     activemq::library::ActiveMQCPP::shutdownLibrary();

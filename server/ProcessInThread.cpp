@@ -1,3 +1,7 @@
+//Auther:fanlinqing
+//负责接受碎片线程
+//包括ini碎片与正文碎片
+
 #include "ProcessInThread.h"
 
 #include "../instructions/stats.h"
@@ -17,6 +21,12 @@
 #include <string>
 using namespace std;
 
+char *md5sumStr; //ini文件中保存的内容: md5sum
+char *pathStr;  //ini文件中保存的内容:path
+char *dateStr; //ini文件中保存的内容: date
+char *nameStr; //ini文件中保存的内容: date
+int MsgType;
+
 ProcessInThread::ProcessInThread()
 {
     m_stateMachine = RecvStateMachine::getInstance();
@@ -25,6 +35,18 @@ ProcessInThread::ProcessInThread()
 
     ini_traversal_flag = 1;
     fragment_traversal_flag = 1;
+    type_whole = NORMAL;
+
+    md5sumStr = new char[MD5SUM_MAX];
+    pathStr = new char[PATH_MAX];
+    dateStr = new char[DATE_MAX];
+    nameStr = new char[NAME_MAX];
+
+    memset(md5sumStr, 0, MD5SUM_MAX);
+    memset(pathStr, 0, PATH_MAX);
+    memset(dateStr, 0, DATE_MAX);
+    memset(nameStr, 0, NAME_MAX);
+    MsgType = NORMAL;
 
     //for test, //接受完碎片，开始处理
 //    processEvt(RECV_SM_EVT_FRAG_START, NULL);
@@ -32,6 +54,11 @@ ProcessInThread::ProcessInThread()
 
 ProcessInThread::~ProcessInThread()
 {
+    free(md5sumStr);
+    free(pathStr);
+    free(dateStr);
+    free(nameStr);
+
 }
 
 //整个处理的入口函数，识别二维码成功后进入
@@ -119,7 +146,7 @@ int ProcessInThread::QRdataProcess(char* QRdata)
             des_start_content_receiver(QRdata);
         }
         else{
-            LOG_ERR("Drop a frame!!!\n");
+///            LOG_ERR("Drop a frame!!!\n");
         }
 
         //记录每一个需要拼接的路径
@@ -141,6 +168,8 @@ int ProcessInThread::des_prestart_content_receiver(char *QRdata)
     char *date  = new char[NAME_MAX];
     char *d_name  = new char[NAME_MAX];
     char *ini_name  = new char[NAME_MAX];
+    char typeStr[16] = {0};
+    char *md5sum  = new char[MD5SUM_MAX];
     int type = NORMAL;
 
     printf("des_prestart_content_receiver\n");
@@ -162,11 +191,14 @@ int ProcessInThread::des_prestart_content_receiver(char *QRdata)
     if(NO_ERROR != ret){
         return -1;
     }
+
     pureQRdata = QRdata;
     pureQRdata = pureQRdata + *offset;
 
     //拆分relative_dir，获取日期，文件名与配置文件名
-    cutINIHeadData(relative_dir, date, d_name, ini_name);
+    cutINIHeadData(relative_dir, date, d_name, ini_name, typeStr, md5sum);
+    sscanf(typeStr,"%d",&type); //or atoi()
+    type_whole = type;
 
     if(UDP == type)
     {
@@ -194,19 +226,48 @@ int ProcessInThread::des_prestart_content_receiver(char *QRdata)
     }*/
 
     if (UDP == type)
-    {
+    {//name:X0
         sprintf(total_dir, "%s%s/%s/%s/%s", DES_UDP_RECV_INI_LOCATION, date, d_name, ini_name, name);
     } else if (NORMAL == type)
     {
         sprintf(total_dir, "%s%s/%s/%s/%s", DES_RECV_INI_LOCATION, date, d_name, ini_name, name);
     }
 
-    FILE *INI_Destination = fopen(total_dir, "wb"); //ab+;
-    //测试读取二维码并生成文件，正式版删去
-    ///flq  报错过一次，后续压力测试关注
-    int size = fwrite(pureQRdata, 1, strlen(pureQRdata), INI_Destination);
+    FILE *INI_frag_Destination = fopen(total_dir, "wb"); //ab+;
+    //write raw ini fragment
+    int size = fwrite(QRdata, 1, strlen(QRdata), INI_frag_Destination);//QRdata
+    fclose(INI_frag_Destination); // 关闭文件
 
-    fclose(INI_Destination); // 关闭文件
+    //write processed ini fragment
+    memset(total_dir, 0, PATH_MAX);
+    if(UDP == type)
+    {
+        sprintf(total_dir, "%s%s", DES_UDP_INI_LOCATION, date); ///生成到该目录 relative_dir:config/,应改为config.ini/
+        mkdir(total_dir, S_IRWXU|S_IRWXG|S_IRWXO);
+        sprintf(total_dir, "%s%s/%s", DES_UDP_INI_LOCATION, date, d_name);
+        mkdir(total_dir, S_IRWXU|S_IRWXG|S_IRWXO);
+        sprintf(total_dir, "%s%s/%s/%s", DES_UDP_INI_LOCATION, date, d_name, ini_name);
+        //mkdir(total_dir, S_IRWXU|S_IRWXG|S_IRWXO);///生成到该目录 relative_dir:config/,应改为config.ini/
+    }else if(NORMAL == type)
+    {
+        sprintf(total_dir, "%s%s", DES_INI_LOCATION, date); ///生成到该目录 relative_dir:config/,应改为config.ini/
+        mkdir(total_dir, S_IRWXU|S_IRWXG|S_IRWXO);
+        sprintf(total_dir, "%s%s/%s", DES_INI_LOCATION, date, d_name);
+        mkdir(total_dir, S_IRWXU|S_IRWXG|S_IRWXO);
+        sprintf(total_dir, "%s%s/%s/%s", DES_INI_LOCATION, date, d_name, ini_name);
+        //mkdir(total_dir, S_IRWXU|S_IRWXG|S_IRWXO);///生成到该目录 relative_dir:config/,应改为config.ini/
+    }
+
+    FILE *INI_Destination = fopen(total_dir, "wb");
+    size = fwrite(pureQRdata, 1, strlen(pureQRdata), INI_Destination);
+    fclose(INI_Destination);
+
+    //给全局变量赋值，遍历碎片之前使用
+    strcpy(dateStr, date);
+    strcpy(nameStr, name);
+    MsgType = type;
+    strcpy(md5sumStr, md5sum);
+    //给全局变量赋值，遍历碎片之前使用end
 
 
     free(relative_dir);
@@ -259,6 +320,8 @@ int ProcessInThread::des_start_content_receiver(char *QRdata)
 
     //拆分relative_dir，获取日期，文件名与配置文件名
     cutHeadData(relative_dir, date, d_name);
+
+    type = type_whole;
 
     if(UDP == type)
     {

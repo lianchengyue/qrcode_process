@@ -50,7 +50,7 @@ protected:
 public:
     activeMQThread(QObject *parent=0){}
     ~activeMQThread(){}
-    void RegisterRecvActiveMQ();
+    void RegisterActiveMQRecevier();
     void processActiveMQVecMsg(activeMQVec msg);
 };
 
