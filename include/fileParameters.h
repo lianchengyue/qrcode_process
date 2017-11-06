@@ -72,7 +72,7 @@
 //状态码显示的次数
 #define WAIT_FRAME_COUNT 5
 //二维码显示15帧
-#define DISPLAY_INTERVAL 66666//100000  //unit: us     30fps:33333  25fps:40000  16fps:62500  15fps:66666  10fps:100000  8fps:125000  3fps:333333
+#define DISPLAY_INTERVAL 125000//100000  //unit: us     30fps:33333  25fps:40000  16fps:62500  15fps:66666  10fps:100000  8fps:125000  3fps:333333
 
 
 typedef enum{
@@ -115,6 +115,11 @@ typedef enum{
     UDP = 1,
     NORMAL = 2,
 } MESSAGE_LEVEL;
+
+typedef enum{
+    TRANS_SUCCESS = 0,
+    TRANS_FAILED = 1,
+} TRANS_RESULT;
 
 typedef enum{
     REV_SUCCESS = 0,

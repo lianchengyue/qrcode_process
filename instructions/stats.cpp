@@ -1525,13 +1525,14 @@ unsigned char* generate_md5sum(char *filename)
     size_t n;
     MD5_CONTEXT ctx;
     int i;
+    unsigned char err_md5sum[MD5SUM_MAX] = {0};
 
     fp = fopen (filename, "rb");
     if (!fp)
     {
         fprintf (stderr, "can't open `%s': %s\n", filename, strerror (errno));
-        exit (1);
-        //return -1;
+        //exit (1);
+        return err_md5sum;
     }
 
     memset(buffer, 0, 4096);
@@ -1543,8 +1544,8 @@ unsigned char* generate_md5sum(char *filename)
     if (ferror (fp))
     {
         fprintf (stderr, "error reading `%s': %s\n", filename,strerror (errno));
-        exit (1);
-        //return -1;
+        //exit (1);
+        return err_md5sum;
     }
     md5_final (&ctx);
     fclose (fp);

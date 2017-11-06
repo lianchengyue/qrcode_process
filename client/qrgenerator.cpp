@@ -27,8 +27,11 @@
 
 #include <string>
 
+#ifdef USE_ACTIVEMQ
+#include "instructions/ActiveMQConsumer.h"
 #include "instructions/ActiveMQConsumer.h"
 #include <json/json.h>
+#endif
 
 using namespace std;
 
@@ -421,13 +424,13 @@ int QRGenerator::getQRWidth() const
 
 void QRGenerator::setString(QString str)
 {
-    string = str;
+    qstring = str;
     if(qr != NULL)
     {
         QRcode_free(qr);
     }
     //生成二维码
-    qr = QRcode_encodeString(string.toStdString().c_str(),
+    qr = QRcode_encodeString(qstring.toStdString().c_str(),
         1,
         QR_ECLEVEL_L,
         QR_MODE_8,
@@ -881,6 +884,21 @@ void QRGenerator::ProcessMsgQ(QString msg)
        setString(TRANSMIT_END);
     }
 
+    //发送结果
+#ifdef USE_ACTIVEMQ
+    string JSONStr;
+    if(vecString.size() > 0)
+    {
+        JSONStr = writeJSON_TransResult(receivedMessage.date.c_str(), receivedMessage.filename.c_str(), receivedMessage.type, TRANS_SUCCESS);
+    }
+    else
+    {
+        JSONStr = writeJSON_TransResult(receivedMessage.date.c_str(), receivedMessage.filename.c_str(), receivedMessage.type, TRANS_FAILED);
+    }
+    SetActiveMQMessage(JSONStr);
+#endif
+
+
     printf("TRANSMIT_IDLE\n");
     setString(TRANSMIT_IDLE);
 
@@ -934,6 +952,37 @@ int QRGenerator::CompleteSrcPath()
     sprintf(SRC_UDP_INI_FRAGMENT_LOCATION, "%s%s", SRC_BASE_LOCATION ,SRC_UDP_INI_FRAGMENT_LOCATION_REL);
     sprintf(SRC_UDP_INI_FILE_FRAG_LOCATION, "%s%s", SRC_BASE_LOCATION ,SRC_UDP_INI_FILE_FRAG_LOCATION_REL);
     sprintf(SRC_UDP_INI_FOLD_FRAG_LOCATION, "%s%s", SRC_BASE_LOCATION ,SRC_UDP_INI_FOLD_FRAG_LOCATION_REL);
+
+    return 0;
+}
+
+//ActiveMQ Producer
+int QRGenerator::SetActiveMQMessage(string JSONStr)
+{
+    ///activemq::library::ActiveMQCPP::initializeLibrary();
+    std::cout << "=====================================================\n";
+    std::cout << "Starting produce message:" << std::endl;
+    std::cout << "-----------------------------------------------------\n";
+
+#ifdef USE_LOCAL_ACTIVEMQ_ADDR
+    std::string ProducebrokerURI ="failover://(tcp://localhost:61616)";
+#else
+    std::string ProducebrokerURI ="failover://(tcp://114.55.4.189:61616)";
+#endif
+    unsigned int numMessages = 1;
+    std::string destURI = "transmit.queue";
+
+    bool useTopics = false;
+    ActiveMQMsgProducer producer( ProducebrokerURI, numMessages, destURI, useTopics );
+    producer.setUploadText(JSONStr);
+    producer.run();
+    producer.close();
+
+    std::cout << "-----------------------------------------------------\n";
+    std::cout << "Finished produce" << std::endl;
+    std::cout << "=====================================================\n";
+
+    ///activemq::library::ActiveMQCPP::shutdownLibrary();
 
     return 0;
 }
@@ -1018,6 +1067,8 @@ void QRGenerator::processNormalEventSlot()
     ///mutex.unlock();
 }
 
+
+#ifdef USE_ACTIVEMQ
 ///activeMQThread定义
 void activeMQThread::run()
 {
@@ -1033,7 +1084,11 @@ void activeMQThread::RegisterActiveMQRecevier()
     std::cout << "Start listerner:" << std::endl;
     std::cout << "-----------------------------------------------------\n";
 
-    std::string brokerURI = "failover:(tcp://114.55.4.189:61616)";
+#ifdef USE_LOCAL_ACTIVEMQ_ADDR
+    std::string ConsumerbrokerURI ="failover://(tcp://localhost:61616)";
+#else
+    std::string ConsumerbrokerURI ="failover://(tcp://114.55.4.189:61616)";
+#endif
 
     std::string NormaldestURI = "normal.queue";
     std::string UDPdestURI = "udp.queue";
@@ -1043,10 +1098,10 @@ void activeMQThread::RegisterActiveMQRecevier()
     ActiveMQAsyncConsumer UDPConsumer;
     ActiveMQAsyncConsumer NormalConsumer;
 
-    UDPConsumer.start(brokerURI, UDPdestURI, useTopics, clientAck);
+    UDPConsumer.start(ConsumerbrokerURI, UDPdestURI, useTopics, clientAck);
     UDPConsumer.runConsumer();
 
-    NormalConsumer.start(brokerURI, NormaldestURI, useTopics, clientAck);
+    NormalConsumer.start(ConsumerbrokerURI, NormaldestURI, useTopics, clientAck);
     NormalConsumer.runConsumer();
     std::cout << "ActiveMQ quit listening:" << std::endl;
     while( std::cin.get() != 'q') {}
@@ -1061,6 +1116,8 @@ void activeMQThread::RegisterActiveMQRecevier()
     activemq::library::ActiveMQCPP::shutdownLibrary();
 }
 
+
 void activeMQThread::processActiveMQVecMsg(activeMQVec msg)
 {
 }
+#endif

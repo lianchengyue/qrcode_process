@@ -32,7 +32,7 @@ using namespace std;
 
 #define MESSGAE_NUM 1
 ////////////////////////////////////////////////////////////////////////////////
-class ActiveMQProducer : public Runnable {
+class ActiveMQMsgProducer : public Runnable {
 
     private:
     Connection* connection;
@@ -48,16 +48,16 @@ class ActiveMQProducer : public Runnable {
     std::string UploadText;
 
     private:
-    ActiveMQProducer( const ActiveMQProducer& );
-    ActiveMQProducer& operator= ( const ActiveMQProducer& );
+    ActiveMQMsgProducer( const ActiveMQMsgProducer& );
+    ActiveMQMsgProducer& operator= ( const ActiveMQMsgProducer& );
 
     public:
-    ActiveMQProducer( const std::string& brokerURI, unsigned int numMessages,
+    ActiveMQMsgProducer( const std::string& brokerURI, unsigned int numMessages,
                     const std::string& destURI, bool useTopic = false, bool clientAck = false );
     string getUploadText();
     int setUploadText(string input_text);
 
-    virtual ~ActiveMQProducer();
+    virtual ~ActiveMQMsgProducer();
     void close();
     virtual void run();
 

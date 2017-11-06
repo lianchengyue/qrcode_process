@@ -31,7 +31,7 @@ using namespace std;
 
 //#define MESSGAE_NUM 1
 ////////////////////////////////////////////////////////////////////////////////
-ActiveMQProducer::ActiveMQProducer( const std::string& brokerURI, unsigned int numMessages,
+ActiveMQMsgProducer::ActiveMQMsgProducer( const std::string& brokerURI, unsigned int numMessages,
                 const std::string& destURI, bool useTopic, bool clientAck ) :
     connection(NULL),
     session(NULL),
@@ -44,15 +44,15 @@ ActiveMQProducer::ActiveMQProducer( const std::string& brokerURI, unsigned int n
     destURI(destURI) {
 }
 
-ActiveMQProducer::~ActiveMQProducer(){
+ActiveMQMsgProducer::~ActiveMQMsgProducer(){
     cleanup();
 }
 
-void ActiveMQProducer::close() {
+void ActiveMQMsgProducer::close() {
     this->cleanup();
 }
 
-void ActiveMQProducer::run() {
+void ActiveMQMsgProducer::run() {
     try {
         auto_ptr<ActiveMQConnectionFactory> connectionFactory(new ActiveMQConnectionFactory( brokerURI ) );
 
@@ -101,7 +101,7 @@ void ActiveMQProducer::run() {
     }
 }
 
-void ActiveMQProducer::cleanup(){
+void ActiveMQMsgProducer::cleanup(){
     try{
         if( destination != NULL ) delete destination;
     }catch ( CMSException& e ) { e.printStackTrace(); }
@@ -129,12 +129,12 @@ void ActiveMQProducer::cleanup(){
     connection = NULL;
 }
 
-string ActiveMQProducer::getUploadText()
+string ActiveMQMsgProducer::getUploadText()
 {
     return UploadText;
 }
 
-int ActiveMQProducer::setUploadText(string input_text){
+int ActiveMQMsgProducer::setUploadText(string input_text){
     UploadText = input_text;
 
     return 0;

@@ -3,7 +3,7 @@
 
 //打开为发送端，屏蔽为接收端
 #ifndef DISPLAY_QRCODE
-//#define DISPLAY_QRCODE  //grab pic
+#define DISPLAY_QRCODE  //grab pic
 #endif
 
 //是否使用LZO压缩算法
@@ -53,12 +53,17 @@
 
 //打印识别内容
 #ifndef PRINT_CONTENT
-#define PRINT_CONTENT
+//#define PRINT_CONTENT
 #endif
 
 //打印耗时
 #ifndef GET_TIME_CONSUMPTION
 //#define GET_TIME_CONSUMPTION
+#endif
+
+//切换activeMQ地址
+#ifndef USE_LOCAL_ACTIVEMQ_ADDR
+#define USE_LOCAL_ACTIVEMQ_ADDR
 #endif
 
 //#define INI_ACCESS_MODE

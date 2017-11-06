@@ -16,11 +16,11 @@
 #include <string>
 using namespace std;
 
-extern char *md5sumStr; //ini文件中保存的内容: md5sum
-extern char *pathStr;  //ini文件中保存的内容:path
-extern char *dateStr; //ini文件中保存的内容: date
-extern char *nameStr; //ini文件中保存的内容: name
-extern int MsgType;
+char *md5sumStr; //ini文件中保存的内容: md5sum
+char *pathStr;  //ini文件中保存的内容:path
+char *dateStr; //ini文件中保存的内容: date
+char *nameStr; //ini文件中保存的内容: name
+int MsgType;
 
 fragmentProcess::fragmentProcess()
 {
@@ -40,6 +40,17 @@ fragmentProcess::fragmentProcess()
 fragmentProcess::~fragmentProcess()
 {
     free(m_stateMachine);
+
+    //free global variables
+    free(md5sumStr);
+    free(pathStr);
+    free(dateStr);
+    free(nameStr);
+    MsgType = UNKNOWN;
+
+    //shut down ActiveMQCPP
+    activemq::library::ActiveMQCPP::shutdownLibrary();
+
 }
 
 int fragmentProcess::init(){
@@ -50,6 +61,20 @@ int fragmentProcess::init(){
 
     m_stateMachine = RecvStateMachine::getInstance();
 
+    //init global variables
+    md5sumStr = new char[MD5SUM_MAX];
+    pathStr = new char[PATH_MAX];
+    dateStr = new char[DATE_MAX];
+    nameStr = new char[NAME_MAX];
+
+    memset(md5sumStr, 0, MD5SUM_MAX);
+    memset(pathStr, 0, PATH_MAX);
+    memset(dateStr, 0, DATE_MAX);
+    memset(nameStr, 0, NAME_MAX);
+    MsgType = NORMAL;
+
+    //init ActiveMQCPP
+    activemq::library::ActiveMQCPP::initializeLibrary();
 }
 
 //整个处理的入口函数，识别二维码成功后进入
@@ -678,6 +703,12 @@ void fragmentProcess::des_fragment_traversal_imp(char *dir, char* _short_dir, ch
         #ifdef USE_ACTIVEMQ
         string JSONStr;
 
+        printf("\n\nJSON values:\n"
+               "dateStr=%s\n"
+               "nameStr=%s\n"
+               "MsgType=%d\n"
+               ,dateStr,  nameStr, MsgType);
+
         if(0 == cat_result)
         {
             int Decompress_result = processLZO(output3Dir, lzo_dir, LZO_DECOMPRESS);  //flq
@@ -687,20 +718,28 @@ void fragmentProcess::des_fragment_traversal_imp(char *dir, char* _short_dir, ch
                 //get_md5sum_from_ini(md5sumStr)
                 if(0 == strcmp(md5sumStr, (char*)generate_md5sum(lzo_dir)))  //generate_md5sum(lzo_dir),计算出来的接收完成的文件的md5sum值
                 {///发消息，接收OK
-                    JSONStr = writeJSON(dateStr, nameStr, MsgType, REV_SUCCESS);  //OK
+                    JSONStr = writeJSON_RecvResult(total_dir ,dateStr, nameStr, MsgType, REV_SUCCESS);  //OK
+                    printf("\n==========================================\n");
+                    printf("Send ActiveMQ Success Msg!");
+                    printf("------------------------------------------\n");
                     SetActiveMQMessage(JSONStr);
-
                 }
                 else
                 {
-                    JSONStr = writeJSON(dateStr, nameStr, MsgType, REV_MD5SUM_NOT_MATCH); //MD5SUM not match
+                    JSONStr = writeJSON_RecvResult(total_dir, dateStr, nameStr, MsgType, REV_MD5SUM_NOT_MATCH); //MD5SUM not match
+                    printf("\n==========================================\n");
+                    printf("Send ActiveMQ MD5sum check fail Msg!");
+                    printf("------------------------------------------\n");
                     SetActiveMQMessage(JSONStr);
                 }
             }
         } else
         {
             ///发消息，接收失败
-            JSONStr = writeJSON(dateStr, nameStr, MsgType, REV_NOT_COMPLETE); //cat fail, didnot get all fragments
+            JSONStr = writeJSON_RecvResult(total_dir, dateStr, nameStr, MsgType, REV_NOT_COMPLETE); //cat fail, didnot get all fragments
+            printf("\n==========================================\n");
+            printf("Send ActiveMQ fragments missing fail Msg!");
+            printf("------------------------------------------\n");
             SetActiveMQMessage(JSONStr);
         }
         #endif
@@ -904,17 +943,21 @@ int fragmentProcess::clear_saved_data()
 //ActiveMQ Producer
 int fragmentProcess::SetActiveMQMessage(string JSONStr)
 {
-    activemq::library::ActiveMQCPP::initializeLibrary();
+//    activemq::library::ActiveMQCPP::initializeLibrary();
     std::cout << "=====================================================\n";
     std::cout << "Starting produce message:" << std::endl;
     std::cout << "-----------------------------------------------------\n";
 
+#ifdef USE_LOCAL_ACTIVEMQ_ADDR
+    std::string brokerURI ="failover://(tcp://localhost:61616)";
+#else
     std::string brokerURI ="failover://(tcp://114.55.4.189:61616)";
+#endif
     unsigned int numMessages = 1;
     std::string destURI = "receive.queue";
 
     bool useTopics = false;
-    ActiveMQProducer producer( brokerURI, numMessages, destURI, useTopics );
+    ActiveMQMsgProducer producer( brokerURI, numMessages, destURI, useTopics );
     producer.setUploadText(JSONStr);
     producer.run();
     producer.close();
@@ -923,7 +966,7 @@ int fragmentProcess::SetActiveMQMessage(string JSONStr)
     std::cout << "Finished produce" << std::endl;
     std::cout << "=====================================================\n";
 
-    activemq::library::ActiveMQCPP::shutdownLibrary();
+//    activemq::library::ActiveMQCPP::shutdownLibrary();
 }
 #endif
 

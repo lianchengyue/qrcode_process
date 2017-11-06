@@ -130,15 +130,33 @@ int readJSONMessage(std::string message)
     return 0;
 }
 
-string writeJSON(char *date, char *d_name, int type, int Errno)
+string writeJSON_TransResult(const char *date, const char *d_name, int type, int Errno)
 {
     // 生成json串
     Json::Value parseData;
     Json::FastWriter fastWriter;
 
     parseData["date"] = date;
-    parseData["name"] = d_name;
-    //parseData["username"] = "test";
+    parseData["filename"] = d_name;
+    parseData["type"] = type;
+    parseData["errno"] = Errno;
+
+    string result = fastWriter.write(parseData);
+    printf("result: %s \n", result.c_str());
+
+    return result;
+}
+
+
+string writeJSON_RecvResult(char *totalDir, char *date, char *d_name, int type, int Errno)
+{
+    // 生成json串
+    Json::Value parseData;
+    Json::FastWriter fastWriter;
+
+    parseData["date"] = date;
+    parseData["fliename"] = d_name;
+    parseData["path"] = totalDir;
     parseData["type"] = type;
     parseData["errno"] = Errno;
 

@@ -39,6 +39,7 @@ ScanCode::ScanCode()
 {
     //scanner = NULL;
     initZbar();
+    printf("Dump n=0 to /home/moke/DUMP/\n");
 }
 
 ScanCode::~ScanCode()
@@ -118,7 +119,6 @@ void ScanCode::scanimagefunc(/*const*/ void *raw/*, char *result*/)
 
         delete(data);//added for flq
     }
-///    printf("n=%d,The %d Frame processing\n", n, framecnt);
     #ifdef PRINT_CONTENT
     printf("n=%d,The %d Frame processing\n", n, framecnt);
     #endif
@@ -132,9 +132,13 @@ void ScanCode::scanimagefunc(/*const*/ void *raw/*, char *result*/)
     else if (0 == n)
     {
         char name[NAME_MAX] = {0};
-        sprintf(name,"/home/montafan/DUMP/%d.jpg",framecnt);
-        //sprintf(name,"/home/morecom/DUMP/%d.jpg",framecnt);
-        imwrite(name, raw1->imageGray);
+        //sprintf(name,"/home/montafan/DUMP/%d.jpg",framecnt);
+        sprintf(name,"/home/moke/DUMP/%d.jpg",framecnt);
+        if(framecnt < 500)
+        {
+            imwrite(name, raw1->imageGray);
+        }
+        printf("n=%d,The %d Frame recognize failed\n", n, framecnt);
     }
 
     #ifdef GET_TIME_CONSUMPTION

@@ -21,11 +21,11 @@
 #include <string>
 using namespace std;
 
-char *md5sumStr; //ini文件中保存的内容: md5sum
-char *pathStr;  //ini文件中保存的内容:path
-char *dateStr; //ini文件中保存的内容: date
-char *nameStr; //ini文件中保存的内容: date
-int MsgType;
+extern char *md5sumStr; //ini文件中保存的内容: md5sum
+extern char *pathStr;  //ini文件中保存的内容:path
+extern char *dateStr; //ini文件中保存的内容: date
+extern char *nameStr; //ini文件中保存的内容: name
+extern int MsgType;
 
 ProcessInThread::ProcessInThread()
 {
@@ -37,27 +37,12 @@ ProcessInThread::ProcessInThread()
     fragment_traversal_flag = 1;
     type_whole = NORMAL;
 
-    md5sumStr = new char[MD5SUM_MAX];
-    pathStr = new char[PATH_MAX];
-    dateStr = new char[DATE_MAX];
-    nameStr = new char[NAME_MAX];
-
-    memset(md5sumStr, 0, MD5SUM_MAX);
-    memset(pathStr, 0, PATH_MAX);
-    memset(dateStr, 0, DATE_MAX);
-    memset(nameStr, 0, NAME_MAX);
-    MsgType = NORMAL;
-
-    //for test, //接受完碎片，开始处理
-//    processEvt(RECV_SM_EVT_FRAG_START, NULL);
+    //for test, //接受完碎片，开始处理 flq
+    ///processEvt(RECV_SM_EVT_FRAG_START, NULL);
 }
 
 ProcessInThread::~ProcessInThread()
 {
-    free(md5sumStr);
-    free(pathStr);
-    free(dateStr);
-    free(nameStr);
 
 }
 

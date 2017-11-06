@@ -22,6 +22,8 @@
 #ifdef USE_ACTIVEMQ
 #include <QMetaType> //将不识别的参数结构进行注册，让QT能够识别
 #include "instructions/ActiveMQConsumer.h"
+#include "instructions/ActiveMQProducer.h"
+#include "instructions/JSON.h"
 #endif
 
 using namespace std;
@@ -39,6 +41,7 @@ typedef struct ActiveMQVec {
 
 class ThreadObject;
 
+#ifdef USE_ACTIVEMQ
 ////////////////////////activeMQThread/////////////////////////
 class activeMQThread : public QThread
 {
@@ -53,7 +56,7 @@ public:
     void RegisterActiveMQRecevier();
     void processActiveMQVecMsg(activeMQVec msg);
 };
-
+#endif
 
 ////////////////////////NormalThread/////////////////////////
 class NormalThread : public QThread
@@ -102,9 +105,6 @@ public:
 
 signals:
     void UDPSignal();
-
-    //public slots:
-    //    void ResetSlot();
 };
 
 class QRGenerator : public QWidget
@@ -121,10 +121,14 @@ public:
 private:
     void draw(QPainter &painter, int width, int height);
     int CompleteSrcPath();
+    #ifdef USE_ACTIVEMQ
+    int SetActiveMQMessage(string JSONStr);
+    #endif
+
     ///更新事件，不再有新的碎片开始显示，让优先级更高的先跑
     //processXXUpdate(int /*int a*/)   flq
 
-    QString string;
+    QString qstring;
     QRcode *qr;
 
     NormalThread *myThread;

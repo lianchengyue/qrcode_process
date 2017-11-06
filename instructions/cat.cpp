@@ -86,7 +86,6 @@ int cat(char *input, char *outputpath, char *outfilenname)
     //拼接碎片文件完整文件名
     sprintf(filendir, "%sX%d", input, Totalcount);
 
-    //outf=fopen(outfilenname,"wb");
     outf=fopen(outfilendir,"wb");
 
 
@@ -125,9 +124,16 @@ int cat(char *input, char *outputpath, char *outfilenname)
     }
 
     if(count < maxnum)
-        return 2;
+    {
+        printf("**Not ALL fragments, Cat %d file**, total file:%d\n",count, maxnum);
+        free(filendir);
+        free(outfilendir);
+        fclose(outf);
 
-    printf("**Cat %d file**, total file:%d\n",count, maxnum);
+        return 2;
+    }
+
+    printf("**ALL fragments, Cat %d file**, total file:%d\n",count, maxnum);
 
     free(filendir);
     free(outfilendir);
