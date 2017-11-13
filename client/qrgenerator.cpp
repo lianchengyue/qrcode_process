@@ -33,6 +33,8 @@
 #include <json/json.h>
 #endif
 
+#include "instructions/inirw.h"
+
 using namespace std;
 
 //#define WAIT_FRAME_COUNT 20
@@ -390,7 +392,9 @@ QRGenerator::QRGenerator(QWidget *parent)
 #endif
 
 
-    qDebug() << QString("main thread id:") << QThread::currentThreadId();
+    time_interval = getDisplayInterval();
+
+    //qDebug() << QString("main thread id:") << QThread::currentThreadId();
 
     //UDPRunning.wait(&mutex);
 }
@@ -436,7 +440,7 @@ void QRGenerator::setString(QString str)
         QR_MODE_8,
         1);
 
-    usleep(DISPLAY_INTERVAL);
+    usleep(time_interval);
     repaint();
 
 }
@@ -469,6 +473,61 @@ QSize QRGenerator::minimumSizeHint()  const
     }
     return s;
 }
+
+int QRGenerator::getDisplayInterval()
+{
+    char file[256];
+
+    char *sect;
+    char *key;
+    int intval;
+
+    memset(file, 0, 256);
+
+    sprintf(file, "%s/dispInterval.ini", getenv("HOME"));
+    LOG_DBG("load DISPLAY_INTERVAL file %s\n", file);
+
+    iniFileLoad(file);
+
+    sect = "dispInterval";
+    key = "DisplayInterval";
+    intval = iniGetInt(sect, key, 1000);
+    LOG_DBG("[%s] %s = %d\n", sect, key, intval);
+
+    //小于3fps,设为3fps
+    if(intval > 333333)
+    {
+        return 333333;
+    }
+    //大于30fps,设为30fps
+    else if (intval < 33333)
+    {
+        return 33333;
+    }
+    else
+    {
+        LOG_ERR("DISPLAY_INTERVAL=%d", intval);
+        return intval;
+    }
+}
+
+void QRGenerator::setDisplayInterval()
+{
+    char file[256];
+    char value[34];
+
+    memset(file, 0, 256);
+    memset(value, 0, 34);
+
+    sprintf(file, "%s/dispInterval.ini", getenv("HOME"));
+    LOG_DBG("load DISPLAY_INTERVAL file %s\n", file);
+
+    sprintf(value, "dispInterval");
+    iniFileLoad(file);
+
+    iniSetInt(value, "DisplayInterval", 66666, 0);//size
+}
+
 bool QRGenerator::saveImage(QString fileName, int size)
 {
     if(size != 0 && !fileName.isEmpty())
@@ -901,6 +960,8 @@ void QRGenerator::ProcessMsgQ(QString msg)
 
     printf("TRANSMIT_IDLE\n");
     setString(TRANSMIT_IDLE);
+
+//    sleep(8);
 
     //释放vector中的内容
     //vecINIString.swap(vector<string>);

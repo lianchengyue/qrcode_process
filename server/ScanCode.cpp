@@ -39,7 +39,7 @@ ScanCode::ScanCode()
 {
     //scanner = NULL;
     initZbar();
-    printf("Dump n=0 to /home/moke/DUMP/\n");
+    printf("Dump n=0 to /home/user/DUMP/\n");
 }
 
 ScanCode::~ScanCode()
@@ -133,13 +133,17 @@ void ScanCode::scanimagefunc(/*const*/ void *raw/*, char *result*/)
     {
         char name[NAME_MAX] = {0};
         //sprintf(name,"/home/montafan/DUMP/%d.jpg",framecnt);
-        sprintf(name,"/home/moke/DUMP/%d.jpg",framecnt);
+        sprintf(name,"/home/user/DUMP/%d.jpg",framecnt);
         if(framecnt < 500)
         {
             imwrite(name, raw1->imageGray);
         }
         printf("n=%d,The %d Frame recognize failed\n", n, framecnt);
     }
+
+    //free
+    //zbar_image_destroy(image);
+    zbar_image_scanner_destroy(scanner);
 
     #ifdef GET_TIME_CONSUMPTION
     gettimeofday( &p_end, NULL );

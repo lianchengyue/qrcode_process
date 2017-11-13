@@ -106,7 +106,7 @@ int RecvStateMachine::StateMachine(recv_sm_evt_enum_t evt, void *payload)
         ///m_parent->des_fragment_traversal(); //之前的方案
 
         //等待线程完成
-        sleep(3);
+        sleep(1);
         m_parent->des_fragment_select();
         //rc = ;
         break;

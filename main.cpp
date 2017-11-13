@@ -119,7 +119,7 @@ int main(int argc, char* argv[])
 //==================
   //printf("argv[0]:%s\n",argv[0]);//全路径
   const char *home =getenv("HOME"); //HOMEDRIVE ///home/montafan
-  printf("the home path is %s\n", home);
+  LOG_DBG("the home path is %s\n", home);
 
   //system("chcp 65001");
 #ifndef USE_ACTIVEMQ //temp

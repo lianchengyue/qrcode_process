@@ -124,6 +124,8 @@ private:
     #ifdef USE_ACTIVEMQ
     int SetActiveMQMessage(string JSONStr);
     #endif
+    int getDisplayInterval();
+    void setDisplayInterval();
 
     ///更新事件，不再有新的碎片开始显示，让优先级更高的先跑
     //processXXUpdate(int /*int a*/)   flq
@@ -150,6 +152,8 @@ private:
 
     ClientCbNotifier *m_cbNotifier; //flq
     //queue<int> evt_UDP_queue;
+
+    int time_interval;
 
 signals:
     void ResetSignal(); //thread

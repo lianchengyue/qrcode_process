@@ -76,7 +76,7 @@ int gigeGrab::grab()
         char path[256];
         memset(path, 0, 256);
         sprintf(path, "%s/flq.pfs", getenv("HOME"));
-        printf("pfs PATH:%s\n",path);
+        LOG_DBG("pfs PATH:%s\n",path);
         CFeaturePersistence::Load(path, &camera.GetNodeMap(), true );
         //CFeaturePersistence::Load("/home/montafan/flq.pfs", &camera.GetNodeMap(), true );
 
@@ -212,7 +212,7 @@ void gigeGrab::printfps(cv::Mat frame)
     if(elapse/(1000*FPS_LOG_FREQ) > 0)
     {
         fps = mFPSCount / FPS_LOG_FREQ;
-        printf("preview frames: %d, fps: %d\n", mPreviewFrames, fps);
+        LOG_ERR("preview frames: %d, fps: %d\n", mPreviewFrames, fps);
         mFPSCount = 0;
     }
 }

@@ -52,24 +52,27 @@ int ProcessInThread::QRdataProcess(char* QRdata)
     if(0 == strcmp(QRdata, TRANSMIT_IDLE))
     {
         //printf("switch:TRANSMIT_IDLE\n");
+        //////////IDLE，将所有状态重置为激活///////
+        ini_traversal_flag = 0;
+        fragment_traversal_flag = 0;
         return NO_ERROR;
     }
 
     //接收配置文件
     else if(0 == strcmp(QRdata, TRANSMIT_PRESTART))
     {
-        printf("switch:TRANSMIT_PRESTART\n");
+        LOG_DBG("switch:TRANSMIT_PRESTART\n");
         setTransmitStatus(PRESTART);
         //////////新的帧到来，将所有状态重置为激活///////
-        ini_traversal_flag = 1;
-        fragment_traversal_flag = 1;
+        //ini_traversal_flag = 1;
+        //fragment_traversal_flag = 1;
 
         return NO_ERROR;
     }
 
     else if(0 == strcmp(QRdata, TRANSMIT_PREEND))
     {
-        printf("switch:TRANSMIT_PREEND\n");
+        LOG_DBG("switch:TRANSMIT_PREEND\n");
         setTransmitStatus(PREEND);
         return NO_ERROR;
     }
@@ -79,7 +82,7 @@ int ProcessInThread::QRdataProcess(char* QRdata)
     //处理配置文件
     else if(0 == strcmp(QRdata, TRANSMIT_START))
     {
-        printf("switch:TRANSMIT_START\n");
+        LOG_DBG("switch:TRANSMIT_START\n");
         mTransStatus = getTransmitStatus();
         setTransmitStatus(PREEND);
 
@@ -88,10 +91,10 @@ int ProcessInThread::QRdataProcess(char* QRdata)
         //创建所有的文件目录,（不包括碎片目录）
         ///遍历完后拼接fold.ini
         ///===============================发消息，遍历ini并恢复，做处理================================///
-        if(1 == ini_traversal_flag)
+        if(0 == ini_traversal_flag)
         {
             processEvt(RECV_SM_EVT_INI_START, NULL);
-            ini_traversal_flag = 0;
+            ini_traversal_flag ++;
         }
 
         setTransmitStatus(TRANSMITTING);
@@ -100,17 +103,17 @@ int ProcessInThread::QRdataProcess(char* QRdata)
     //开始遍历1_receiver正文
     else if(0 == strcmp(QRdata, TRANSMIT_END))
     {
-        printf("switch:TRANSMIT_END\n");
+        LOG_DBG("switch:TRANSMIT_END\n");
         setTransmitStatus(END);
         //delay(300)//ms
         ///遍历待拼接文件
-        LOG_DBG("FRAGMENT_TRAVERSAL\n");
         ///=====================================遍历文件======================================///
-        if(1 == fragment_traversal_flag)
+        if(0 == fragment_traversal_flag)
         {
+            LOG_DBG("FRAGMENT_TRAVERSAL, fragment_traversal_flag = %d\n", fragment_traversal_flag);
+            fragment_traversal_flag ++;
             processEvt(RECV_SM_EVT_FRAG_START, NULL);
             setTransmitStatus(IDLE);
-            fragment_traversal_flag = 0;
         }
 
     }
@@ -131,7 +134,8 @@ int ProcessInThread::QRdataProcess(char* QRdata)
             des_start_content_receiver(QRdata);
         }
         else{
-///            LOG_ERR("Drop a frame!!!\n");
+            LOG_ERR("Drop a frame!!!\n");
+            des_start_content_receiver(QRdata);
         }
 
         //记录每一个需要拼接的路径
@@ -157,7 +161,7 @@ int ProcessInThread::des_prestart_content_receiver(char *QRdata)
     char *md5sum  = new char[MD5SUM_MAX];
     int type = NORMAL;
 
-    printf("des_prestart_content_receiver\n");
+    LOG_DBG("des_prestart_content_receiver\n");
     memset(relative_dir, 0, PATH_MAX);
     memset(total_dir, 0, PATH_MAX);
     memset(name, 0, NAME_MAX);
@@ -210,6 +214,7 @@ int ProcessInThread::des_prestart_content_receiver(char *QRdata)
         mkdir(total_dir, S_IRWXU|S_IRWXG|S_IRWXO);
     }*/
 
+    memset(total_dir, 0, PATH_MAX);
     if (UDP == type)
     {//name:X0
         sprintf(total_dir, "%s%s/%s/%s/%s", DES_UDP_RECV_INI_LOCATION, date, d_name, ini_name, name);
@@ -227,6 +232,7 @@ int ProcessInThread::des_prestart_content_receiver(char *QRdata)
     memset(total_dir, 0, PATH_MAX);
     if(UDP == type)
     {
+        memset(total_dir, 0, PATH_MAX);
         sprintf(total_dir, "%s%s", DES_UDP_INI_LOCATION, date); ///生成到该目录 relative_dir:config/,应改为config.ini/
         mkdir(total_dir, S_IRWXU|S_IRWXG|S_IRWXO);
         sprintf(total_dir, "%s%s/%s", DES_UDP_INI_LOCATION, date, d_name);
@@ -235,6 +241,7 @@ int ProcessInThread::des_prestart_content_receiver(char *QRdata)
         //mkdir(total_dir, S_IRWXU|S_IRWXG|S_IRWXO);///生成到该目录 relative_dir:config/,应改为config.ini/
     }else if(NORMAL == type)
     {
+        memset(total_dir, 0, PATH_MAX);
         sprintf(total_dir, "%s%s", DES_INI_LOCATION, date); ///生成到该目录 relative_dir:config/,应改为config.ini/
         mkdir(total_dir, S_IRWXU|S_IRWXG|S_IRWXO);
         sprintf(total_dir, "%s%s/%s", DES_INI_LOCATION, date, d_name);
@@ -249,9 +256,11 @@ int ProcessInThread::des_prestart_content_receiver(char *QRdata)
 
     //给全局变量赋值，遍历碎片之前使用
     strcpy(dateStr, date);
-    strcpy(nameStr, name);
+    strcpy(nameStr, d_name);
     MsgType = type;
     strcpy(md5sumStr, md5sum);
+
+    LOG_DBG("des_prestart_content_receiver, dateStr=%s, nameStr=%s\n",dateStr, nameStr);
     //给全局变量赋值，遍历碎片之前使用end
 
 
@@ -260,6 +269,10 @@ int ProcessInThread::des_prestart_content_receiver(char *QRdata)
     free(name);
     //free(pureQRdata);//temp
     free(offset);
+
+    free(date);
+    free(d_name);
+    free(ini_name);
     return NO_ERROR;
 }
 
@@ -279,8 +292,6 @@ int ProcessInThread::des_start_content_receiver(char *QRdata)
     char *d_name  = new char[NAME_MAX];
     int type = NORMAL;
 
-    //printf("des_start_content_receiver\n");
-
     memset(relative_dir, 0, PATH_MAX);
     memset(total_dir, 0, PATH_MAX);
     memset(name, 0, NAME_MAX);
@@ -292,8 +303,8 @@ int ProcessInThread::des_start_content_receiver(char *QRdata)
 
     *offset = 0;
     //temp
-    pureQRdata = new char[QRDATA_SIZE];//temp
-    memset(pureQRdata, 0, QRDATA_SIZE);//temp
+    //pureQRdata = new char[QRDATA_SIZE];//temp
+    //memset(pureQRdata, 0, QRDATA_SIZE);//temp
 
     //cutQRdata(QRdata, pureQRdata, relative_dir, name); //temp
     int ret = cutQRdata(QRdata, offset, relative_dir, name); //temp
@@ -316,8 +327,9 @@ int ProcessInThread::des_start_content_receiver(char *QRdata)
         if(0 != access(total_dir, F_OK))
         {
             mkdir(total_dir, S_IRWXU|S_IRWXG|S_IRWXO);
-            sprintf(total_dir, "%s%s/%s", DES_UDP_RECEIVE_LOCATION, date, d_name);
         }
+        memset(total_dir, 0, PATH_MAX);
+        sprintf(total_dir, "%s%s/%s", DES_UDP_RECEIVE_LOCATION, date, d_name);
         if(0 != access(total_dir, F_OK))
         {
             mkdir(total_dir, S_IRWXU|S_IRWXG|S_IRWXO);
@@ -325,12 +337,14 @@ int ProcessInThread::des_start_content_receiver(char *QRdata)
 
         //2
         //cddir(DES_UDP_BASE64_DECODE_LOCATION);
+        memset(total_dir, 0, PATH_MAX);
         sprintf(total_dir, "%s%s", DES_UDP_BASE64_DECODE_LOCATION, date);
         if(0 != access(total_dir, F_OK))
         {
             mkdir(total_dir, S_IRWXU|S_IRWXG|S_IRWXO);
-            sprintf(total_dir, "%s%s/%s", DES_UDP_BASE64_DECODE_LOCATION, date, d_name);
         }
+        memset(total_dir, 0, PATH_MAX);
+        sprintf(total_dir, "%s%s/%s", DES_UDP_BASE64_DECODE_LOCATION, date, d_name);
         if(0 != access(total_dir, F_OK))
         {
             mkdir(total_dir, S_IRWXU|S_IRWXG|S_IRWXO);
@@ -338,6 +352,7 @@ int ProcessInThread::des_start_content_receiver(char *QRdata)
 
         //3
         //cddir(DES_UDP_CAT_LOCATION);
+        memset(total_dir, 0, PATH_MAX);
         sprintf(total_dir, "%s%s", DES_UDP_CAT_LOCATION, date);
         if(0 != access(total_dir, F_OK))
         {
@@ -346,6 +361,7 @@ int ProcessInThread::des_start_content_receiver(char *QRdata)
 
         //4
         //cddir(DES_UDP_LOCATION);
+        memset(total_dir, 0, PATH_MAX);
         sprintf(total_dir, "%s%s", DES_UDP_LOCATION, date);
         if(0 != access(total_dir, F_OK))
         {
@@ -360,8 +376,9 @@ int ProcessInThread::des_start_content_receiver(char *QRdata)
         if(0 != access(total_dir, F_OK))
         {
             mkdir(total_dir, S_IRWXU|S_IRWXG|S_IRWXO);
-            sprintf(total_dir, "%s%s/%s", DES_RECEIVE_LOCATION, date, d_name);
         }
+        memset(total_dir, 0, PATH_MAX);
+        sprintf(total_dir, "%s%s/%s", DES_RECEIVE_LOCATION, date, d_name);
         if(0 != access(total_dir, F_OK))
         {
             mkdir(total_dir, S_IRWXU|S_IRWXG|S_IRWXO);
@@ -369,12 +386,14 @@ int ProcessInThread::des_start_content_receiver(char *QRdata)
 
         //2
         //cddir(DES_BASE64_DECODE_LOCATION);
+        memset(total_dir, 0, PATH_MAX);
         sprintf(total_dir, "%s%s", DES_BASE64_DECODE_LOCATION, date);
         if(0 != access(total_dir, F_OK))
         {
             mkdir(total_dir, S_IRWXU|S_IRWXG|S_IRWXO);
-            sprintf(total_dir, "%s%s/%s", DES_BASE64_DECODE_LOCATION, date, d_name);
         }
+        memset(total_dir, 0, PATH_MAX);
+        sprintf(total_dir, "%s%s/%s", DES_BASE64_DECODE_LOCATION, date, d_name);
         if(0 != access(total_dir, F_OK))
         {
             mkdir(total_dir, S_IRWXU|S_IRWXG|S_IRWXO);
@@ -382,6 +401,7 @@ int ProcessInThread::des_start_content_receiver(char *QRdata)
 
         //3
         //cddir(DES_CAT_LOCATION);
+        memset(total_dir, 0, PATH_MAX);
         sprintf(total_dir, "%s%s", DES_CAT_LOCATION, date);
         if(0 != access(total_dir, F_OK))
         {
@@ -390,6 +410,7 @@ int ProcessInThread::des_start_content_receiver(char *QRdata)
 
         //4
         //cddir(DES_LOCATION);
+        memset(total_dir, 0, PATH_MAX);
         sprintf(total_dir, "%s%s", DES_LOCATION, date);
         if(0 != access(total_dir, F_OK))
         {
@@ -399,9 +420,11 @@ int ProcessInThread::des_start_content_receiver(char *QRdata)
 
     if (UDP == type)
     {
+        memset(total_dir, 0, PATH_MAX);
         sprintf(total_dir, "%s%s/%s/%s", DES_UDP_RECEIVE_LOCATION, date, d_name, name);
     } else if (NORMAL == type)
     {
+        memset(total_dir, 0, PATH_MAX);
         sprintf(total_dir, "%s%s/%s/%s", DES_RECEIVE_LOCATION, date, d_name, name);
     }
 
@@ -415,11 +438,13 @@ int ProcessInThread::des_start_content_receiver(char *QRdata)
     //在2目录中创建接收传输文件的文件夹
     if(UDP == type)
     {
-        sprintf(total_dir, "%s%s", DES_UDP_BASE64_DECODE_LOCATION, relative_dir);
+        memset(total_dir, 0, PATH_MAX);
+        sprintf(total_dir, "%s%s/%s/", DES_UDP_BASE64_DECODE_LOCATION, date, d_name);
     }
     else if(NORMAL == type)
     {
-        sprintf(total_dir, "%s%s", DES_BASE64_DECODE_LOCATION, relative_dir);
+        memset(total_dir, 0, PATH_MAX);
+        sprintf(total_dir, "%s%s/%s/", DES_BASE64_DECODE_LOCATION, date, d_name);
     }
 
     if(0 != access(total_dir, F_OK))
@@ -429,9 +454,7 @@ int ProcessInThread::des_start_content_receiver(char *QRdata)
     strcat(total_dir, name);
 
     FILE *base64_decode_Destination = fopen(total_dir, "w");  //home/montafan/QRcodeGrab/destination/2_base64_decode_location/hu.jpg/X0
-
     decode(pureQRdata, base64_decode_Destination);//做完base64变换后放入2_base64_decode_location
-
     fclose(base64_decode_Destination);
 #else
     //1_receive 生成文件
@@ -446,6 +469,9 @@ int ProcessInThread::des_start_content_receiver(char *QRdata)
     free(name);
     //free(pureQRdata);//temp
     free(offset);
+
+    free(date);
+    free(d_name);
     return NO_ERROR;
 }
 

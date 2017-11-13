@@ -72,7 +72,7 @@
 //状态码显示的次数
 #define WAIT_FRAME_COUNT 5
 //二维码显示15帧
-#define DISPLAY_INTERVAL 125000//100000  //unit: us     30fps:33333  25fps:40000  16fps:62500  15fps:66666  10fps:100000  8fps:125000  3fps:333333
+#define DISPLAY_INTERVAL 66666//100000  //unit: us     30fps:33333  25fps:40000  16fps:62500  15fps:66666  12fps:83333  10fps:100000  8fps:125000  3fps:333333
 
 
 typedef enum{
