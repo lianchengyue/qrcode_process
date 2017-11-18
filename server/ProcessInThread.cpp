@@ -177,8 +177,21 @@ int ProcessInThread::des_prestart_content_receiver(char *QRdata)
 
     //cutQRdata(QRdata, pureQRdata, relative_dir, name); //temp
     int ret = cutQRdata(QRdata, offset, relative_dir, name); //temp   ///name:X0 //relative_dir:config/
-    if(NO_ERROR != ret){
-        return -1;
+    if(NO_ERROR != ret)
+    {
+        LOG_ERR("%s, cutQRdata err, ret=%d\n",__func__, ret);
+
+        free(relative_dir);
+        free(total_dir);
+        free(name);
+        //free(pureQRdata);//temp
+        free(offset);
+
+        free(date);
+        free(d_name);
+        free(ini_name);
+
+        return -3;
     }
 
     pureQRdata = QRdata;
@@ -186,6 +199,22 @@ int ProcessInThread::des_prestart_content_receiver(char *QRdata)
 
     //拆分relative_dir，获取日期，文件名与配置文件名
     cutINIHeadData(relative_dir, date, d_name, ini_name, typeStr, md5sum);
+    if(NO_ERROR != ret)
+    {
+        LOG_ERR("%s, cutINIHeadData err, ret=%d\n",__func__, ret);
+
+        free(relative_dir);
+        free(total_dir);
+        free(name);
+        //free(pureQRdata);//temp
+        free(offset);
+
+        free(date);
+        free(d_name);
+        free(ini_name);
+        return -4;
+    }
+
     sscanf(typeStr,"%d",&type); //or atoi()
     type_whole = type;
 
@@ -309,13 +338,38 @@ int ProcessInThread::des_start_content_receiver(char *QRdata)
     //cutQRdata(QRdata, pureQRdata, relative_dir, name); //temp
     int ret = cutQRdata(QRdata, offset, relative_dir, name); //temp
     if(NO_ERROR != ret){
-        return -1;
+
+        LOG_ERR("%s, cutQRdata err, ret=%d\n",__func__, ret);
+
+        free(relative_dir);
+        free(total_dir);
+        free(name);
+        free(offset);
+
+        free(date);
+        free(d_name);
+        return -3;
     }
     pureQRdata = QRdata;
     pureQRdata = pureQRdata + *offset;
 
     //拆分relative_dir，获取日期，文件名与配置文件名
-    cutHeadData(relative_dir, date, d_name);
+    ret = cutHeadData(relative_dir, date, d_name);
+
+    ////added by flq,防止接收不到配置文件时，碎片泄漏到根目录
+    if(NO_ERROR != ret)
+    {
+        LOG_ERR("%s, cutHeadData err, ret=%d\n",__func__, ret);
+        free(relative_dir);
+        free(total_dir);
+        free(name);
+        free(offset);
+
+        free(date);
+        free(d_name);
+        return -4;
+    }
+    ///added end by flq,防止接收不到配置文件时，碎片泄漏到根目录
 
     type = type_whole;
 
@@ -431,7 +485,8 @@ int ProcessInThread::des_start_content_receiver(char *QRdata)
     FILE *cut_head_Destination = fopen(total_dir, "wb"); //ab+;
 
 #if 1  //#ifdef DES_DECODE
-    int size = fwrite(pureQRdata, 1, strlen(pureQRdata), cut_head_Destination);
+///    int size = fwrite(pureQRdata, 1, strlen(pureQRdata), cut_head_Destination);   //无报头
+    int size = fwrite(QRdata, 1, strlen(QRdata), cut_head_Destination);      //有报头
     //解码并生成文件
     memset(total_dir, 0, PATH_MAX);
 

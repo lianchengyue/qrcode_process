@@ -6,6 +6,7 @@
 #include "include/macros.h"
 #include "include/fileParameters.h"
 
+#include "instructions/inirw.h"
 
 #define OPENCV_WIN
 #define FPS_LOG_FREQ 3
@@ -17,6 +18,8 @@ usbGrab::usbGrab()
 {
     mPreviewFrames = 0;
     mFPSCount = 0;
+
+    viewer_status = getViewerStatus();
 
 
 ////    memset(mScanImgData, 0, MAT_BUF_SIZE * sizeof(mScanImgData));
@@ -49,7 +52,10 @@ int usbGrab::grab()
     int width = INPUT_WIDTH;
     int height = INPUT_HEIGHT;
     m_scancode = new ScanCode(); //added by flq
-    namedWindow("usb camera",WINDOW_AUTOSIZE);
+    if(1 == viewer_status) //0:off 1:on
+    {
+        namedWindow("usb camera",WINDOW_AUTOSIZE);
+    }
 
     VideoCapture capture(0);
     //设置图片的大小
@@ -103,9 +109,13 @@ int usbGrab::grab()
 ///*
         {
             int i = mPreviewFrames % MAT_BUF_SIZE;//MAT_BUF_SIZE
+            //int i = mPreviewFrames & 0x3F;//MAT_BUF_SIZE
             mScanImgData[i].framecnt = mPreviewFrames;
             cvtColor(frame,mScanImgData[i].imageGray,CV_RGB2GRAY);
-            imshow("usb camera",mScanImgData[i].imageGray);
+            if(1 == viewer_status) //0:off 1:on
+            {
+                imshow("usb camera",mScanImgData[i].imageGray);
+            }
 
             /////关注为什么ASSERT失败
             //assert(threadpool_add(pool, m_scancode->scanimagefunc, (void*)&mScanImgData[i], 0) == 0);
@@ -221,5 +231,42 @@ void usbGrab::printfps(cv::Mat frame)
         mFPSCount = 0;
     }
 #endif
+}
+
+int usbGrab::getViewerStatus()
+{
+    char file[256];
+
+    char *sect;
+    char *key;
+    int intval;
+
+    memset(file, 0, 256);
+
+    sprintf(file, "%s/dispInterval.ini", getenv("HOME"));
+    //LOG_DBG("load DISPLAY_INTERVAL file %s\n", file);
+
+    iniFileLoad(file);
+
+    sect = "ViewerStatus";
+    key = "onoff"; //0:off 1:on
+    intval = iniGetInt(sect, key, 0);
+    LOG_DBG("[%s] %s = %d\n", sect, key, intval);
+
+    //小于3fps,设为3fps
+    if(intval < 0)
+    {
+        return 0;
+    }
+    //大于30fps,设为30fps
+    else if (intval > 3)
+    {
+        return 3;
+    }
+    else
+    {
+        LOG_ERR("onoff=%d\n", intval);
+        return intval;
+    }
 }
 

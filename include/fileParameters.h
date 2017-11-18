@@ -11,7 +11,7 @@
 #define NAME_MAX 255
 #define PATH_MAX 255
 
-#define BLOCK_SIZE 1408  //split_size suggest smaller than 2048, 1792, 1536
+#define BLOCK_SIZE 900//900//1408  //split_size suggest smaller than 2048, 1792, 1536   //1059
 
 #define QRDATA_SIZE 3072  //3072,  2076
 
@@ -40,7 +40,7 @@
 //#define INPUT_HEIGHT 240
 
 //in gigeGrab, num of Mat buffer
-#define MAT_BUF_SIZE 16
+#define MAT_BUF_SIZE 64 //16
 
 #define CV_WAITKEY_INTERVAL 3//3
 
@@ -49,10 +49,10 @@
 #ifdef USE_MUTIPLE_THREAD
 #if 0
 #define THREAD_NUM 4
-#define QUEUES 64 //
+#define QUEUES 64
 #elif 1
-#define THREAD_NUM 16
-#define QUEUES 256 //
+#define THREAD_NUM 64//16
+#define QUEUES 256
 #else
 #define THREAD_NUM 32
 #define QUEUES 128

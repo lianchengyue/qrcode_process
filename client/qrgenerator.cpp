@@ -392,7 +392,10 @@ QRGenerator::QRGenerator(QWidget *parent)
 #endif
 
 
+    ///setDisplayInterval();
     time_interval = getDisplayInterval();
+    code_level = getQRCodeLevel();
+    //printf("QR_ECLEVEL_L=%d, QR_ECLEVEL_M=%d, Q=%d, H=%d\n\n", QR_ECLEVEL_L, QR_ECLEVEL_M, QR_ECLEVEL_Q, QR_ECLEVEL_H);
 
     //qDebug() << QString("main thread id:") << QThread::currentThreadId();
 
@@ -436,7 +439,7 @@ void QRGenerator::setString(QString str)
     //生成二维码
     qr = QRcode_encodeString(qstring.toStdString().c_str(),
         1,
-        QR_ECLEVEL_L,
+        (QRecLevel)code_level, //QR_ECLEVEL_L,
         QR_MODE_8,
         1);
 
@@ -490,8 +493,8 @@ int QRGenerator::getDisplayInterval()
     iniFileLoad(file);
 
     sect = "dispInterval";
-    key = "DisplayInterval";
-    intval = iniGetInt(sect, key, 1000);
+    key = "interval";
+    intval = iniGetInt(sect, key, 100000); //default:10fps 100000
     LOG_DBG("[%s] %s = %d\n", sect, key, intval);
 
     //小于3fps,设为3fps
@@ -506,13 +509,13 @@ int QRGenerator::getDisplayInterval()
     }
     else
     {
-        LOG_ERR("DISPLAY_INTERVAL=%d", intval);
+        LOG_ERR("DISPLAY_INTERVAL=%d\n", intval);
         return intval;
     }
 }
 
 void QRGenerator::setDisplayInterval()
-{
+{/*
     char file[256];
     char value[34];
 
@@ -520,12 +523,53 @@ void QRGenerator::setDisplayInterval()
     memset(value, 0, 34);
 
     sprintf(file, "%s/dispInterval.ini", getenv("HOME"));
-    LOG_DBG("load DISPLAY_INTERVAL file %s\n", file);
+    LOG_DBG("load DISPLAY INTERVAL file %s\n", file);
 
     sprintf(value, "dispInterval");
     iniFileLoad(file);
 
-    iniSetInt(value, "DisplayInterval", 66666, 0);//size
+    iniSetInt(value, "DisplayInterval", 66662, 0);//size
+
+    iniSetInt("QRCodeLevel", "CodeLevel", 2, 0);//size
+    iniSetInt("ViewerStatus", "onoff", 1, 0);//size
+*/
+}
+
+int QRGenerator::getQRCodeLevel()
+{
+    char file[256];
+
+    char *sect;
+    char *key;
+    int intval;
+
+    memset(file, 0, 256);
+
+    sprintf(file, "%s/dispInterval.ini", getenv("HOME"));
+    LOG_DBG("load QRCode Level file %s\n", file);
+
+    iniFileLoad(file);
+
+    sect = "QRCodeLevel";
+    key = "CodeLevel";
+    intval = iniGetInt(sect, key, 0);
+    LOG_DBG("[%s] %s = %d\n", sect, key, intval);
+
+    //小于3fps,设为3fps
+    if(intval < 0)
+    {
+        return 0;
+    }
+    //大于30fps,设为30fps
+    else if (intval > 3)
+    {
+        return 3;
+    }
+    else
+    {
+        LOG_ERR("QRCodeLevel=%d\n", intval);
+        return intval;
+    }
 }
 
 bool QRGenerator::saveImage(QString fileName, int size)
@@ -556,8 +600,8 @@ void QRGenerator::draw(QPainter &painter, int width, int height)
     painter.setBrush(foreground);
     const int qr_width = qr->width > 0 ? qr->width : 1;
     //避免拉伸
-    double scale_x = height / qr_width;   //width
-    double scale_y = height / qr_width;
+    double scale_x = (height-40) / qr_width;   //width
+    double scale_y = (height-40) / qr_width;
     for( int y = 0; y < qr_width; y ++)
     {
         for(int x = 0; x < qr_width; x++)
@@ -565,7 +609,7 @@ void QRGenerator::draw(QPainter &painter, int width, int height)
             unsigned char b = qr->data[y * qr_width + x];
             if(b & 0x01)
             {
-                QRectF r(100+x * scale_x, 10+y * scale_y, scale_x, scale_y);
+                QRectF r(200 + x * scale_x, 20+y * scale_y, scale_x, scale_y);  //middle:180
                 painter.drawRects(&r, 1);
             }
         }

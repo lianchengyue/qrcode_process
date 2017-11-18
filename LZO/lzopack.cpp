@@ -75,7 +75,7 @@ static lzo_uint xread(FILE *fp, lzo_voidp buf, lzo_uint len, lzo_bool allow_eof)
     if (l != len && !allow_eof)
     {
         fprintf(stderr, "\n%s: read error - premature end of file\n", progname);
-        exit(1);
+///        exit(1);
     }
     total_in += (unsigned long) l;
     return l;

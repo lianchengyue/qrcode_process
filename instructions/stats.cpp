@@ -1727,6 +1727,7 @@ int cutQRdata(char *instr, int *offset, char *relative_path,char *filename)
     if(cnt<2)
     {
         //*offset = i+1+j;
+        LOG_ERR("%s, cutQRdata err, relative_path=%s, filename=%s\n",__func__, relative_path, filename);
         return REV_CONTENT_ERROR;
     }
 
@@ -1782,6 +1783,7 @@ int cutQRdata(char *instr, char *pureQRdata, char *relative_path,char *filename)
 
     if(cnt<2)
     {
+        LOG_ERR("%s, cutQRdata err, relative_path=%s, filename=%s\n",__func__, relative_path, filename);
         return REV_CONTENT_ERROR;
     }
 
@@ -1858,6 +1860,8 @@ int cutDirName(char *instr, char *filename)
         }
 
     }
+
+    return NO_ERROR;
 }
 /*函数功能:获取上一级目录完整路径*/
 int getUpperTotalDir(char *instr)
@@ -1944,6 +1948,8 @@ int cutFileName(char *instr, char *filename)
         }
 
     }
+
+    return NO_ERROR;
 }
 
 ////拆分relative_dir，获取日期，文件名与配置文件名
@@ -1959,6 +1965,12 @@ int cutINIHeadData(char *relative_dir, char *date, char *name, char *ini_name, c
     j=0;
 
     len = strlen(relative_dir) - 1;
+
+    ////added by flq,防止接收不到配置文件时，碎片泄漏到根目录
+    if(len <= 0){
+        return -6;
+    }
+    ////added end,防止接收不到配置文件时，碎片泄漏到根目录
 
     pp = relative_dir;
 
@@ -1998,7 +2010,7 @@ int cutINIHeadData(char *relative_dir, char *date, char *name, char *ini_name, c
         }
     }
 
-    return 0;
+    return NO_ERROR;
 }
 
 ////拆分relative_dir，获取日期，文件名与配置文件名
@@ -2014,6 +2026,12 @@ int cutHeadData(char *relative_dir, char *date, char *name)
     j=0;
 
     len = strlen(relative_dir) - 1;
+
+    ////added by flq,防止接收不到配置文件时，碎片泄漏到根目录
+    if(len <= 0){
+        return -6;
+    }
+    ////added end,防止接收不到配置文件时，碎片泄漏到根目录
 
     pp = relative_dir;
 
@@ -2040,7 +2058,7 @@ int cutHeadData(char *relative_dir, char *date, char *name)
         }
     }
 
-    return 0;
+    return NO_ERROR;
 }
 
 int CompletePath()
@@ -2105,4 +2123,5 @@ int CompletePath()
     sprintf(DES_UDP_INI_FILE, "%s%s", DES_BASE_LOCATION ,DES_UDP_INI_FILE_REL);
     sprintf(DES_UDP_INI_FOLD, "%s%s", DES_BASE_LOCATION ,DES_UDP_INI_FOLD_LOCATION_REL);
 
+    return NO_ERROR;
 }

@@ -126,6 +126,7 @@ private:
     #endif
     int getDisplayInterval();
     void setDisplayInterval();
+    int getQRCodeLevel();
 
     ///更新事件，不再有新的碎片开始显示，让优先级更高的先跑
     //processXXUpdate(int /*int a*/)   flq
@@ -153,7 +154,8 @@ private:
     ClientCbNotifier *m_cbNotifier; //flq
     //queue<int> evt_UDP_queue;
 
-    int time_interval;
+    int time_interval; //设置二维码播放帧率
+    int code_level; //设置二维码校验级别
 
 signals:
     void ResetSignal(); //thread

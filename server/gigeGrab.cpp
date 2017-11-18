@@ -6,6 +6,8 @@
 #include "include/macros.h"
 #include "include/fileParameters.h"
 
+#include "instructions/inirw.h"
+
 #define OPENCV_WIN
 #define FPS_LOG_FREQ  3
 
@@ -19,6 +21,8 @@ gigeGrab::gigeGrab()
 {
     mPreviewFrames = 0;
     mFPSCount = 0;
+
+    viewer_status = getViewerStatus();
 
 ////    memset(&mScanImgData, 0, sizeof(mScanImgData));
     mfragmentProcess = new fragmentProcess();
@@ -57,7 +61,10 @@ int gigeGrab::grab()
 
     CGrabResultPtr ptrGrabResult;
 #ifdef OPENCV_WIN
-    namedWindow("basler camera",WINDOW_AUTOSIZE);
+    if(1 == viewer_status) //0:off 1:on
+    {
+        namedWindow("basler camera",WINDOW_AUTOSIZE);
+    }
 #endif
     try
     {
@@ -148,10 +155,14 @@ int gigeGrab::grab()
                     #endif
                     */
                     int i = mPreviewFrames % MAT_BUF_SIZE;//MAT_BUF_SIZE
+                    //int i = mPreviewFrames & 0x1F;//MAT_BUF_SIZE
                     mScanImgData[i].framecnt = mPreviewFrames;
                     cvtColor(frame,mScanImgData[i].imageGray,CV_RGB2GRAY);
                     #ifdef OPENCV_WIN
-                    imshow("basler camera",mScanImgData[i].imageGray);
+                    if(1 == viewer_status)
+                    {
+                        imshow("basler camera",mScanImgData[i].imageGray);
+                    }
                     #endif
                     threadpool_add(pool, m_scancode->scanimagefunc, (void*)&mScanImgData[i], 0);
 
@@ -214,5 +225,42 @@ void gigeGrab::printfps(cv::Mat frame)
         fps = mFPSCount / FPS_LOG_FREQ;
         LOG_ERR("preview frames: %d, fps: %d\n", mPreviewFrames, fps);
         mFPSCount = 0;
+    }
+}
+
+int gigeGrab::getViewerStatus()
+{
+    char file[256];
+
+    char *sect;
+    char *key;
+    int intval;
+
+    memset(file, 0, 256);
+
+    sprintf(file, "%s/dispInterval.ini", getenv("HOME"));
+    //LOG_DBG("load DISPLAY_INTERVAL file %s\n", file);
+
+    iniFileLoad(file);
+
+    sect = "ViewerStatus";
+    key = "onoff"; //0:off 1:on
+    intval = iniGetInt(sect, key, 0);
+    LOG_DBG("[%s] %s = %d\n", sect, key, intval);
+
+    //小于3fps,设为3fps
+    if(intval < 0)
+    {
+        return 0;
+    }
+    //大于30fps,设为30fps
+    else if (intval > 3)
+    {
+        return 3;
+    }
+    else
+    {
+        LOG_ERR("QRCodeLevel=%d\n", intval);
+        return intval;
     }
 }

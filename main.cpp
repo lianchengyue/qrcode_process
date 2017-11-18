@@ -180,3 +180,16 @@ int main(int argc, char* argv[])
 
 #endif
 
+
+
+#if 0
+#include "LZO/lzopack.h"
+
+int main()
+{
+    char *inputDir = "/home/montafan/lzo/lzo/10.txt.lzo";
+    char *outputDir = "/home/montafan/lzo/lzo/10.txt";
+
+    processLZO(inputDir, outputDir, LZO_DECOMPRESS);
+}
+#endif

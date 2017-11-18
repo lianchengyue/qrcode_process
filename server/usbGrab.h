@@ -47,6 +47,8 @@ public:
 
     int grab();
 
+    int getViewerStatus();
+
 private:
     void printfps(cv::Mat frame);
 
@@ -65,6 +67,7 @@ private:
     threadpool_t *pool;
 #endif
 
+    int viewer_status;
 };
 
 #endif // USBGRAB_H

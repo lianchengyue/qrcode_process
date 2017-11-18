@@ -53,6 +53,8 @@ public:
 
     int grab();
 
+    int getViewerStatus(); //0:off 1:on
+
 private:
     bool IsColorCamera(Camera_t& camera);
     void AutoGainOnce(Camera_t& camera);
@@ -78,5 +80,6 @@ private:
     threadpool_t *pool;
 #endif
 
+    int viewer_status;
 };
 #endif // GIGEGRAB_H
