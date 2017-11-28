@@ -347,6 +347,16 @@ QRGenerator::QRGenerator(QWidget *parent)
     //empty
     setString(TRANSMIT_IDLE);
 
+    //for test
+    /*
+    char content[2048] = {0};
+    FILE *TestFile = fopen("/home/montafan/X0", "rb");
+    fread(content,1,512,TestFile);
+
+    setString(content);
+    */
+    //for test end
+
     CompleteSrcPath();
 
     ////UDP与Normal两个线程
@@ -724,7 +734,7 @@ void QRGenerator::UpdateSlot(int num)
         //显示二维码
         setString(pdesBuf);
         ///usleep(100);
-        free(pdesBuf);
+        delete(pdesBuf);
     }
     //added end
 
@@ -771,7 +781,7 @@ void QRGenerator::UpdateSlot(int num)
         //显示二维码
         setString(pdesBuf);
         ///usleep(100);
-        free(pdesBuf);
+        delete(pdesBuf);
     }
 
     ///播放结束二维码
@@ -932,7 +942,7 @@ void QRGenerator::ProcessMsgQ(QString msg)
        //显示二维码
        setString(pdesBuf);
        ///usleep(100);
-       free(pdesBuf);
+       delete(pdesBuf);
     }
     //added end
 
@@ -978,7 +988,7 @@ void QRGenerator::ProcessMsgQ(QString msg)
 
        //显示二维码
        setString(pdesBuf);
-       free(pdesBuf);
+       delete(pdesBuf);
     }
 
     ///播放结束二维码

@@ -234,10 +234,8 @@ int get_length_after_base64(FILE * fp_in)
 
     out_len = base64_encode(base64, bindata, len, 0);
 
-    free(bindata);
-    free(base64);
-    bindata=NULL;
-    base64=NULL;
+    delete(bindata);
+    delete(base64);
 
     return out_len;
 }
@@ -266,10 +264,8 @@ void encode(FILE * fp_in, FILE * fp_out)
 
     int size = fwrite(base64, sizeof(char), out_len, fp_out);
 
-    free(bindata);
-    free(base64);
-    bindata=NULL;
-    base64=NULL;
+    delete(bindata);
+    delete(base64);
 }
 
 void encode(FILE * fp_in, FILE * fp_out, char *dir, char *filename)
@@ -305,10 +301,8 @@ void encode(FILE * fp_in, FILE * fp_out, char *dir, char *filename)
     //文件内容
     size = fwrite(base64, sizeof(char), out_len, fp_out);
 
-    free(bindata);
-    free(base64);
-    bindata=NULL;
-    base64=NULL;
+    delete(bindata);
+    delete(base64);
 }
 
 void encode(FILE * fp_in, char *str_out)
@@ -334,10 +328,10 @@ void encode(FILE * fp_in, char *str_out)
     ///int size = fwrite(base64, sizeof(char), out_len, fp_out);
     strncpy(str_out, base64, out_len);
 
-    free(bindata);
-    ///free(base64);
+    delete(bindata);
+    delete(base64);
     bindata=NULL;
-    ///base64=NULL;
+    base64=NULL;
 }
 
 
@@ -367,10 +361,8 @@ void decode(FILE * fp_in, FILE * fp_out)
     int size = fwrite(bindata, sizeof(char), out_len, fp_out);
 
     ///fclose(fp_in); // 关闭文件
-    free(bindata);
-    free(base64);
-    bindata=NULL;
-    base64=NULL;
+    delete(bindata);
+    delete(base64);
 }
 
 void decode(char *str_in, FILE * fp_out)
@@ -386,8 +378,6 @@ void decode(char *str_in, FILE * fp_out)
     out_len = base64_decode(bindata, str_in, len+1,0);
     int size = fwrite(bindata, sizeof(char), out_len, fp_out);
 
-    free(bindata);
-
-    bindata=NULL;
+    delete(bindata);
 }
 //http://www.cnblogs.com/yejianfei/archive/2013/04/06/3002838.html

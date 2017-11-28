@@ -18,7 +18,7 @@ int CopytoOutput(FILE *inf,FILE *outf)
     fread(Xbuf,1,len,inf);
     fwrite(Xbuf, 1, len, outf);////////////////////////////-1,去掉多余的\n
 
-    free(Xbuf);
+    delete(Xbuf);
 
     return 0;
 }
@@ -37,7 +37,7 @@ int CopytoOutputLast(FILE *inf,FILE *outf)
     fread(Xbuf,1,len,inf);
     fwrite(Xbuf, 1, len, outf);
 
-    free(Xbuf);
+    delete(Xbuf);
 
     return 0;
 }
@@ -105,7 +105,7 @@ int cat(char *input, char *outputpath, char *outfilenname)
     {
         if((inf=fopen(filendir,"rb"))==NULL)
         {//如果某个文件无法打开则跳过
-           printf("\ncat(3)can't open %s\n",filendir);
+           LOG_ERR("\ncat(3)can't open %s\n",filendir);
            continue;
         }
         count++;
@@ -125,19 +125,20 @@ int cat(char *input, char *outputpath, char *outfilenname)
 
     if(count < maxnum)
     {
-        printf("**Not ALL fragments, Cat %d file**, total file:%d\n",count, maxnum);
-        free(filendir);
-        free(outfilendir);
+        LOG_ERR("**Not ALL fragments, Cat %d file**, total file:%d\n",count, maxnum);
+        delete(filendir);
+        delete(outfilendir);
         fclose(outf);
 
         return 2;
     }
 
-    printf("**ALL fragments, Cat %d file**, total file:%d\n",count, maxnum);
+    LOG_ERR("**ALL fragments, Cat %d file**, total file:%d\n",count, maxnum);
 
-    free(filendir);
-    free(outfilendir);
     fclose(outf);
+
+    delete(filendir);
+    delete(outfilendir);
     return 0;
 
 }
@@ -217,7 +218,7 @@ int cat(char *input, char *output)
     {
         if((inf=fopen(filendir,"rb"))==NULL)
         {//如果某个文件无法打开则跳过
-           printf("\ncat(2)can't open %s\n",filendir);
+           LOG_ERR("\ncat(2)can't open %s\n",filendir);
            continue;
         }
         count++;
@@ -237,9 +238,10 @@ int cat(char *input, char *output)
 
     printf("**Cat %d file**",count);
 
-    free(filendir);
-    free(outfilendir);
     fclose(outf);
+
+    delete(filendir);
+    delete(outfilendir);
     return 0;
 
 }
@@ -288,8 +290,8 @@ int cat(char *input, char *output)
 
     printf("**Cat %d file**",count);
 
-    free(filendir);
-    free(outfilendir);
+    delete(filendir);
+    delete(outfilendir);
     fclose(outf);
     return 0;
 

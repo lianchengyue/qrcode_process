@@ -11,7 +11,7 @@
 #define NAME_MAX 255
 #define PATH_MAX 255
 
-#define BLOCK_SIZE 900//900//1408  //split_size suggest smaller than 2048, 1792, 1536   //1059
+#define BLOCK_SIZE 1408//900//1408  //split_size suggest smaller than 2048, 1792, 1536   //1059
 
 #define QRDATA_SIZE 3072  //3072,  2076
 
@@ -40,7 +40,7 @@
 //#define INPUT_HEIGHT 240
 
 //in gigeGrab, num of Mat buffer
-#define MAT_BUF_SIZE 64 //16
+#define MAT_BUF_SIZE 96 //16
 
 #define CV_WAITKEY_INTERVAL 3//3
 
@@ -51,8 +51,8 @@
 #define THREAD_NUM 4
 #define QUEUES 64
 #elif 1
-#define THREAD_NUM 64//16
-#define QUEUES 256
+#define THREAD_NUM 96//96//64//16
+#define QUEUES 384//384//256
 #else
 #define THREAD_NUM 32
 #define QUEUES 128
@@ -63,9 +63,11 @@
 #ifdef CONFIG_FUNC_DEBUG
 #define LOG_ERR(fmt,args...) printf(fmt,##args)
 #define LOG_DBG(fmt,args...) printf(fmt,##args)
+#define LOG_LOW(fmt,args...)
 #else
 #define LOG_ERR(fmt,args...) printf(fmt,##args)
 #define LOG_DBG(fmt,args...)
+#define LOG_LOW(fmt,args...)
 #endif
 
 //二维码的生成,显示速度参数
@@ -128,14 +130,12 @@ typedef enum{
 } RECEIVE_RESULT;
 #endif
 
-const char TRANSMIT_PRESTART[] = "1010101010"; //传输报头
-const char TRANSMIT_PREEND[] = "2020202020"; //传输报头
-//const char TRANSMIT_START[] = "http://baike.baidu.com";//传输开始
-const char TRANSMIT_START[] = "s0s0s0s0s0";//传输开始
-//const char TRANSMIT_END[] = "http://baike.baidu.com";//传输结束
-const char TRANSMIT_END[] = "e0e0e0e0e0";//传输结束
-const char TRANSMIT_IDLE[] = "3030303030";//空闲状态
-//const char TRANSMIT_INI[] = "3030303030"; //传输配置文件
+const char TRANSMIT_PRESTART[] = "1010101010101010"; //传输报头
+const char TRANSMIT_PREEND[] =   "2020202020202020"; //传输报头
+const char TRANSMIT_START[] =    "s0s0s0s0s0s0s0s0";//传输开始
+const char TRANSMIT_END[] =      "e0e0e0e0e0e0e0e0";//传输结束
+const char TRANSMIT_IDLE[] =     "3030303030303030";//空闲状态
+//const char TRANSMIT_INI[] =    "4040404040404040"; //传输配置文件
 
 
 const char TRANSMIT_TEST[] = "http://baike.baidu.com";//传输TEST

@@ -39,13 +39,14 @@ fragmentProcess::fragmentProcess()
 
 fragmentProcess::~fragmentProcess()
 {
-    free(m_stateMachine);
+    free(m_stateMachine);  //flqq
+    //delete(m_stateMachine);
 
     //free global variables
-    free(md5sumStr);
-    free(pathStr);
-    free(dateStr);
-    free(nameStr);
+    delete(md5sumStr);
+    delete(pathStr);
+    delete(dateStr);
+    delete(nameStr);
     MsgType = UNKNOWN;
 
     //shut down ActiveMQCPP
@@ -229,7 +230,7 @@ int fragmentProcess::create_folder_tree_from_ini()
     }
     while (strlen(value)>0);
 
-    free(dir);
+    delete(dir);
     return NO_ERROR;
 }
 
@@ -279,10 +280,10 @@ int fragmentProcess::des_prestart_content_receiver(char *QRdata)
     fclose(INI_Destination); // 关闭文件
 
 
-    free(relative_dir);
-    free(total_dir);
-    free(name);
-    //free(pureQRdata);//temp
+    delete(relative_dir);
+    delete(total_dir);
+    delete(name);
+    //delete(pureQRdata);//temp
     free(offset);
     return NO_ERROR;
 }
@@ -358,10 +359,10 @@ int fragmentProcess::des_start_content_receiver(char *QRdata)
     fclose(base64_decode_Destination);
 
 
-    free(relative_dir);
-    free(total_dir);
-    free(name);
-    //free(pureQRdata);//temp
+    delete(relative_dir);
+    delete(total_dir);
+    delete(name);
+    //delete(pureQRdata);//temp
     free(offset);
     return NO_ERROR;
 }
@@ -398,7 +399,7 @@ int fragmentProcess::des_ini_select()
     //遍历完后拼接config.ini
     des_ini_fragment_traversal_imp(targetPath, 0);
 
-    free(targetPath);
+    delete(targetPath);
 
     return 0;
 }
@@ -461,7 +462,7 @@ void fragmentProcess::des_ini_fragment_traversal_imp(string dir, int depth) //de
             //printf("%s\n", rename);
             cat((char *)dir.c_str(), DES_INI_LOCATION, rename);  //参数23拼接完成为后输出的目录（xiangdui路径）
 
-            free(rename);
+            delete(rename);
 
         }
     }
@@ -497,7 +498,7 @@ int fragmentProcess::des_fragment_select()
     char *relativeDir;
     //char relativeDir[PATH_MAX] = {0};
 
-    //没有接受到报头，返回
+    //没有接收到报头，返回
     if((0 == strlen(dateStr)) || (0 == strlen(dateStr)))
     {
         printf("\nNo INI RECEIVED!!!!!\n");
@@ -530,9 +531,9 @@ int fragmentProcess::des_fragment_select()
     //清除缓存
     clear_saved_data();
 
-    free(fragmentDir);
-    free(fragmentDes);
-    free(relativeDir);
+    delete(fragmentDir);
+    delete(fragmentDes);
+    delete(relativeDir);
     return 0;
 }
 
@@ -609,7 +610,7 @@ void fragmentProcess::des_fragment_traversal_imp(char *dir, char* _short_dir, ch
             strcat(total_dir,enty->d_name);
 
             //输出当前目录名
-            LOG_DBG("des_fragment_traversal_imp(),FILE,%*s%s/\n",depth," ",enty->d_name);
+            /////////////////////LOG_DBG("des_fragment_traversal_imp(),FILE,%*s%s/\n",depth," ",enty->d_name);  //too much log, delete
             if(enty->d_name[0] !='X')
             {
                 #if 1  ///flq    copy file
@@ -651,9 +652,9 @@ void fragmentProcess::des_fragment_traversal_imp(char *dir, char* _short_dir, ch
                 fclose(outfile);
                 fclose(outfile4);
 
-                free(content_buf);
-                free(output3Dir);
-                free(output4Dir);
+                delete(content_buf);
+                delete(output3Dir);
+                delete(output4Dir);
                 //不需裁剪，从目录2拷贝到目录3 end
                 #endif
 
@@ -689,7 +690,7 @@ void fragmentProcess::des_fragment_traversal_imp(char *dir, char* _short_dir, ch
         }
         cutDirName(output3Dir, purename);//input should be a filefold
 
-        //LOG_DBG("%s\n", purename);
+        LOG_DBG("purename = %s\n", purename);
         getUpperTotalDir(output3Dir);
 
 #ifdef USE_LZO_COMPRESSION
@@ -766,15 +767,15 @@ void fragmentProcess::des_fragment_traversal_imp(char *dir, char* _short_dir, ch
         }
         #endif
 
-        free(lzo_dir);
+        delete(lzo_dir);
 #endif
         //裁剪的文件，还需要做LZO解压缩 end
 
         need_cat = false;
 
-        free(output3Dir);
-        free(purename);
-        free(rename);
+        delete(output3Dir);
+        delete(purename);
+        delete(rename);
     }
 
 
@@ -783,9 +784,9 @@ void fragmentProcess::des_fragment_traversal_imp(char *dir, char* _short_dir, ch
     //关闭文件指针
     closedir(Dp);
 
-    free(total_dir);
-    free(relative_dir);
-    free(des_str);
+    delete(total_dir);
+    delete(relative_dir);
+    delete(des_str);
 }
 
 //遍历绝对目录
@@ -854,7 +855,7 @@ void fragmentProcess::des_fragment_traversal_imp(string dir, int depth) //decode
 
                 decode(infile, outfile);//生成二进制文件百度首页设置登录
 
-                free(des_str);
+                delete(des_str);
                 fclose(infile);
                 fclose(outfile);
             }

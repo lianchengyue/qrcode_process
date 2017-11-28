@@ -66,6 +66,12 @@ int usbGrab::grab()
         Mat frame;
         capture >> frame;
 
+        //释放zbar相关
+        //if(100 == mPreviewFrames)
+        //{
+        //   delete m_scancode;
+        //}
+
         //帧数及帧率
         if(0 == mPreviewFrames)
         {

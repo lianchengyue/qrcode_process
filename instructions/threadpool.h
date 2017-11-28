@@ -42,7 +42,7 @@ extern "C" {
  * Increase this constants at your own risk
  * Large values might slow down your system
  */
-#define MAX_THREADS 64
+#define MAX_THREADS 128//64
 #define MAX_QUEUE 65536
 
 typedef struct threadpool_t threadpool_t;

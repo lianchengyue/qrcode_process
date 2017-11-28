@@ -16,6 +16,7 @@
 #include <sys/time.h>
 #endif
 
+#if 0
 #define CONFIG_FUNC_DEBUG
 #ifdef CONFIG_FUNC_DEBUG
 #define LOG_ERR(fmt,args...) printf(fmt,##args)//#define PR(...) printf(__VA_ARGS__)
@@ -23,6 +24,7 @@
 #else
 #define LOG_ERR(fmt,args...) printf(fmt,##args)
 #define LOG_DBG(fmt,args...)
+#endif
 #endif
 
 using namespace zbar;
@@ -54,5 +56,6 @@ private:
     ///static ProcessInThread *mPinThread1;
     ///staticRecvStateMachine *m_RecvstateMachine;
 
+     int getLogLevel();
 };
 #endif // SCAN_IMAGE_H

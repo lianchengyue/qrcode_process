@@ -1,15 +1,10 @@
-QT += core
-QT += gui
+QT += core gui
 
-#RC_ICONS += Image/ICON.ico
-DISTFILES += \
-    Image/ICON.ico \
-    Image/icon.rc
-
-RC_FILE += Image/icon.rc
+RC_ICONS += ICON.ico
 
 RESOURCES += \
     icon.qrc
+RC_FILE += Image/icon.rc
 
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets

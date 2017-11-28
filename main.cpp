@@ -80,8 +80,12 @@ int main(int argc, char* argv[])
 #include "server/usbGrab.h"
 #endif
 
+#pragma execution_character_set("utf-8")
+
 int main(int argc, char* argv[])
 {
+//    qDebug()<<"a:"<<QString("你好")<<QString::fromUtf8("我好")
+//              <<QString::fromLocal8Bit("他好")<<QStringLiteral("荳也阜荳頑怙驕･霑懃噪霍晉ｦｻ - 蜑ｯ譛ｬ (2)");
 #ifdef DISPLAY_QRCODE
     //使用base64二次封装接口
     #if 0

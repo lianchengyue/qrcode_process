@@ -88,13 +88,13 @@ int split(char *file, char*outpath, int blocksize)
         }
 #endif
 
-        free(str);
+        delete(str);
         fclose(OutFile); // 关闭文件
 
     }
     //pdesBuf[len]=0;
 
-    free(pdesBuf);
+    delete(pdesBuf);
     fclose(InFile); // 关闭文件
 
     LOG_DBG("%s Out,\n", __func__);
@@ -190,14 +190,14 @@ int split_ini(char *file, char*outpath, char *dir,int blocksize)
             fwrite(pdesBuf, 1, len%blocksize, OutFile);
         }
 
-        free(str);
+        delete(str);
         fclose(OutFile); // 关闭文件
 
     }
     //pdesBuf[len]=0;
 
-    free(pdesBuf);
-    free(filename);
+    delete(pdesBuf);
+    delete(filename);
     fclose(InFile); // 关闭文件
 }
 

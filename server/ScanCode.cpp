@@ -13,6 +13,7 @@
 #include "server/usbGrab.h"
 #endif
 
+#include "instructions/inirw.h" //for ini
 
 using namespace std;
 using namespace zbar;
@@ -27,6 +28,8 @@ static zbar_image_t *image;
 static ProcessInThread *mPinThread;
 static RecvStateMachine *m_RecvstateMachine;
 
+static int loglevel;
+
 #ifdef GET_TIME_CONSUMPTION
 static float timeuse;
 
@@ -39,7 +42,9 @@ ScanCode::ScanCode()
 {
     //scanner = NULL;
     initZbar();
-    printf("Dump n=0 to /home/user/DUMP/\n");
+    LOG_ERR("Dump n=0 to /home/user/DUMP/\n");
+
+    loglevel = getLogLevel();
 }
 
 ScanCode::~ScanCode()
@@ -75,7 +80,7 @@ void ScanCode::scanimagefunc(/*const*/ void *raw/*, char *result*/)
 #if 0//TEST
     int framecnt = raw1->framecnt;
     usleep(300000); //33000 30000 25000
-    printf("The %d Frame processing\n", framecnt);
+    LOG_DBG("The %d Frame processing\n", framecnt);
 #else//TEST
     #ifdef GET_TIME_CONSUMPTION
     gettimeofday( &p_start, NULL );
@@ -111,7 +116,7 @@ void ScanCode::scanimagefunc(/*const*/ void *raw/*, char *result*/)
         zbar_symbol_type_t typ = zbar_symbol_get_type(symbol);
         const char *data = zbar_symbol_get_data(symbol);
         #ifdef PRINT_CONTENT
-        //printf("decoded: %s symbol:%s\n", zbar_get_symbol_name(typ), data);
+        //LOG_DBG("decoded: %s symbol:%s\n", zbar_get_symbol_name(typ), data);
         #endif
         ///传值
         strcpy(raw1->result, data);
@@ -119,14 +124,15 @@ void ScanCode::scanimagefunc(/*const*/ void *raw/*, char *result*/)
 
         delete(data);//added for flq
     }
+
     #ifdef PRINT_CONTENT
-    printf("n=%d,The %d Frame processing\n", n, framecnt);
+    LOG_DBG("n=%d,The %d Frame processing\n", n, framecnt);
     #endif
     //对二维码的处理放入线程中
     //very important
     if(1 == n)
     {
-        //printf("The %d Frame processing start!\n", framecnt);
+        //LOG_DBG("The %d Frame processing start!\n", framecnt);
         mPinThread->QRdataProcess(raw1->result);
     }
     else if (0 == n)
@@ -138,7 +144,11 @@ void ScanCode::scanimagefunc(/*const*/ void *raw/*, char *result*/)
         {
             imwrite(name, raw1->imageGray);
         }
-        printf("n=%d,The %d Frame recognize failed\n", n, framecnt);
+
+        if (1 == loglevel)
+        {
+            LOG_DBG("n=%d,The %d Frame recognize failed\n", n, framecnt);
+        }
     }
 
     //free
@@ -151,7 +161,7 @@ void ScanCode::scanimagefunc(/*const*/ void *raw/*, char *result*/)
     timeuse = 1000000 * ( p_end.tv_sec - p_start.tv_sec ) + p_end.tv_usec - p_start.tv_usec;
     //timeuse /= 1000;
 
-    printf("ScanCode Total time:%f s\n", timeuse);
+    LOG_DBG("ScanCode Total time:%f s\n", timeuse);
     #endif
 #endif //TEST
 
@@ -193,7 +203,7 @@ void ScanCode::scanimage(/*const*/ void *raw/*, char *result*/)
 
     /* scan the image for barcodes */
     int n = zbar_scan_image(scanner, image);
-    printf("n=%d\n",n);
+    LOG_DBG("n=%d\n",n);
 
     /* extract results */
     const zbar_symbol_t *symbol = zbar_image_first_symbol(image);
@@ -202,14 +212,14 @@ void ScanCode::scanimage(/*const*/ void *raw/*, char *result*/)
         /* do something useful with results */
         zbar_symbol_type_t typ = zbar_symbol_get_type(symbol);
         const char *data = zbar_symbol_get_data(symbol);
-        printf("decoded: %s symbol:%s\n", zbar_get_symbol_name(typ), data);
+        LOG_DBG("decoded: %s symbol:%s\n", zbar_get_symbol_name(typ), data);
         ///传值
         strcpy(raw1->result, data);
         raw1->ret = n;
 
         delete(data);//added for flq
     }
-    printf("The %d Frame processing\n", raw1->framecnt);
+    LOG_DBG("The %d Frame processing\n", raw1->framecnt);
 
     #ifdef GET_TIME_CONSUMPTION
     gettimeofday( &p_end, NULL );
@@ -217,7 +227,7 @@ void ScanCode::scanimage(/*const*/ void *raw/*, char *result*/)
     timeuse = 1000000 * ( p_end.tv_sec - p_start.tv_sec ) + p_end.tv_usec - p_start.tv_usec;
     timeuse /= 1000;
 
-    printf("ScanCode Total time:%f ms\n", timeuse);
+    LOG_DBG("ScanCode Total time:%f ms\n", timeuse);
     #endif
 
 #ifdef USE_MUTIPLE_THREAD
@@ -227,5 +237,30 @@ void ScanCode::scanimage(/*const*/ void *raw/*, char *result*/)
 
  void* ScanCode::canby(void *ptr)
 {
-    printf("11");
+    LOG_DBG("11");
 }
+
+ int ScanCode::getLogLevel()
+ {
+ #if 1
+     char file[256];
+
+     char *sect;
+     char *key;
+     int intval;
+
+     memset(file, 0, 256);
+
+     sprintf(file, "%s/dispInterval.ini", getenv("HOME"));
+     LOG_DBG("load DISPLAY_INTERVAL file %s\n", file);
+
+     iniFileLoad(file);
+
+     sect = "LogLevel";
+     key = "loglevel";
+     intval = iniGetInt(sect, key, 1); //default:10fps 100000
+     LOG_DBG("[%s] %s = %d\n", sect, key, intval);
+
+     return intval;
+ #endif
+ }

@@ -37,6 +37,8 @@ ProcessInThread::ProcessInThread()
     fragment_traversal_flag = 1;
     type_whole = NORMAL;
 
+    INI_prestart_flag = 1;
+
     //for test, //接受完碎片，开始处理 flq
     ///processEvt(RECV_SM_EVT_FRAG_START, NULL);
 }
@@ -55,6 +57,8 @@ int ProcessInThread::QRdataProcess(char* QRdata)
         //////////IDLE，将所有状态重置为激活///////
         ini_traversal_flag = 0;
         fragment_traversal_flag = 0;
+
+        INI_prestart_flag = 0;
         return NO_ERROR;
     }
 
@@ -93,8 +97,9 @@ int ProcessInThread::QRdataProcess(char* QRdata)
         ///===============================发消息，遍历ini并恢复，做处理================================///
         if(0 == ini_traversal_flag)
         {
-            processEvt(RECV_SM_EVT_INI_START, NULL);
             ini_traversal_flag ++;
+            processEvt(RECV_SM_EVT_INI_START, NULL);
+            ///ini_traversal_flag ++;  //move to top to stop extra processEvt()
         }
 
         setTransmitStatus(TRANSMITTING);
@@ -125,14 +130,27 @@ int ProcessInThread::QRdataProcess(char* QRdata)
         if(PRESTART == getTransmitStatus()){
             ///接收报头并放到目标目录
             LOG_DBG("RECEIVE_INI\n");
+
+//INI内容解析只解析一次（只支持1帧）
+#if 0
             des_prestart_content_receiver(QRdata);
+#else
+            if(0 == INI_prestart_flag)
+            {
+                INI_prestart_flag++;
+                des_prestart_content_receiver(QRdata);
+            }
+#endif
         }
+
         //发送内容
-        else if(TRANSMITTING == getTransmitStatus()){
+        else if(TRANSMITTING == getTransmitStatus())
+        {
             ///接收正文并放到目标目录
             ////LOG_DBG("RECEIVE_CONTENT\n");
             des_start_content_receiver(QRdata);
         }
+
         else{
             LOG_ERR("Drop a frame!!!\n");
             des_start_content_receiver(QRdata);
@@ -181,15 +199,15 @@ int ProcessInThread::des_prestart_content_receiver(char *QRdata)
     {
         LOG_ERR("%s, cutQRdata err, ret=%d\n",__func__, ret);
 
-        free(relative_dir);
-        free(total_dir);
-        free(name);
-        //free(pureQRdata);//temp
-        free(offset);
+        delete(relative_dir);
+        delete(total_dir);
+        delete(name);
+        //delete(pureQRdata);//temp
+        delete(offset);
 
-        free(date);
-        free(d_name);
-        free(ini_name);
+        delete(date);
+        delete(d_name);
+        delete(ini_name);
 
         return -3;
     }
@@ -199,19 +217,20 @@ int ProcessInThread::des_prestart_content_receiver(char *QRdata)
 
     //拆分relative_dir，获取日期，文件名与配置文件名
     cutINIHeadData(relative_dir, date, d_name, ini_name, typeStr, md5sum);
+    LOG_DBG("des_prestart_content_receiver, relative_dir=%s, dateStr=%s, nameStr=%s, ini_name=%s\n", relative_dir, dateStr, nameStr, ini_name);
     if(NO_ERROR != ret)
     {
         LOG_ERR("%s, cutINIHeadData err, ret=%d\n",__func__, ret);
 
-        free(relative_dir);
-        free(total_dir);
-        free(name);
-        //free(pureQRdata);//temp
-        free(offset);
+        delete(relative_dir);
+        delete(total_dir);
+        delete(name);
+        //delete(pureQRdata);//temp
+        delete(offset);
 
-        free(date);
-        free(d_name);
-        free(ini_name);
+        delete(date);
+        delete(d_name);
+        delete(ini_name);
         return -4;
     }
 
@@ -293,15 +312,15 @@ int ProcessInThread::des_prestart_content_receiver(char *QRdata)
     //给全局变量赋值，遍历碎片之前使用end
 
 
-    free(relative_dir);
-    free(total_dir);
-    free(name);
-    //free(pureQRdata);//temp
-    free(offset);
+    delete(relative_dir);
+    delete(total_dir);
+    delete(name);
+    //delete(pureQRdata);//temp
+    delete(offset);
 
-    free(date);
-    free(d_name);
-    free(ini_name);
+    delete(date);
+    delete(d_name);
+    delete(ini_name);
     return NO_ERROR;
 }
 
@@ -339,15 +358,15 @@ int ProcessInThread::des_start_content_receiver(char *QRdata)
     int ret = cutQRdata(QRdata, offset, relative_dir, name); //temp
     if(NO_ERROR != ret){
 
-        LOG_ERR("%s, cutQRdata err, ret=%d\n",__func__, ret);
+        LOG_LOW("%s, cutQRdata err, ret=%d\n",__func__, ret);
 
-        free(relative_dir);
-        free(total_dir);
-        free(name);
-        free(offset);
+        delete(relative_dir);
+        delete(total_dir);
+        delete(name);
+        delete(offset);
 
-        free(date);
-        free(d_name);
+        delete(date);
+        delete(d_name);
         return -3;
     }
     pureQRdata = QRdata;
@@ -360,13 +379,13 @@ int ProcessInThread::des_start_content_receiver(char *QRdata)
     if(NO_ERROR != ret)
     {
         LOG_ERR("%s, cutHeadData err, ret=%d\n",__func__, ret);
-        free(relative_dir);
-        free(total_dir);
-        free(name);
-        free(offset);
+        delete(relative_dir);
+        delete(total_dir);
+        delete(name);
+        delete(offset);
 
-        free(date);
-        free(d_name);
+        delete(date);
+        delete(d_name);
         return -4;
     }
     ///added end by flq,防止接收不到配置文件时，碎片泄漏到根目录
@@ -519,14 +538,14 @@ int ProcessInThread::des_start_content_receiver(char *QRdata)
     fclose(cut_head_Destination); // 关闭文件
 
 
-    free(relative_dir);
-    free(total_dir);
-    free(name);
-    //free(pureQRdata);//temp
-    free(offset);
+    delete(relative_dir);
+    delete(total_dir);
+    delete(name);
+    //delete(pureQRdata);//temp
+    delete(offset);
 
-    free(date);
-    free(d_name);
+    delete(date);
+    delete(d_name);
     return NO_ERROR;
 }
 

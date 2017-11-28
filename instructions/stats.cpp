@@ -270,7 +270,7 @@ void src_file_traversal_imp(char *dir, char* _short_dir, char *_2_dir, char *_3_
                 //fread(des_buf,1,statbuf.st_size,in_file);
                 //fwrite(des_buf, 1, statbuf.st_size, out_4_file);
 
-                free(des_buf);
+                delete(des_buf);
                 fclose(out_2_file);
                 fclose(out_3_file);
             }
@@ -321,8 +321,8 @@ void src_file_traversal_imp(char *dir, char* _short_dir, char *_2_dir, char *_3_
                 split(outputDir, _3_split_dir, BLOCK_SIZE); ///这里的_3_split_dir是目录，不是文件，存放切割后的碎片
                 LOG_DBG("%s, split end\n", __func__);
 
-                free(outputDir);
-                free(lzo_dir);
+                delete(outputDir);
+                delete(lzo_dir);
 
 #else
                 split(total_dir, _3_split_dir, BLOCK_SIZE); ///这里的_3_split_dir是目录，不是文件，存放切割后的碎片
@@ -337,7 +337,7 @@ void src_file_traversal_imp(char *dir, char* _short_dir, char *_2_dir, char *_3_
                 //fwrite(des_buf, 1, statbuf.st_size, out_4_file);
 
 
-                free(des_buf);
+                delete(des_buf);
             }/* else if(statbuf.st_size > 2048*512){ //>1M
                 ///支持对1M以上文件的传输
 
@@ -358,11 +358,12 @@ void src_file_traversal_imp(char *dir, char* _short_dir, char *_2_dir, char *_3_
     //关闭文件指针
     closedir(Dp);
 
-    //free
-    free(total_dir);
-    free(_2_lzo_dir);
-    free(_3_split_dir);
-    free(_4_base64_encode_dir);
+    //delete
+    delete(total_dir);
+    delete(relative_dir);
+    delete(_2_lzo_dir);
+    delete(_3_split_dir);
+    delete(_4_base64_encode_dir);
 
 
 }
@@ -413,8 +414,8 @@ void src_ini_traversal_imp(/*char *dir*/)
     split_ini(SRC_INI_FOLD_LOCATION, folder_dir, "folder.ini/", BLOCK_SIZE); ///这里的_3_split_dir是目录，不是文件，存放切割后的碎片
     #endif
 
-    free(config_dir);
-    free(folder_dir);
+    delete(config_dir);
+    delete(folder_dir);
 }
 
 
@@ -519,7 +520,7 @@ void src_fragment_traversal_imp(char *dir, char* _short_dir, char *des, int dept
             /////////////////////////BASE64 ENCODE////////////////////////////
             if(is_base64){
                 #if 0
-                char *des_str = new char[PATH_MAX];///home/montafan/QRcodeGrab/source/4_base64_encode_location/   //remeber free, flq
+                char *des_str = new char[PATH_MAX];///home/montafan/QRcodeGrab/source/4_base64_encode_location/   //remeber delete, flq
                 memset(des_str, 0, PATH_MAX);
                 strcat(des_str, SRC_BASE64_ENCODE_LOCATION);
                 strcat(des_str, "nocolor.png/");
@@ -542,11 +543,12 @@ void src_fragment_traversal_imp(char *dir, char* _short_dir, char *des, int dept
                 int length = get_length_after_base64(infile);
                 diplay_content = new char[length];
                 encode(infile, diplay_content);
+                delete(display_content);
                 #endif
                 ///===============后续在此生成二维码===============//
                 ///here qrgenrator
 
-                //free(des_str);
+                //delete(des_str);
                 fclose(infile);
                 fclose(outfile);
             }
@@ -562,9 +564,10 @@ void src_fragment_traversal_imp(char *dir, char* _short_dir, char *des, int dept
     //关闭文件指针
     closedir(Dp);
 
-    //free
-    free(total_dir);
-    free(des_str);
+    //delete
+    delete(total_dir);
+    delete(relative_dir);
+    delete(des_str);
 }
 
 
@@ -644,7 +647,7 @@ void print_INI_Info(char *dir, int depth)
             //added end
             /////////////////////////BASE64 ENCODE////////////////////////////
             if(is_base64){
-                char *des_str = new char[PATH_MAX];///home/montafan/QRcodeGrab/source/4_base64_encode_location/   //remeber free, flq
+                char *des_str = new char[PATH_MAX];///home/montafan/QRcodeGrab/source/4_base64_encode_location/   //remeber delete, flq
                 char *diplay_content;
                 memset(des_str, 0, PATH_MAX);
                 strcat(des_str, SRC_BASE64_ENCODE_LOCATION);
@@ -666,7 +669,7 @@ void print_INI_Info(char *dir, int depth)
                 ///===============后续在此生成二维码===============//
                 ///here qrgenrator
 
-                free(des_str);
+                delete(des_str);
                 fclose(infile);
                 fclose(outfile);
             }
@@ -682,8 +685,8 @@ void print_INI_Info(char *dir, int depth)
     //关闭文件指针
     closedir(Dp);
 
-    //free
-    free(total_dir);
+    //delete
+    delete(total_dir);
 }
 
 
@@ -763,7 +766,7 @@ void des_ini_traversal_imp(char *dir, int depth)
             //added end
             /////////////////////////BASE64 ENCODE////////////////////////////
             if(is_base64){
-                char *des_str = new char[PATH_MAX];///home/montafan/QRcodeGrab/source/4_base64_encode_location/   //remeber free, flq
+                char *des_str = new char[PATH_MAX];///home/montafan/QRcodeGrab/source/4_base64_encode_location/   //remeber delete, flq
                 char *diplay_content;
                 memset(des_str, 0, PATH_MAX);
                 strcat(des_str, SRC_BASE64_ENCODE_LOCATION);
@@ -785,7 +788,7 @@ void des_ini_traversal_imp(char *dir, int depth)
                 ///===============后续在此生成二维码===============//
                 ///here qrgenrator
 
-                free(des_str);
+                delete(des_str);
                 fclose(infile);
                 fclose(outfile);
             }
@@ -801,8 +804,8 @@ void des_ini_traversal_imp(char *dir, int depth)
     //关闭文件指针
     closedir(Dp);
 
-    //free
-    free(total_dir);
+    //delete
+    delete(total_dir);
 }
 #endif
 
@@ -932,6 +935,7 @@ int file_select(activeMQVec msg, const char* jsonStr)
         printf("Nomal, src_file_select_imp(), Done\n");
     }
 
+    delete(config_ini_dir);
     return 0;
 }
 
@@ -1083,7 +1087,7 @@ void src_file_select_imp(char *dir, char* _short_dir, char *_2_dir, char *_3_dir
             //fread(des_buf,1,statbuf.st_size,in_file);
             //fwrite(des_buf, 1, statbuf.st_size, out_4_file);
 
-            free(des_buf);
+            delete(des_buf);
             fclose(out_2_file);
             fclose(out_3_file);
         }
@@ -1145,8 +1149,8 @@ void src_file_select_imp(char *dir, char* _short_dir, char *_2_dir, char *_3_dir
             split(outputDir, _3_split_dir, BLOCK_SIZE); ///这里的_3_split_dir是目录，不是文件，存放切割后的碎片
             LOG_DBG("%s, split end\n", __func__);
 
-            free(outputDir);
-            free(lzo_dir);
+            delete(outputDir);
+            delete(lzo_dir);
 
 #else
             split(total_dir, _3_split_dir, BLOCK_SIZE); ///这里的_3_split_dir是目录，不是文件，存放切割后的碎片
@@ -1161,7 +1165,7 @@ void src_file_select_imp(char *dir, char* _short_dir, char *_2_dir, char *_3_dir
             //fwrite(des_buf, 1, statbuf.st_size, out_4_file);
 
 
-            free(des_buf);
+            delete(des_buf);
         }/* else if(statbuf.st_size > 2048*512){ //>1M
             ///支持对1M以上文件的传输
 
@@ -1176,11 +1180,13 @@ void src_file_select_imp(char *dir, char* _short_dir, char *_2_dir, char *_3_dir
         //LZO压缩 end
     }
 
-    //free
-    free(total_dir);
-    free(_2_lzo_dir);
-    free(_3_split_dir);
-    free(_4_base64_encode_dir);
+    //delete
+    delete(total_dir);
+    delete(relative_dir);
+    delete(_2_lzo_dir);
+    delete(_3_split_dir);
+    delete(_4_base64_encode_dir);
+    delete(config_ini_dir);
 
 
 }
@@ -1270,10 +1276,11 @@ void src_ini_select_imp(char *date, char *d_name, int type ,char *md5sum)
 
     split_ini(folder_ini_dir, folder_dir, "folder.ini/", BLOCK_SIZE); ///这里的_3_split_dir是目录，不是文件，存放切割后的碎片
 #endif
-    free(config_dir);
-    free(folder_dir);
-    free(config_ini_dir);
-    free(folder_ini_dir);
+    delete(config_dir);
+    delete(folder_dir);
+    delete(config_ini_dir);
+    delete(folder_ini_dir);
+    delete(relative_path);
 }
 
 int fragment_selected_traversal(activeMQVec msg)
@@ -1457,11 +1464,12 @@ void src_fragment_selected_traversal_imp(char *dir, char* _short_dir, char *des,
                 int length = get_length_after_base64(infile);
                 diplay_content = new char[length];
                 encode(infile, diplay_content);
+                delete(display_content);
                 #endif
                 ///===============后续在此生成二维码===============//
                 ///here qrgenrator
 
-                //free(des_str);
+                //delete(des_str);
                 fclose(infile);
                 fclose(outfile);
             }
@@ -1477,9 +1485,10 @@ void src_fragment_selected_traversal_imp(char *dir, char* _short_dir, char *des,
     //关闭文件指针
     closedir(Dp);
 
-    //free
-    free(total_dir);
-    free(des_str);
+    //delete
+    delete(total_dir);
+    delete(relative_dir);
+    delete(des_str);
 }
 #endif  //USE_ACTIVEMQ
 
@@ -1727,7 +1736,7 @@ int cutQRdata(char *instr, int *offset, char *relative_path,char *filename)
     if(cnt<2)
     {
         //*offset = i+1+j;
-        LOG_ERR("%s, cutQRdata err, relative_path=%s, filename=%s\n",__func__, relative_path, filename);
+        LOG_LOW("%s, cutQRdata err, relative_path=%s, filename=%s\n",__func__, relative_path, filename);
         return REV_CONTENT_ERROR;
     }
 
@@ -1810,6 +1819,8 @@ void reverse(char *filename)
     }
 
     strncpy(filename, rename, strlen(rename));
+
+    delete(rename);
 }
 
 /*函数功能:获取碎片文件夹中文件的原文件名,作为相对路径*/
