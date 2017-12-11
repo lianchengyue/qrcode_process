@@ -80,6 +80,7 @@ signals:
     #ifdef USE_ACTIVEMQ
     void ProcessMsgSignal(QString raw_msg);
     void ProcessMsgSignal(activeMQVec msg);
+    void ProcessResetMsgSignal(QString raw_msg);
     #endif
 
     public slots:
@@ -114,6 +115,7 @@ public:
     explicit QRGenerator(QWidget *parent = 0);
     ~QRGenerator();
     void setString(QString str);
+    void setHighLevelString(QString str);
     int getQRWidth() const;
     bool saveImage(QString name, int size);
 
@@ -127,6 +129,7 @@ private:
     int getDisplayInterval();
     void setDisplayInterval();
     int getQRCodeLevel();
+    int getResetWait();
 
     ///更新事件，不再有新的碎片开始显示，让优先级更高的先跑
     //processXXUpdate(int /*int a*/)   flq
@@ -134,12 +137,12 @@ private:
     QString qstring;
     QRcode *qr;
 
-    NormalThread *myThread;
+    NormalThread *myThread; //如果删掉，启动速度变慢，原因待查
     ////UDP与Normal两个线程
     UDPThread *m_UDPTh;
     NormalThread *m_NormalTh;
 
-    NormalThread *m_RecvPTh;
+    NormalThread *m_ResetTh;
 
     //ActiveMQ接收线程
     #ifdef USE_ACTIVEMQ
@@ -156,6 +159,7 @@ private:
 
     int time_interval; //设置二维码播放帧率
     int code_level; //设置二维码校验级别
+    int reset_wait_time; //重启等待时间，单位为秒
 
 signals:
     void ResetSignal(); //thread
@@ -175,6 +179,7 @@ public slots:
     #ifdef USE_ACTIVEMQ
     void ProcessMsgQ(QString msg);
     void ProcessMsg(activeMQVec msg);
+    void ProcessMsgReset();
     #endif
     void ClearSlot();
 

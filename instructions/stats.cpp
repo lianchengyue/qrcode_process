@@ -1975,10 +1975,10 @@ int cutINIHeadData(char *relative_dir, char *date, char *name, char *ini_name, c
     cnt = 0;
     j=0;
 
-    len = strlen(relative_dir) - 1;
+    len = strlen(relative_dir);  //not -1
 
     ////added by flq,防止接收不到配置文件时，碎片泄漏到根目录
-    if(len <= 0){
+    if(len < 1){
         return -6;
     }
     ////added end,防止接收不到配置文件时，碎片泄漏到根目录
@@ -2036,17 +2036,17 @@ int cutHeadData(char *relative_dir, char *date, char *name)
     cnt = 0;
     j=0;
 
-    len = strlen(relative_dir) - 1;
+    len = strlen(relative_dir);
 
     ////added by flq,防止接收不到配置文件时，碎片泄漏到根目录
-    if(len <= 0){
+    if(len < 1){
         return -6;
     }
     ////added end,防止接收不到配置文件时，碎片泄漏到根目录
 
     pp = relative_dir;
 
-    for(i=0; i < len; i++)
+    for(i=0; i < len-1; i++)  //drop last "/"
     {
         if('/' == pp[i])
         {

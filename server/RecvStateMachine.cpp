@@ -119,6 +119,10 @@ int RecvStateMachine::StateMachine(recv_sm_evt_enum_t evt, void *payload)
     case RECV_SM_EVT_FRAG_PROCESSING:
         //rc = ;
         break;
+    case RECV_SM_EVT_RESET:
+        sleep(10);
+        exit(1);
+        break;
 
 
     default:

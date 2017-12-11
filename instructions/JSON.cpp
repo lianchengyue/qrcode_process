@@ -10,6 +10,8 @@ extern vector<ActiveMQVec> NormalVec;
 extern vector<string> UDPrawVec;
 extern vector<string> NormalrawVec;
 //extern vector<ActiveMQVec> MessageVec;
+
+extern vector<string> ResetVec;
 #endif
 
 int readJSON()
@@ -69,66 +71,145 @@ int readJSON()
     return 0;
 }
 
+//now use this
 int readJSONMessage(std::string message)
 {
-    // 解析json串
-    //1:udp 2:tcp
+    //type: 1:udp 2:tcp
     //string message = "{\"filename\":\"hu.png\",\"date\":\"2017-8-8\",\"size\":1077,\"md5sum\":\"d54646434003246e49eac0f2abe211a4\",\"type\": 1}";
-
     Json::Reader reader(Json::Features::strictMode());
     Json::Value parseData;
-    if (reader.parse(message.c_str(), parseData))
+
+    //判断是否是json字符串
+    if (!(reader.parse(message.c_str(), parseData)))
     {
-        string filename = parseData.get("filename", 0).asString();
-        string date = parseData.get("date", 0).asString();
-        int size = parseData.get("size", 0).asInt();
-        string md5sum = parseData.get("md5sum", 0).asString();
-        int type = parseData.get("type", 0).asInt();
-
-        printf("\n\n\n========content=start=======\n"
-               "readJSONMessage(),\n"
-               "filename:%s,\n"
-               "date:%s,\n"
-               "size:%d,\n"
-               "md5sum:%s,\n"
-               "type:%d\n"
-               "========content=end=======\n", filename.c_str(), date.c_str(), size, md5sum.c_str(), type);
-
-        //将读取到的消息写到本地vector中
-        ActiveMQVec receivedMessage;
-
-        receivedMessage.filename = filename;
-        receivedMessage.size = size;
-        receivedMessage.date = date;
-        receivedMessage.md5sum = md5sum;
-        receivedMessage.type =type;
-        if(UDP == type)//UDP
+        printf("readJSONMessage(), parse failed");
+        return -19;
+    }
+    else
+    {   //判断是否是restart消息
+        if(parseData["restart"].isString())
         {
-            ///UDPVec.push_back(receivedMessage);
-            UDPrawVec.push_back(message);
-
-        }
-        else if(NORMAL == type)
-        {
-            ///NormalVec.push_back(receivedMessage);
-            NormalrawVec.push_back(message);
+            LOG_LOW("restart message\n");
+            //string filename = parseData.get("restart", 0).asString();
+            ResetVec.push_back(message);
         }
         else
         {
-            printf("/*******************WRONG TYPE OF MESSAGE****************/");
+            LOG_LOW("task coming message\n");
+            string filename = parseData.get("filename", 0).asString();
+            string date = parseData.get("date", 0).asString();
+            int size = parseData.get("size", 0).asInt();
+            string md5sum = parseData.get("md5sum", 0).asString();
+            int type = parseData.get("type", 0).asInt();
+
+            printf("\n\n\n========content=start=======\n"
+                   "readJSONMessage(),\n"
+                   "filename:%s,\n"
+                   "date:%s,\n"
+                   "size:%d,\n"
+                   "md5sum:%s,\n"
+                   "type:%d\n"
+                   "========content=end=======\n", filename.c_str(), date.c_str(), size, md5sum.c_str(), type);
+
+            //将读取到的消息写到本地vector中
+            ActiveMQVec receivedMessage;
+
+            receivedMessage.filename = filename;
+            receivedMessage.size = size;
+            receivedMessage.date = date;
+            receivedMessage.md5sum = md5sum;
+            receivedMessage.type =type;
+            if(UDP == type)//UDP
+            {
+                ///UDPVec.push_back(receivedMessage);
+                UDPrawVec.push_back(message);
+
+            }
+            else if(NORMAL == type)
+            {
+                ///NormalVec.push_back(receivedMessage);
+                NormalrawVec.push_back(message);
+            }
+            else
+            {
+                printf("/*******************WRONG TYPE OF MESSAGE****************/");
+            }
+
+             //printf("UDPVec.size=%d,NormalVec.size=%d\n", UDPVec.size(), NormalVec.size());
+            printf("UDPrawVec.size=%d,NormalrawVec.size=%d\n", UDPrawVec.size(), NormalrawVec.size());
         }
 
-         //printf("UDPVec.size=%d,NormalVec.size=%d\n", UDPVec.size(), NormalVec.size());
-        printf("UDPrawVec.size=%d,NormalrawVec.size=%d\n", UDPrawVec.size(), NormalrawVec.size());
-
-    }
-    else
-    {
-        printf("readJSONMessage(), parse failed");
     }
 
     return 0;
 }
+#if 0
+{
+    // 解析json串
+    //if(json["restart"].isString())
+    {
+    //    string temp = json["restart"].asCString();
+    }
+    //else
+    {
+        //type: 1:udp 2:tcp
+        //string message = "{\"filename\":\"hu.png\",\"date\":\"2017-8-8\",\"size\":1077,\"md5sum\":\"d54646434003246e49eac0f2abe211a4\",\"type\": 1}";
+        Json::Reader reader(Json::Features::strictMode());
+        Json::Value parseData;
+        if (reader.parse(message.c_str(), parseData))
+        {
+            string filename = parseData.get("filename", 0).asString();
+            string date = parseData.get("date", 0).asString();
+            int size = parseData.get("size", 0).asInt();
+            string md5sum = parseData.get("md5sum", 0).asString();
+            int type = parseData.get("type", 0).asInt();
+parseData["restart"].isString();
+            printf("\n\n\n========content=start=======\n"
+                   "readJSONMessage(),\n"
+                   "filename:%s,\n"
+                   "date:%s,\n"
+                   "size:%d,\n"
+                   "md5sum:%s,\n"
+                   "type:%d\n"
+                   "========content=end=======\n", filename.c_str(), date.c_str(), size, md5sum.c_str(), type);
+
+            //将读取到的消息写到本地vector中
+            ActiveMQVec receivedMessage;
+
+            receivedMessage.filename = filename;
+            receivedMessage.size = size;
+            receivedMessage.date = date;
+            receivedMessage.md5sum = md5sum;
+            receivedMessage.type =type;
+            if(UDP == type)//UDP
+            {
+                ///UDPVec.push_back(receivedMessage);
+                UDPrawVec.push_back(message);
+
+            }
+            else if(NORMAL == type)
+            {
+                ///NormalVec.push_back(receivedMessage);
+                NormalrawVec.push_back(message);
+            }
+            else
+            {
+                printf("/*******************WRONG TYPE OF MESSAGE****************/");
+            }
+
+             //printf("UDPVec.size=%d,NormalVec.size=%d\n", UDPVec.size(), NormalVec.size());
+            printf("UDPrawVec.size=%d,NormalrawVec.size=%d\n", UDPrawVec.size(), NormalrawVec.size());
+
+        }
+        else
+        {
+            printf("readJSONMessage(), parse failed");
+            return -19;
+        }
+    }
+    return 0;
+}
+#endif
 
 string writeJSON_TransResult(const char *date, const char *d_name, int type, int Errno)
 {

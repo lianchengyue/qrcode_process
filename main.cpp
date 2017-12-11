@@ -112,8 +112,6 @@ int main(int argc, char* argv[])
     fclose(outfile); // 关闭文件
     #endif
 
-
-
     ///inotify_add_watch
     //DirMonitor *m_DirMonitor = new DirMonitor;
     //m_DirMonitor->startMonitoring();
@@ -153,13 +151,9 @@ int main(int argc, char* argv[])
     w.showFullScreen();
     //同时禁止最大化最小化按钮 & 禁止关闭
     w.setWindowFlags(w.windowFlags() &~ (Qt::WindowMinMaxButtonsHint | Qt::WindowCloseButtonHint));
-    //w.show();
-
     //w.showMaximized();
     //w.resize(800,800);
     w.show();
-
-    printf("a.exec()\n");
 
     return a.exec();
 
@@ -195,5 +189,56 @@ int main()
     char *outputDir = "/home/montafan/lzo/lzo/10.txt";
 
     processLZO(inputDir, outputDir, LZO_DECOMPRESS);
+}
+#endif
+
+#if 0
+#include "instructions/inirw.h"
+//http://bbs.csdn.net/topics/391842320
+int main(int argc, char* argv[])
+{
+    const char *file = "/home/montafan/Qt5.6.2/project/zbar_gige/instructions/inirw/config.ini";
+
+    char *sect;
+    char *key;
+    char value[256];
+    int intval;
+
+    printf("load file %s\n\n", file);
+    iniFileLoad(file);
+
+    sect = 0;
+    key = "_str001";
+    iniGetString(sect, key, value, sizeof(value), "notfound!");
+    printf("[%s] %s = %s\n", sect, key, value);
+
+    sect = "sect1";
+    key = "str001";
+    iniGetString(sect, key, value, sizeof(value), "notfound!");
+    printf("[%s] %s = %s\n", sect, key, value);
+
+    sect = "sect1";
+    key = "str005";
+    iniGetString(sect, key, value, sizeof(value), "notfound!");
+    printf("[%s] %s = %s\n", sect, key, value);
+
+    sect = "sEcT2";
+    key = "str002";
+    iniGetString(sect, key, value, sizeof(value), "notfound!");
+    printf("[%s] %s = %s\n", sect, key, value);
+
+    sect = "sect2";
+    key = "int002";
+    intval = iniGetInt(sect, key, 1000);
+    printf("[%s] %s = %d\n", sect, key, intval);
+
+    iniSetString("sect2", "str002", "\"v'a;l;u#e'002\"");
+    iniSetString("sect2", "str003", "value003");
+
+    iniSetInt("sect2", "int001", 100, 0);
+    iniSetInt("sect2", "int002", 200, 16);
+    iniSetInt("sect2", "int003", 300, 8);
+
+    getchar();
 }
 #endif

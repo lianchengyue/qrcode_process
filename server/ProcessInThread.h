@@ -37,8 +37,10 @@ private:
 
     int ini_traversal_flag;
     int fragment_traversal_flag;
-
-    int INI_prestart_flag;//INI内容解析只解析一次（只支持1帧）
+    //INI内容解析只解析一次（只支持1帧）
+    int INI_prestart_flag;
+    //reset标志位
+    int reset_flag;
 
     int type_whole;
 

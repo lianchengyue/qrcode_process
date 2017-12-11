@@ -136,6 +136,7 @@ const char TRANSMIT_START[] =    "s0s0s0s0s0s0s0s0";//传输开始
 const char TRANSMIT_END[] =      "e0e0e0e0e0e0e0e0";//传输结束
 const char TRANSMIT_IDLE[] =     "3030303030303030";//空闲状态
 //const char TRANSMIT_INI[] =    "4040404040404040"; //传输配置文件
+const char TRANSMIT_RESET[] =    "r0r0r0r0r0r0r0r0";//空闲状态
 
 
 const char TRANSMIT_TEST[] = "http://baike.baidu.com";//传输TEST

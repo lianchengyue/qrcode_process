@@ -48,6 +48,8 @@ vector<activeMQVec> UDPVec;
 vector<activeMQVec> NormalVec;
 vector<string> UDPrawVec;
 vector<string> NormalrawVec;
+
+vector<string> ResetVec;  //reset event
 #endif
 int taskcnt;//记录待处理的任务数
 bool taskrunning;
@@ -160,6 +162,25 @@ void NormalThread::run()
             QString transmitNormal = QString::fromStdString(NormalrawVec[0]);
             emit ProcessMsgSignal(transmitNormal);
             normalIter = NormalrawVec.erase(normalIter);
+
+            continue;//normal > reset
+        }
+
+        //处理一个reset消息
+        auto resetIter = ResetVec.begin();
+        if(ResetVec.size()>0)
+        {
+            if(taskrunning)
+            {
+                sleep(5);
+                continue;
+            }
+
+            printf("===============start process Reset Signal=========\n");
+            QString transmitReset = QString::fromStdString(ResetVec[0]);
+            emit ProcessResetMsgSignal(transmitReset);
+            //emit ProcessResetMsgSignal();
+            resetIter = ResetVec.erase(resetIter);
         }
 
         ///给接收段留处理时间,后续根据文件size做成动态
@@ -339,13 +360,15 @@ QRGenerator::QRGenerator(QWidget *parent)
     //thread
     m_UDPTh = new UDPThread;
     m_NormalTh = new NormalThread;
+    //消息监听线程
     m_activeMQTh = new activeMQThread;
 
     taskrunning = false;
     taskcnt = 0;
 
     //empty
-    setString(TRANSMIT_IDLE);
+    printf("set TRANSMIT_IDLE\n");
+    setHighLevelString(TRANSMIT_IDLE);
 
     //for test
     /*
@@ -360,26 +383,23 @@ QRGenerator::QRGenerator(QWidget *parent)
     CompleteSrcPath();
 
     ////UDP与Normal两个线程
+    #if 0
     //connect(m_UDPTh, SIGNAL(UDPSignal(int)), this, SLOT(UpdateSlot(int)));//显示二维码 UpdateSlot(int)
     connect(m_UDPTh, SIGNAL(UDPSignal()), this, SLOT(processUDPEventSlot()));
     //connect(this, SIGNAL(ResetSignal()), m_UDPTh, SLOT(ResetSlot()));
 
     connect(m_NormalTh, SIGNAL(UpdateSignal(int)), this, SLOT(UpdateSlot(int)));//显示二维码 UpdateSlot(int)
-///    connect(m_NormalTh, SIGNAL(UpdateSignal(int)), this, SLOT(processNormalEventSlot()));
+    ///connect(m_NormalTh, SIGNAL(UpdateSignal(int)), this, SLOT(processNormalEventSlot()));
     connect(this, SIGNAL(ResetSignal()), m_NormalTh, SLOT(ResetSlot()));
-
-    //
-    #ifdef USE_ACTIVEMQ
-    connect(m_NormalTh, SIGNAL(ProcessMsgSignal(activeMQVec)), this, SLOT(ProcessMsg(activeMQVec)));//显示二维码 UpdateSlot(int)
-    connect(m_NormalTh, SIGNAL(ProcessMsgSignal(QString)), this, SLOT(ProcessMsgQ(QString)));//显示二维码 UpdateSlot(int)
     #endif
 
-    //接收器，收到消息后，操作UDP与Normal线程
-    //connect(m_RecvPTh, SIGNAL(UDPTaskIncomingSignal()), this, SLOT(EventRevevier()));
-    //connect(m_RecvPTh, SIGNAL(NormalTaskIncomingSignal()), this, SLOT(EventRevevier()));
+    #ifdef USE_ACTIVEMQ
+    /////connect(m_NormalTh, SIGNAL(ProcessMsgSignal(activeMQVec)), this, SLOT(ProcessMsg(activeMQVec)));//显示二维码 UpdateSlot(int)
+    connect(m_NormalTh, SIGNAL(ProcessMsgSignal(QString)), this, SLOT(ProcessMsgQ(QString)));//显示二维码 UpdateSlot(int)
+    connect(m_NormalTh, SIGNAL(ProcessResetMsgSignal(QString)), this, SLOT(ProcessMsgReset()));
+    #endif
 
     ///==============================start Thread=====================================/
-    bool flagg1 = m_NormalTh->isRunning();
 #if 0
     ///后续改为在收到传输完成消息后调用 added by flq
     printf("1111111111\n");
@@ -397,18 +417,17 @@ QRGenerator::QRGenerator(QWidget *parent)
 #endif
 
 #ifdef USE_ACTIVEMQ
+    //消息监听线程
     m_activeMQTh->start();
-    //m_activeMQTh->RegisterRecvActiveMQ();
 #endif
 
 
     ///setDisplayInterval();
     time_interval = getDisplayInterval();
     code_level = getQRCodeLevel();
+    reset_wait_time = getResetWait();
     //printf("QR_ECLEVEL_L=%d, QR_ECLEVEL_M=%d, Q=%d, H=%d\n\n", QR_ECLEVEL_L, QR_ECLEVEL_M, QR_ECLEVEL_Q, QR_ECLEVEL_H);
-
     //qDebug() << QString("main thread id:") << QThread::currentThreadId();
-
     //UDPRunning.wait(&mutex);
 }
 
@@ -455,8 +474,27 @@ void QRGenerator::setString(QString str)
 
     usleep(time_interval);
     repaint();
-
 }
+
+void QRGenerator::setHighLevelString(QString str)
+{
+    qstring = str;
+    if(qr != NULL)
+    {
+        QRcode_free(qr);
+    }
+    //生成二维码
+    qr = QRcode_encodeString(qstring.toStdString().c_str(),
+        1,
+        (QRecLevel)3, //QR_ECLEVEL_L,
+        QR_MODE_8,
+        1);
+
+    usleep(time_interval);
+    repaint();
+}
+
+
 QSize QRGenerator::sizeHint()  const
 {
     QSize s;
@@ -498,7 +536,7 @@ int QRGenerator::getDisplayInterval()
     memset(file, 0, 256);
 
     sprintf(file, "%s/dispInterval.ini", getenv("HOME"));
-    LOG_DBG("load DISPLAY_INTERVAL file %s\n", file);
+    //LOG_DBG("load DISPLAY_INTERVAL file %s\n", file);
 
     iniFileLoad(file);
 
@@ -556,7 +594,7 @@ int QRGenerator::getQRCodeLevel()
     memset(file, 0, 256);
 
     sprintf(file, "%s/dispInterval.ini", getenv("HOME"));
-    LOG_DBG("load QRCode Level file %s\n", file);
+    //LOG_DBG("load QRCode Level file %s\n", file);
 
     iniFileLoad(file);
 
@@ -578,6 +616,43 @@ int QRGenerator::getQRCodeLevel()
     else
     {
         LOG_ERR("QRCodeLevel=%d\n", intval);
+        return intval;
+    }
+}
+
+int QRGenerator::getResetWait()
+{
+    char file[256];
+
+    char *sect;
+    char *key;
+    int intval;
+
+    memset(file, 0, 256);
+
+    sprintf(file, "%s/dispInterval.ini", getenv("HOME"));
+
+    iniFileLoad(file);
+
+    sect = "ResetWaitTime";
+    key = "wait_time";
+    intval = iniGetInt(sect, key, 10);
+    LOG_DBG("[%s] %s = %d\n", sect, key, intval);
+
+    //小于3fps,设为3fps
+    if(intval < 0)
+    {
+        return 10;
+    }
+    //大于60s,设为60s
+    else if (intval > 60)
+    {
+        LOG_ERR("Reset wait time could not set more than %d second!!!\n", intval);
+        return 60;
+    }
+    else
+    {
+        LOG_DBG("ResetWaitTime=%d\n", intval);
         return intval;
     }
 }
@@ -791,7 +866,7 @@ void QRGenerator::UpdateSlot(int num)
     }
 
     printf("TRANSMIT_IDLE\n");
-    setString(TRANSMIT_IDLE);
+    setHighLevelString(TRANSMIT_IDLE);
 
     mutex.unlock();
 }
@@ -801,6 +876,20 @@ void QRGenerator::ProcessMsg(activeMQVec msg)
 {
     printf("SSSSSSSSSSSSSSSSSSSSSSSS\n");
     int i =1;
+}
+
+void QRGenerator::ProcessMsgReset()
+{
+    int is;
+    //process Reset
+
+    ///播放报头二维码
+    setString(TRANSMIT_RESET);
+    //重启等待时间默认为10秒，范围0-60秒
+    reset_wait_time = getResetWait();
+    sleep(reset_wait_time);
+    printf("=====RESET END======\n");
+    setHighLevelString(TRANSMIT_IDLE);
 }
 
 void QRGenerator::ProcessMsgQ(QString msg)
@@ -1013,9 +1102,10 @@ void QRGenerator::ProcessMsgQ(QString msg)
 
 
     printf("TRANSMIT_IDLE\n");
-    setString(TRANSMIT_IDLE);
+    setHighLevelString(TRANSMIT_IDLE);
 
 //    sleep(8);
+    sleep(3);
 
     //释放vector中的内容
     //vecINIString.swap(vector<string>);
@@ -1207,22 +1297,29 @@ void activeMQThread::RegisterActiveMQRecevier()
 
     std::string NormaldestURI = "normal.queue";
     std::string UDPdestURI = "udp.queue";
+    std::string resetURI = "reset.queue";
     bool useTopics = false;
     bool clientAck = false;
 
     ActiveMQAsyncConsumer UDPConsumer;
     ActiveMQAsyncConsumer NormalConsumer;
+    ActiveMQAsyncConsumer ResetConsumer;
 
     UDPConsumer.start(ConsumerbrokerURI, UDPdestURI, useTopics, clientAck);
     UDPConsumer.runConsumer();
 
     NormalConsumer.start(ConsumerbrokerURI, NormaldestURI, useTopics, clientAck);
     NormalConsumer.runConsumer();
-    std::cout << "ActiveMQ quit listening:" << std::endl;
+
+    ResetConsumer.start(ConsumerbrokerURI, resetURI, useTopics, clientAck);
+    ResetConsumer.runConsumer();
+
+    std::cout << "ActiveMQ start listening:" << std::endl;
     while( std::cin.get() != 'q') {}
 
     UDPConsumer.close();
     NormalConsumer.close();
+    ResetConsumer.close();
 
     std::cout << "-----------------------------------------------------\n";
     std::cout << "Finish ActiveMQRecevier." << std::endl;

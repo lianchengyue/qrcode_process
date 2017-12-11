@@ -24,6 +24,7 @@ typedef enum{
     RECV_SM_EVT_FRAG_UPDATE, //传输过程中更新
     RECV_SM_EVT_FRAG_PROCESSING, //处理过程中
     RECV_SM_EVT_IDLE,
+    RECV_SM_EVT_RESET,
 } recv_sm_evt_enum_t;
 
 typedef struct{

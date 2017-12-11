@@ -35,9 +35,9 @@ ProcessInThread::ProcessInThread()
 
     ini_traversal_flag = 1;
     fragment_traversal_flag = 1;
-    type_whole = NORMAL;
-
     INI_prestart_flag = 1;
+    reset_flag = 1; //必须为1,避免重复重启
+    type_whole = NORMAL;
 
     //for test, //接受完碎片，开始处理 flq
     ///processEvt(RECV_SM_EVT_FRAG_START, NULL);
@@ -51,14 +51,29 @@ ProcessInThread::~ProcessInThread()
 //整个处理的入口函数，识别二维码成功后进入
 int ProcessInThread::QRdataProcess(char* QRdata)
 {
-    if(0 == strcmp(QRdata, TRANSMIT_IDLE))
+    //重启
+    if(0 == strcmp(QRdata, TRANSMIT_RESET))
+    {
+        LOG_DBG("switch:TRANSMIT_RESET\n");
+        if(0 == reset_flag)
+        {
+            reset_flag ++;
+            processEvt(RECV_SM_EVT_RESET, NULL);
+        }
+
+        return NO_ERROR;
+    }
+
+    //空闲
+    else if(0 == strcmp(QRdata, TRANSMIT_IDLE))
     {
         //printf("switch:TRANSMIT_IDLE\n");
         //////////IDLE，将所有状态重置为激活///////
+        setTransmitStatus(IDLE);
         ini_traversal_flag = 0;
-        fragment_traversal_flag = 0;
-
+        //fragment_traversal_flag = 0; //改变重置的位置到line86，避免重复执行des_fragment_traversal();
         INI_prestart_flag = 0;
+        reset_flag = 0;
         return NO_ERROR;
     }
 
@@ -68,8 +83,8 @@ int ProcessInThread::QRdataProcess(char* QRdata)
         LOG_DBG("switch:TRANSMIT_PRESTART\n");
         setTransmitStatus(PRESTART);
         //////////新的帧到来，将所有状态重置为激活///////
-        //ini_traversal_flag = 1;
-        //fragment_traversal_flag = 1;
+        //ini_traversal_flag = 0;
+        fragment_traversal_flag = 0; //改变重置的位置，避免重复执行des_fragment_traversal();
 
         return NO_ERROR;
     }
@@ -88,7 +103,7 @@ int ProcessInThread::QRdataProcess(char* QRdata)
     {
         LOG_DBG("switch:TRANSMIT_START\n");
         mTransStatus = getTransmitStatus();
-        setTransmitStatus(PREEND);
+        setTransmitStatus(TRANSMITTING);
 
         //delay(300)//ms
 
@@ -97,12 +112,12 @@ int ProcessInThread::QRdataProcess(char* QRdata)
         ///===============================发消息，遍历ini并恢复，做处理================================///
         if(0 == ini_traversal_flag)
         {
+            LOG_DBG("TRANSMIT_START, ini_traversal_flag = %d\n", ini_traversal_flag);
             ini_traversal_flag ++;
             processEvt(RECV_SM_EVT_INI_START, NULL);
             ///ini_traversal_flag ++;  //move to top to stop extra processEvt()
         }
 
-        setTransmitStatus(TRANSMITTING);
     }
 
     //开始遍历1_receiver正文
@@ -115,10 +130,9 @@ int ProcessInThread::QRdataProcess(char* QRdata)
         ///=====================================遍历文件======================================///
         if(0 == fragment_traversal_flag)
         {
-            LOG_DBG("FRAGMENT_TRAVERSAL, fragment_traversal_flag = %d\n", fragment_traversal_flag);
+            LOG_DBG("TRANSMIT_END, fragment_traversal_flag = %d\n", fragment_traversal_flag);
             fragment_traversal_flag ++;
             processEvt(RECV_SM_EVT_FRAG_START, NULL);
-            setTransmitStatus(IDLE);
         }
 
     }
@@ -152,6 +166,7 @@ int ProcessInThread::QRdataProcess(char* QRdata)
         }
 
         else{
+            //LOG_ERR("Drop a frame!!!, getTransmitStatus=%d\n", getTransmitStatus());
             LOG_ERR("Drop a frame!!!\n");
             des_start_content_receiver(QRdata);
         }
@@ -187,6 +202,7 @@ int ProcessInThread::des_prestart_content_receiver(char *QRdata)
     memset(date, 0, NAME_MAX);
     memset(d_name, 0, NAME_MAX);
     memset(ini_name, 0, NAME_MAX);
+    memset(md5sum, 0, MD5SUM_MAX);
 
     *offset = 0;
     //temp
@@ -217,7 +233,7 @@ int ProcessInThread::des_prestart_content_receiver(char *QRdata)
 
     //拆分relative_dir，获取日期，文件名与配置文件名
     cutINIHeadData(relative_dir, date, d_name, ini_name, typeStr, md5sum);
-    LOG_DBG("des_prestart_content_receiver, relative_dir=%s, dateStr=%s, nameStr=%s, ini_name=%s\n", relative_dir, dateStr, nameStr, ini_name);
+    LOG_DBG("des_prestart_content_receiver, Start, relative_dir=%s, dateStr=%s, nameStr=%s, ini_name=%s, md5sum=%s\n", relative_dir, date, d_name, ini_name, md5sum);
     if(NO_ERROR != ret)
     {
         LOG_ERR("%s, cutINIHeadData err, ret=%d\n",__func__, ret);
@@ -308,7 +324,7 @@ int ProcessInThread::des_prestart_content_receiver(char *QRdata)
     MsgType = type;
     strcpy(md5sumStr, md5sum);
 
-    LOG_DBG("des_prestart_content_receiver, dateStr=%s, nameStr=%s\n",dateStr, nameStr);
+    LOG_DBG("des_prestart_content_receiver,End, dateStr=%s, nameStr=%s, MsgType=%d, md5sumStr=%s\n",dateStr, nameStr, MsgType, md5sumStr);
     //给全局变量赋值，遍历碎片之前使用end
 
 

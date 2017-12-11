@@ -3,7 +3,7 @@
 
 //打开为发送端，屏蔽为接收端
 #ifndef DISPLAY_QRCODE
-//#define DISPLAY_QRCODE  //grab pic
+#define DISPLAY_QRCODE  //grab pic
 #endif
 
 //是否使用LZO压缩算法
@@ -28,7 +28,7 @@
 
 //LOG级别开关
 #ifndef CONFIG_FUNC_DEBUG
-//#define CONFIG_FUNC_DEBUG
+#define CONFIG_FUNC_DEBUG
 #endif
 
 //选择相机类型BASLER

@@ -395,6 +395,10 @@ int fragmentProcess::des_ini_select()
     {
         sprintf(targetPath, "%s%s/%s/config.ini/", DES_RECV_INI_LOCATION, dateStr, nameStr);
     }
+    else
+    {
+        LOG_ERR("%s, ERR, MsgType=%d\n", __func__, MsgType);
+    }
 
     //遍历完后拼接config.ini
     des_ini_fragment_traversal_imp(targetPath, 0);
@@ -499,7 +503,7 @@ int fragmentProcess::des_fragment_select()
     //char relativeDir[PATH_MAX] = {0};
 
     //没有接收到报头，返回
-    if((0 == strlen(dateStr)) || (0 == strlen(dateStr)))
+    if((0 == strlen(dateStr)) || (0 == strlen(nameStr)))
     {
         printf("\nNo INI RECEIVED!!!!!\n");
         return 18;
@@ -522,6 +526,10 @@ int fragmentProcess::des_fragment_select()
     {
         sprintf(fragmentDir, "%s%s/%s/", DES_BASE64_DECODE_LOCATION, dateStr, nameStr);
         sprintf(fragmentDes, "%s%s/%s/", DES_CAT_LOCATION, dateStr, nameStr);
+    }
+    else
+    {
+        LOG_ERR("%s, MsgType=%d\n", __func__, MsgType);
     }
 
     printf("des_fragment_select, Directory fragement scan of %s\n",fragmentDir);
@@ -551,6 +559,22 @@ void fragmentProcess::des_fragment_traversal_imp(char *dir, char* _short_dir, ch
     char *relative_dir;
     char *des_str;
     bool need_cat = false;
+
+    //add temp start
+    char *md5sumStrTmp = new char[MD5SUM_MAX]; //ini文件中保存的内容: md5sum
+    //char *pathStrTmp[] = {0};  //ini文件中保存的内容:path
+    char *dateStrTmp = new char[DATE_MAX]; //ini文件中保存的内容: date
+    char *nameStrTmp = new char[NAME_MAX];//ini文件中保存的内容: name
+    int MsgTypeTmp = 0;
+
+    memset(md5sumStrTmp, 0 , MD5SUM_MAX);
+    strcpy(md5sumStrTmp, md5sumStr);
+    memset(dateStrTmp, 0 , DATE_MAX);
+    strcpy(dateStrTmp, dateStr);
+    memset(nameStrTmp, 0 , NAME_MAX);
+    strcpy(nameStrTmp, nameStr);
+    MsgTypeTmp = MsgType;
+    //add temp end
 
     //打开指定的目录，获得目录指针
     if(NULL == (Dp = opendir(dir)))
@@ -623,20 +647,20 @@ void fragmentProcess::des_fragment_traversal_imp(char *dir, char* _short_dir, ch
                 memset(output4Dir, 0, PATH_MAX);
 
                 //此处的完整文件均是小于blocksize的,所以直接拷贝
-                if(UDP == MsgType)
+                if(UDP == MsgTypeTmp)
                 {
                     //sprintf(output3Dir, "%s%s%s", DES_UDP_CAT_LOCATION, _short_dir, enty->d_name); //xxx.c  //or + %s,LZO_SUFFIX
                     //sprintf(output4Dir, "%s%s%s", DES_UDP_LOCATION, _short_dir, enty->d_name); //xxx.c     //or + %s,LZO_SUFFIX
-                    sprintf(output3Dir, "%s%s/%s/%s%s", DES_UDP_CAT_LOCATION, dateStr, nameStr, _short_dir, enty->d_name); //xxx.c  //or + %s,LZO_SUFFIX
-                    sprintf(output4Dir, "%s%s/%s/%s%s", DES_UDP_LOCATION, dateStr, nameStr, _short_dir, enty->d_name); //xxx.c     //or + %s,LZO_SUFFIX
+                    sprintf(output3Dir, "%s%s/%s/%s%s", DES_UDP_CAT_LOCATION, dateStrTmp, nameStrTmp, _short_dir, enty->d_name); //xxx.c  //or + %s,LZO_SUFFIX
+                    sprintf(output4Dir, "%s%s/%s/%s%s", DES_UDP_LOCATION, dateStrTmp, nameStrTmp, _short_dir, enty->d_name); //xxx.c     //or + %s,LZO_SUFFIX
 
                 }
-                else if (NORMAL == MsgType)
+                else if (NORMAL == MsgTypeTmp)
                 {
                     //sprintf(output3Dir, "%s%s%s", DES_CAT_LOCATION, _short_dir, enty->d_name); //xxx.c  //or + %s,LZO_SUFFIX
                     //sprintf(output4Dir, "%s%s%s", DES_LOCATION, _short_dir, enty->d_name); //xxx.c     //or + %s,LZO_SUFFIX
-                    sprintf(output3Dir, "%s%s/%s/%s%s", DES_CAT_LOCATION, dateStr, nameStr, _short_dir, enty->d_name); //xxx.c  //or + %s,LZO_SUFFIX
-                    sprintf(output4Dir, "%s%s/%s/%s%s", DES_LOCATION, dateStr, nameStr, _short_dir, enty->d_name); //xxx.c     //or + %s,LZO_SUFFIX
+                    sprintf(output3Dir, "%s%s/%s/%s%s", DES_CAT_LOCATION, dateStrTmp, nameStrTmp, _short_dir, enty->d_name); //xxx.c  //or + %s,LZO_SUFFIX
+                    sprintf(output4Dir, "%s%s/%s/%s%s", DES_LOCATION, dateStrTmp, nameStrTmp, _short_dir, enty->d_name); //xxx.c     //or + %s,LZO_SUFFIX
 
                 }
 
@@ -678,15 +702,15 @@ void fragmentProcess::des_fragment_traversal_imp(char *dir, char* _short_dir, ch
         memset(purename, 0, NAME_MAX);
         memset(rename, 0, NAME_MAX);
 
-        if(UDP == MsgType)
+        if(UDP == MsgTypeTmp)
         {
             //sprintf(output3Dir, "%s%s", DES_UDP_CAT_LOCATION, _short_dir);
-            sprintf(output3Dir, "%s%s/%s%s/", DES_UDP_CAT_LOCATION, dateStr, nameStr, _short_dir);
+            sprintf(output3Dir, "%s%s/%s%s/", DES_UDP_CAT_LOCATION, dateStrTmp, nameStrTmp, _short_dir);
         }
-        if(NORMAL == MsgType)
+        if(NORMAL == MsgTypeTmp)
         {
             //sprintf(output3Dir, "%s%s", DES_CAT_LOCATION, _short_dir);
-            sprintf(output3Dir, "%s%s/%s%s/", DES_CAT_LOCATION, dateStr, nameStr, _short_dir);
+            sprintf(output3Dir, "%s%s/%s%s/", DES_CAT_LOCATION, dateStrTmp, nameStrTmp, _short_dir);
         }
         cutDirName(output3Dir, purename);//input should be a filefold
 
@@ -708,15 +732,15 @@ void fragmentProcess::des_fragment_traversal_imp(char *dir, char* _short_dir, ch
         LOG_DBG("%s,start LZO Decompress\n",__func__);
         char *lzo_dir =new char[PATH_MAX];
         memset(lzo_dir, 0, PATH_MAX);
-        if(UDP == MsgType)
+        if(UDP == MsgTypeTmp)
         {
             //sprintf(lzo_dir, "%s%s", DES_UDP_LOCATION, _short_dir);
-            sprintf(lzo_dir, "%s%s/%s%s", DES_UDP_LOCATION, dateStr, nameStr, _short_dir);
+            sprintf(lzo_dir, "%s%s/%s%s", DES_UDP_LOCATION, dateStrTmp, nameStrTmp, _short_dir);
         }
-        if(NORMAL == MsgType)
+        if(NORMAL == MsgTypeTmp)
         {
             //sprintf(lzo_dir, "%s%s", DES_LOCATION, _short_dir);
-            sprintf(lzo_dir, "%s%s/%s%s", DES_LOCATION, dateStr, nameStr, _short_dir);
+            sprintf(lzo_dir, "%s%s/%s%s", DES_LOCATION, dateStrTmp, nameStrTmp, _short_dir);
         }
         ///getUpperTotalDir(lzo_dir);//返回上一级目录路径
         ///strcat(lzo_dir, purename);
@@ -726,10 +750,10 @@ void fragmentProcess::des_fragment_traversal_imp(char *dir, char* _short_dir, ch
         string JSONStr;
 
         LOG_DBG("\n\nJSON values:\n"
-               "dateStr=%s\n"
-               "nameStr=%s\n"
-               "MsgType=%d\n"
-               ,dateStr,  nameStr, MsgType);
+               "dateStrTmp=%s\n"
+               "nameStrTmp=%s\n"
+               "MsgTypeTmp=%d\n"
+               ,dateStrTmp, nameStrTmp, MsgTypeTmp);
 
         if(0 == cat_result)
         {
@@ -738,10 +762,10 @@ void fragmentProcess::des_fragment_traversal_imp(char *dir, char* _short_dir, ch
             {
                 ///如果MD5SUM值匹配
                 //get_md5sum_from_ini(md5sumStr)
-                printf("md5sumStr=%s, (char*)generate_md5sum(lzo_dir)=%s\n", md5sumStr, (char*)generate_md5sum(lzo_dir));
-                if(0 == strcmp(md5sumStr, (char*)generate_md5sum(lzo_dir)))  //generate_md5sum(lzo_dir),计算出来的接收完成的文件的md5sum值
+                printf("md5sumStr=%s, (char*)generate_md5sum(lzo_dir)=%s\n", md5sumStrTmp, (char*)generate_md5sum(lzo_dir));
+                if(0 == strcmp(md5sumStrTmp, (char*)generate_md5sum(lzo_dir)))  //generate_md5sum(lzo_dir),计算出来的接收完成的文件的md5sum值
                 {///发消息，接收OK
-                    JSONStr = writeJSON_RecvResult(lzo_dir ,dateStr, nameStr, MsgType, REV_SUCCESS);  //OK
+                    JSONStr = writeJSON_RecvResult(lzo_dir ,dateStrTmp, nameStrTmp, MsgTypeTmp, REV_SUCCESS);  //OK
                     printf("\n==========================================\n");
                     printf("Send ActiveMQ Success Msg!");
                     printf("------------------------------------------\n");
@@ -749,7 +773,7 @@ void fragmentProcess::des_fragment_traversal_imp(char *dir, char* _short_dir, ch
                 }
                 else
                 {
-                    JSONStr = writeJSON_RecvResult(lzo_dir, dateStr, nameStr, MsgType, REV_MD5SUM_NOT_MATCH); //MD5SUM not match
+                    JSONStr = writeJSON_RecvResult(lzo_dir, dateStrTmp, nameStrTmp, MsgType, REV_MD5SUM_NOT_MATCH); //MD5SUM not match
                     printf("\n==========================================\n");
                     printf("Send ActiveMQ MD5sum check fail Msg!");
                     printf("------------------------------------------\n");
@@ -759,7 +783,7 @@ void fragmentProcess::des_fragment_traversal_imp(char *dir, char* _short_dir, ch
         } else
         {
             ///发消息，接收失败
-            JSONStr = writeJSON_RecvResult(lzo_dir, dateStr, nameStr, MsgType, REV_NOT_COMPLETE); //cat fail, didnot get all fragments
+            JSONStr = writeJSON_RecvResult(lzo_dir, dateStrTmp, nameStrTmp, MsgType, REV_NOT_COMPLETE); //cat fail, didnot get all fragments
             printf("\n==========================================\n");
             printf("Send ActiveMQ fragments missing fail Msg!");
             printf("------------------------------------------\n");
@@ -776,8 +800,13 @@ void fragmentProcess::des_fragment_traversal_imp(char *dir, char* _short_dir, ch
         delete(output3Dir);
         delete(purename);
         delete(rename);
-    }
 
+        //add tmp start, 防止中途被改写
+        delete(md5sumStrTmp);
+        delete(dateStrTmp);
+        delete(nameStrTmp);
+        //add tmp end
+    }
 
     //切换到上一及目录
     chdir("..");
