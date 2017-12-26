@@ -8,59 +8,6 @@
 //+多线程打开
 
 
-#if 0
-#include "instructions/inirw.h"
-//http://bbs.csdn.net/topics/391842320
-int main(int argc, char* argv[])
-{
-    const char *file = "/home/montafan/Qt5.6.2/project/zbar_gige/instructions/inirw/config.ini";
-
-    char *sect;
-    char *key;
-    char value[256];
-    int intval;
-
-    printf("load file %s\n\n", file);
-    iniFileLoad(file);
-
-    sect = 0;
-    key = "_str001";
-    iniGetString(sect, key, value, sizeof(value), "notfound!");
-    printf("[%s] %s = %s\n", sect, key, value);
-
-    sect = "sect1";
-    key = "str001";
-    iniGetString(sect, key, value, sizeof(value), "notfound!");
-    printf("[%s] %s = %s\n", sect, key, value);
-
-    sect = "sect1";
-    key = "str005";
-    iniGetString(sect, key, value, sizeof(value), "notfound!");
-    printf("[%s] %s = %s\n", sect, key, value);
-
-    sect = "sEcT2";
-    key = "str002";
-    iniGetString(sect, key, value, sizeof(value), "notfound!");
-    printf("[%s] %s = %s\n", sect, key, value);
-
-    sect = "sect2";
-    key = "int002";
-    intval = iniGetInt(sect, key, 1000);
-    printf("[%s] %s = %d\n", sect, key, intval);
-
-    iniSetString("sect2", "str002", "\"v'a;l;u#e'002\"");
-    iniSetString("sect2", "str003", "value003");
-
-    iniSetInt("sect2", "int001", 100, 0);
-    iniSetInt("sect2", "int002", 200, 16);
-    iniSetInt("sect2", "int003", 300, 8);
-
-    getchar();
-}
-#endif
-
-
-
 #if 1
 #include "client/qrgenerator.h"
 #include <QApplication>
@@ -84,8 +31,6 @@ int main(int argc, char* argv[])
 
 int main(int argc, char* argv[])
 {
-//    qDebug()<<"a:"<<QString("你好")<<QString::fromUtf8("我好")
-//              <<QString::fromLocal8Bit("他好")<<QStringLiteral("荳也阜荳頑怙驕･霑懃噪霍晉ｦｻ - 蜑ｯ譛ｬ (2)");
 #ifdef DISPLAY_QRCODE
     //使用base64二次封装接口
     #if 0

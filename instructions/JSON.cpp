@@ -75,7 +75,7 @@ int readJSON()
 int readJSONMessage(std::string message)
 {
     //type: 1:udp 2:tcp
-    //string message = "{\"filename\":\"hu.png\",\"date\":\"2017-8-8\",\"size\":1077,\"md5sum\":\"d54646434003246e49eac0f2abe211a4\",\"type\": 1}";
+    //string message = "{\"filename\":\"hu.png\",\"date\":\"2017-8-8\",\"size\":1077,\"md5sum\":\"d54646434003246e49eac0f2abe211a4\",\"type\": 1, \"username\":\"admin\"}";
     Json::Reader reader(Json::Features::strictMode());
     Json::Value parseData;
 
@@ -90,7 +90,6 @@ int readJSONMessage(std::string message)
         if(parseData["restart"].isString())
         {
             LOG_LOW("restart message\n");
-            //string filename = parseData.get("restart", 0).asString();
             ResetVec.push_back(message);
         }
         else
@@ -101,6 +100,7 @@ int readJSONMessage(std::string message)
             int size = parseData.get("size", 0).asInt();
             string md5sum = parseData.get("md5sum", 0).asString();
             int type = parseData.get("type", 0).asInt();
+            string username = parseData.get("username", 0).asString();
 
             printf("\n\n\n========content=start=======\n"
                    "readJSONMessage(),\n"
@@ -109,7 +109,8 @@ int readJSONMessage(std::string message)
                    "size:%d,\n"
                    "md5sum:%s,\n"
                    "type:%d\n"
-                   "========content=end=======\n", filename.c_str(), date.c_str(), size, md5sum.c_str(), type);
+                   "username:%s,\n"
+                   "========content=end=======\n", filename.c_str(), date.c_str(), size, md5sum.c_str(), type, username.c_str());
 
             //将读取到的消息写到本地vector中
             ActiveMQVec receivedMessage;
@@ -119,6 +120,7 @@ int readJSONMessage(std::string message)
             receivedMessage.date = date;
             receivedMessage.md5sum = md5sum;
             receivedMessage.type =type;
+            receivedMessage.username =username;
             if(UDP == type)//UDP
             {
                 ///UDPVec.push_back(receivedMessage);
@@ -211,7 +213,7 @@ parseData["restart"].isString();
 }
 #endif
 
-string writeJSON_TransResult(const char *date, const char *d_name, int type, int Errno)
+string writeJSON_TransResult(const char *date, const char *d_name, int type, int Errno, const char *username)
 {
     // 生成json串
     Json::Value parseData;
@@ -221,6 +223,7 @@ string writeJSON_TransResult(const char *date, const char *d_name, int type, int
     parseData["filename"] = d_name;
     parseData["type"] = type;
     parseData["errno"] = Errno;
+    parseData["username"] = username;
 
     string result = fastWriter.write(parseData);
     printf("result: %s \n", result.c_str());
@@ -229,7 +232,7 @@ string writeJSON_TransResult(const char *date, const char *d_name, int type, int
 }
 
 
-string writeJSON_RecvResult(char *totalDir, char *date, char *d_name, int type, int Errno)
+string writeJSON_RecvResult(char *totalDir, char *date, char *d_name, int type, int Errno, const char *username)
 {
     // 生成json串
     Json::Value parseData;
@@ -240,6 +243,7 @@ string writeJSON_RecvResult(char *totalDir, char *date, char *d_name, int type, 
     parseData["path"] = totalDir;
     parseData["type"] = type;
     parseData["errno"] = Errno;
+    parseData["username"] = username;
 
     string result = fastWriter.write(parseData);
     printf("result: %s \n", result.c_str());

@@ -20,6 +20,7 @@ char *md5sumStr; //ini文件中保存的内容: md5sum
 char *pathStr;  //ini文件中保存的内容:path
 char *dateStr; //ini文件中保存的内容: date
 char *nameStr; //ini文件中保存的内容: name
+char *usernameStr; //ini文件中保存的内容: md5sum
 int MsgType;
 
 fragmentProcess::fragmentProcess()
@@ -47,6 +48,7 @@ fragmentProcess::~fragmentProcess()
     delete(pathStr);
     delete(dateStr);
     delete(nameStr);
+    delete(usernameStr);
     MsgType = UNKNOWN;
 
     //shut down ActiveMQCPP
@@ -67,11 +69,13 @@ int fragmentProcess::init(){
     pathStr = new char[PATH_MAX];
     dateStr = new char[DATE_MAX];
     nameStr = new char[NAME_MAX];
+    usernameStr = new char[NAME_MAX];
 
     memset(md5sumStr, 0, MD5SUM_MAX);
     memset(pathStr, 0, PATH_MAX);
     memset(dateStr, 0, DATE_MAX);
     memset(nameStr, 0, NAME_MAX);
+    memset(usernameStr, 0, NAME_MAX);
     MsgType = NORMAL;
 
     //init ActiveMQCPP
@@ -566,6 +570,7 @@ void fragmentProcess::des_fragment_traversal_imp(char *dir, char* _short_dir, ch
     char *dateStrTmp = new char[DATE_MAX]; //ini文件中保存的内容: date
     char *nameStrTmp = new char[NAME_MAX];//ini文件中保存的内容: name
     int MsgTypeTmp = 0;
+    char *usernameStrTmp = new char[NAME_MAX]; //ini文件中保存的内容: md5sum
 
     memset(md5sumStrTmp, 0 , MD5SUM_MAX);
     strcpy(md5sumStrTmp, md5sumStr);
@@ -574,6 +579,8 @@ void fragmentProcess::des_fragment_traversal_imp(char *dir, char* _short_dir, ch
     memset(nameStrTmp, 0 , NAME_MAX);
     strcpy(nameStrTmp, nameStr);
     MsgTypeTmp = MsgType;
+    memset(usernameStrTmp, 0 , NAME_MAX);
+    strcpy(usernameStrTmp, usernameStr);
     //add temp end
 
     //打开指定的目录，获得目录指针
@@ -765,7 +772,7 @@ void fragmentProcess::des_fragment_traversal_imp(char *dir, char* _short_dir, ch
                 printf("md5sumStr=%s, (char*)generate_md5sum(lzo_dir)=%s\n", md5sumStrTmp, (char*)generate_md5sum(lzo_dir));
                 if(0 == strcmp(md5sumStrTmp, (char*)generate_md5sum(lzo_dir)))  //generate_md5sum(lzo_dir),计算出来的接收完成的文件的md5sum值
                 {///发消息，接收OK
-                    JSONStr = writeJSON_RecvResult(lzo_dir ,dateStrTmp, nameStrTmp, MsgTypeTmp, REV_SUCCESS);  //OK
+                    JSONStr = writeJSON_RecvResult(lzo_dir ,dateStrTmp, nameStrTmp, MsgTypeTmp, REV_SUCCESS, usernameStrTmp);  //OK
                     printf("\n==========================================\n");
                     printf("Send ActiveMQ Success Msg!");
                     printf("------------------------------------------\n");
@@ -773,7 +780,7 @@ void fragmentProcess::des_fragment_traversal_imp(char *dir, char* _short_dir, ch
                 }
                 else
                 {
-                    JSONStr = writeJSON_RecvResult(lzo_dir, dateStrTmp, nameStrTmp, MsgType, REV_MD5SUM_NOT_MATCH); //MD5SUM not match
+                    JSONStr = writeJSON_RecvResult(lzo_dir, dateStrTmp, nameStrTmp, MsgType, REV_MD5SUM_NOT_MATCH, usernameStrTmp); //MD5SUM not match
                     printf("\n==========================================\n");
                     printf("Send ActiveMQ MD5sum check fail Msg!");
                     printf("------------------------------------------\n");
@@ -783,7 +790,7 @@ void fragmentProcess::des_fragment_traversal_imp(char *dir, char* _short_dir, ch
         } else
         {
             ///发消息，接收失败
-            JSONStr = writeJSON_RecvResult(lzo_dir, dateStrTmp, nameStrTmp, MsgType, REV_NOT_COMPLETE); //cat fail, didnot get all fragments
+            JSONStr = writeJSON_RecvResult(lzo_dir, dateStrTmp, nameStrTmp, MsgType, REV_NOT_COMPLETE, usernameStrTmp); //cat fail, didnot get all fragments
             printf("\n==========================================\n");
             printf("Send ActiveMQ fragments missing fail Msg!");
             printf("------------------------------------------\n");
@@ -805,6 +812,7 @@ void fragmentProcess::des_fragment_traversal_imp(char *dir, char* _short_dir, ch
         delete(md5sumStrTmp);
         delete(dateStrTmp);
         delete(nameStrTmp);
+        delete(usernameStrTmp);
         //add tmp end
     }
 

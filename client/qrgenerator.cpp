@@ -918,7 +918,8 @@ void QRGenerator::ProcessMsgQ(QString msg)
        int size = parseData.get("size", 0).asInt();
        std::string md5sum = parseData.get("md5sum", 0).asString();
        int type = parseData.get("type", 0).asInt();
-       printf("parseJSON(): filename:%s, date:%s, size:%d, md5sum:%s, type=%d\n", filename.c_str(), date.c_str(), size, md5sum.c_str(), type);
+       std::string username = parseData.get("username", 0).asString();
+       printf("parseJSON(): filename:%s, date:%s, size:%d, md5sum:%s, type=%d, username:%s\n", filename.c_str(), date.c_str(), size, md5sum.c_str(), type, username.c_str());
        if(UDP == type)
            printf("\n\n------------------UDP------------------\n");
        else if (NORMAL == type)
@@ -930,6 +931,7 @@ void QRGenerator::ProcessMsgQ(QString msg)
        receivedMessage.date = date;
        receivedMessage.md5sum = md5sum;
        receivedMessage.type =type;
+       receivedMessage.username = username;
     }
 
     //处理待发送文件
@@ -1091,11 +1093,11 @@ void QRGenerator::ProcessMsgQ(QString msg)
     string JSONStr;
     if(vecString.size() > 0)
     {
-        JSONStr = writeJSON_TransResult(receivedMessage.date.c_str(), receivedMessage.filename.c_str(), receivedMessage.type, TRANS_SUCCESS);
+        JSONStr = writeJSON_TransResult(receivedMessage.date.c_str(), receivedMessage.filename.c_str(), receivedMessage.type, TRANS_SUCCESS, receivedMessage.username.c_str());
     }
     else
     {
-        JSONStr = writeJSON_TransResult(receivedMessage.date.c_str(), receivedMessage.filename.c_str(), receivedMessage.type, TRANS_FAILED);
+        JSONStr = writeJSON_TransResult(receivedMessage.date.c_str(), receivedMessage.filename.c_str(), receivedMessage.type, TRANS_FAILED, receivedMessage.username.c_str());
     }
     SetActiveMQMessage(JSONStr);
 #endif

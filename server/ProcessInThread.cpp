@@ -26,6 +26,7 @@ extern char *pathStr;  //ini文件中保存的内容:path
 extern char *dateStr; //ini文件中保存的内容: date
 extern char *nameStr; //ini文件中保存的内容: name
 extern int MsgType;
+extern char *usernameStr; //ini文件中保存的内容: name
 
 ProcessInThread::ProcessInThread()
 {
@@ -192,6 +193,7 @@ int ProcessInThread::des_prestart_content_receiver(char *QRdata)
     char *ini_name  = new char[NAME_MAX];
     char typeStr[16] = {0};
     char *md5sum  = new char[MD5SUM_MAX];
+    char *username  = new char[NAME_MAX];
     int type = NORMAL;
 
     LOG_DBG("des_prestart_content_receiver\n");
@@ -203,6 +205,7 @@ int ProcessInThread::des_prestart_content_receiver(char *QRdata)
     memset(d_name, 0, NAME_MAX);
     memset(ini_name, 0, NAME_MAX);
     memset(md5sum, 0, MD5SUM_MAX);
+    memset(username, 0, NAME_MAX);
 
     *offset = 0;
     //temp
@@ -224,6 +227,7 @@ int ProcessInThread::des_prestart_content_receiver(char *QRdata)
         delete(date);
         delete(d_name);
         delete(ini_name);
+        delete(username);
 
         return -3;
     }
@@ -232,8 +236,8 @@ int ProcessInThread::des_prestart_content_receiver(char *QRdata)
     pureQRdata = pureQRdata + *offset;
 
     //拆分relative_dir，获取日期，文件名与配置文件名
-    cutINIHeadData(relative_dir, date, d_name, ini_name, typeStr, md5sum);
-    LOG_DBG("des_prestart_content_receiver, Start, relative_dir=%s, dateStr=%s, nameStr=%s, ini_name=%s, md5sum=%s\n", relative_dir, date, d_name, ini_name, md5sum);
+    cutINIHeadData(relative_dir, date, d_name, ini_name, typeStr, md5sum, username);
+    LOG_DBG("des_prestart_content_receiver, Start, relative_dir=%s, dateStr=%s, nameStr=%s, ini_name=%s, md5sum=%s, username=%s\n", relative_dir, date, d_name, ini_name, md5sum, username);
     if(NO_ERROR != ret)
     {
         LOG_ERR("%s, cutINIHeadData err, ret=%d\n",__func__, ret);
@@ -247,6 +251,7 @@ int ProcessInThread::des_prestart_content_receiver(char *QRdata)
         delete(date);
         delete(d_name);
         delete(ini_name);
+        delete(username);
         return -4;
     }
 
@@ -323,6 +328,7 @@ int ProcessInThread::des_prestart_content_receiver(char *QRdata)
     strcpy(nameStr, d_name);
     MsgType = type;
     strcpy(md5sumStr, md5sum);
+    strcpy(usernameStr, username);
 
     LOG_DBG("des_prestart_content_receiver,End, dateStr=%s, nameStr=%s, MsgType=%d, md5sumStr=%s\n",dateStr, nameStr, MsgType, md5sumStr);
     //给全局变量赋值，遍历碎片之前使用end
@@ -337,6 +343,7 @@ int ProcessInThread::des_prestart_content_receiver(char *QRdata)
     delete(date);
     delete(d_name);
     delete(ini_name);
+    delete(username);
     return NO_ERROR;
 }
 

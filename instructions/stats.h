@@ -29,11 +29,11 @@ int fragment_traversal();
 //切割activeMQ命令中待传输的文件
 int file_select(activeMQVec msg, const char* jsonStr);
 //遍历3文件夹中的文件，并生成4中的碎片
-void src_file_select_imp(char *dir, char* _short_dir, char *_2_dir, char *_3_dir, char *_4_dir, char *date, char *d_name, int type, const char* jsonstr);
+void src_file_select_imp(char *dir, char* _short_dir, char *_2_dir, char *_3_dir, char *_4_dir, char *date, char *d_name, int type, const char* jsonstr, char *username);
 
 ///处理配置文件
 int ini_select(activeMQVec msg);
-void src_ini_select_imp(char *date, char *d_name, int type, char *md5sum);
+void src_ini_select_imp(char *date, char *d_name, int type, char *md5sum, char *username);
 
 ///处理碎片
 //遍历日期目录下的碎片
@@ -62,7 +62,7 @@ int cutDirName(char *instr, char *filename);
 int getUpperTotalDir(char *instr);
 int cutFileName(char *instr, char *filename);
 
-int cutINIHeadData(char *relative_dir, char *date, char *name, char *ini_name, char *typeStr, char *md5sum);
+int cutINIHeadData(char *relative_dir, char *date, char *name, char *ini_name, char *typeStr, char *md5sum, char *username);
 int cutHeadData(char *relative_dir, char *date, char *name);
 
 int CompletePath();

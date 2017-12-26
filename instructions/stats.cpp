@@ -858,10 +858,12 @@ int file_select(activeMQVec msg, const char* jsonStr)
         //char d_name[NAME_MAX] = "hu.png";
         char date[PATH_MAX] ={0};
         char d_name[PATH_MAX] ={0};
+        char username[NAME_MAX] ={0};
 
         //避免传const
         strcpy(date, msg.date.c_str());
         strcpy(d_name, msg.filename.c_str());
+        strcpy(username, msg.username.c_str());
 
         printf("Directory scan of %s\n",topDir);
 
@@ -887,7 +889,7 @@ int file_select(activeMQVec msg, const char* jsonStr)
         //fclose(ini_folder);
 
         ///不遍历文件，改为解析JSON中的文件名
-        src_file_select_imp(topDir, relativeDir,_2_dir, _3_dir, _4_dir, date, d_name, msg.type, jsonStr);
+        src_file_select_imp(topDir, relativeDir,_2_dir, _3_dir, _4_dir, date, d_name, msg.type, jsonStr, username);
         printf("src_file_select_imp(), Done\n");
     }
     else if(NORMAL == msg.type)
@@ -902,10 +904,12 @@ int file_select(activeMQVec msg, const char* jsonStr)
         //char d_name[NAME_MAX] = "hu.png";
         char date[PATH_MAX] ={0};
         char d_name[PATH_MAX] ={0};
+        char username[NAME_MAX] ={0};
 
         //避免传const
         strcpy(date, msg.date.c_str());
         strcpy(d_name, msg.filename.c_str());
+        strcpy(username, msg.username.c_str());
 
         printf("Directory scan of %s\n",topDir);
 
@@ -931,7 +935,7 @@ int file_select(activeMQVec msg, const char* jsonStr)
         //fclose(ini_folder);
 
         ///不遍历文件，改为解析JSON中的文件名
-        src_file_select_imp(topDir, relativeDir,_2_dir, _3_dir, _4_dir, date, d_name, msg.type, jsonStr);
+        src_file_select_imp(topDir, relativeDir,_2_dir, _3_dir, _4_dir, date, d_name, msg.type, jsonStr, username);
         printf("Nomal, src_file_select_imp(), Done\n");
     }
 
@@ -939,7 +943,7 @@ int file_select(activeMQVec msg, const char* jsonStr)
     return 0;
 }
 
-void src_file_select_imp(char *dir, char* _short_dir, char *_2_dir, char *_3_dir, char *_4_dir, char *date, char *d_name, int type, const char* jsonStr)
+void src_file_select_imp(char *dir, char* _short_dir, char *_2_dir, char *_3_dir, char *_4_dir, char *date, char *d_name, int type, const char* jsonStr, char *username)
 {
     //文件目录结构体
     struct dirent *enty;
@@ -1055,7 +1059,7 @@ void src_file_select_imp(char *dir, char* _short_dir, char *_2_dir, char *_3_dir
         iniSetString(value, "path", relative_dir);//path
         iniSetInt(value, "size", statbuf.st_size, 0);//size
         iniSetString(value, "md5sum", (char*)generate_md5sum(total_dir));//md5sum   or (char*)md5sum_str_hex
-        ///将JSON消息通过config.ini传给接收端
+        iniSetString(value, "username", username);
         iniSetString(value, "JSON", jsonStr);//JSON消息体
 
         //getTimestamp();
@@ -1196,21 +1200,23 @@ int ini_select(activeMQVec msg)
     char date[PATH_MAX] = {0};
     char d_name[NAME_MAX] = {0};
     char md5sum[MD5SUM_MAX] = {0};
+    char username[NAME_MAX] = {0};
 
     //避免传const
     strcpy(date, msg.date.c_str());
     strcpy(d_name, msg.filename.c_str());
     strcpy(md5sum, msg.md5sum.c_str());
+    strcpy(username, msg.username.c_str());
 
 
-    src_ini_select_imp(date, d_name, msg.type, md5sum);
+    src_ini_select_imp(date, d_name, msg.type, md5sum, username);
     //printf("ini_traversalDone\n");
 
     return 0;
 }
 
 //报头文件碎片化
-void src_ini_select_imp(char *date, char *d_name, int type ,char *md5sum)
+void src_ini_select_imp(char *date, char *d_name, int type ,char *md5sum, char *username)
 {
     //目录位置
     char *config_dir;
@@ -1256,7 +1262,7 @@ void src_ini_select_imp(char *date, char *d_name, int type ,char *md5sum)
     }
     //待写入碎片的相对位置
     ///sprintf(relative_path, "%s/%s/config.ini/",date,d_name);
-    sprintf(relative_path, "%s/%s/config.ini/%d/%s",date,d_name,type, md5sum); //加入type类型，1或者2
+    sprintf(relative_path, "%s/%s/config.ini/%d/%s/%s",date,d_name,type, md5sum, username); //加入type类型，1或者2
 
     ///后续在此添加报头
     //方法:遍历时读取，并添加内容
@@ -1265,7 +1271,7 @@ void src_ini_select_imp(char *date, char *d_name, int type ,char *md5sum)
         mkdir(config_dir, S_IRWXU|S_IRWXG|S_IRWXO);///这里的_3_split_dir是目录，不是文件，存放切割后的碎片
     }
 
-    split_ini(config_ini_dir, config_dir, relative_path/*"config.ini/2/md5sum"*/, BLOCK_SIZE); ///这里的_3_split_dir是目录，不是文件，存放切割后的碎片
+    split_ini(config_ini_dir, config_dir, relative_path/*"config.ini/2/md5sum/MontaFan"*/, BLOCK_SIZE); ///这里的_3_split_dir是目录，不是文件，存放切割后的碎片
 
 #if 0
     //单个文件不需要folder信息
@@ -1964,7 +1970,7 @@ int cutFileName(char *instr, char *filename)
 }
 
 ////拆分relative_dir，获取日期，文件名与配置文件名
-int cutINIHeadData(char *relative_dir, char *date, char *name, char *ini_name, char *typeStr, char *md5sum)
+int cutINIHeadData(char *relative_dir, char *date, char *name, char *ini_name, char *typeStr, char *md5sum, char *username)
 {
     int cnt;
     int len;
@@ -2016,6 +2022,10 @@ int cutINIHeadData(char *relative_dir, char *date, char *name, char *ini_name, c
             }
             else if (4 == cnt){
                 md5sum[j] = pp[i];
+                j++;
+            }
+            else if (5 == cnt){
+                username[j] = pp[i];
                 j++;
             }
         }

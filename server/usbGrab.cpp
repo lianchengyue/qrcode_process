@@ -94,6 +94,12 @@ int usbGrab::grab()
         }
 
 
+        //test
+        //char *testchar = new char[4096];
+        //if(500 == mPreviewFrames)
+        //{
+        //    exit(1);
+        //}
 #ifdef USE_MUTIPLE_THREAD
         #ifdef IMAGEGRAY_DEBUG_FUNC
         Mat imageGray;
