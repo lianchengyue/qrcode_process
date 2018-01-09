@@ -953,6 +953,7 @@ int fragmentProcess::SetActiveMQMessage(string JSONStr)
     std::string brokerURI ="failover://(tcp://114.55.4.189:61616)";
 #endif
     unsigned int numMessages = 1;
+    //接收端的接收结果de队列名
     std::string destURI = "receive.queue";
 
     bool useTopics = false;

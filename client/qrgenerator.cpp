@@ -1177,6 +1177,7 @@ int QRGenerator::SetActiveMQMessage(string JSONStr)
     std::string ProducebrokerURI ="failover://(tcp://114.55.4.189:61616)";
 #endif
     unsigned int numMessages = 1;
+    //发送端的发送结果de队列名
     std::string destURI = "transmit.queue";
 
     bool useTopics = false;

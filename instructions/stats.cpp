@@ -1071,6 +1071,8 @@ void src_file_select_imp(char *dir, char* _short_dir, char *_2_dir, char *_3_dir
         //FILE *out_3_file = fopen(_3_split_dir, "wb");
         //FILE *out_4_file = fopen(_4_base64_encode_dir, "wb"); //temp delete
 
+        //<BLOCK_SIZE时，不生成压缩包，导致接收不到文件,added
+#if 0
         if((statbuf.st_size > 0) && (statbuf.st_size < BLOCK_SIZE)){
             //copy to des
             FILE *out_2_file = fopen(_2_lzo_dir, "wb");
@@ -1095,7 +1097,10 @@ void src_file_select_imp(char *dir, char* _short_dir, char *_2_dir, char *_3_dir
             fclose(out_2_file);
             fclose(out_3_file);
         }
-        else {
+        else
+#endif
+        //<BLOCK_SIZE时，不生成压缩包，导致接收不到文件,end
+        {
         //else if((statbuf.st_size > BLOCK_SIZE) && (statbuf.st_size < BLOCK_SIZE*512)) {//<1M
             //copy to des
             char *des_buf = new char[statbuf.st_size];
